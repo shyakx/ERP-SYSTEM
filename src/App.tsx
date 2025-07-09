@@ -6,19 +6,44 @@ import Layout from './components/Layout/Layout';
 import LoginForm from './components/Auth/LoginForm';
 import ProtectedRoute from './components/Common/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
-import Employees from './pages/Employees';
-import Shifts from './pages/Shifts';
-import Attendance from './pages/Attendance';
-import Payroll from './pages/Payroll';
-import Clients from './pages/Clients';
-import Invoicing from './pages/Invoicing';
-import Assets from './pages/Assets';
-import Incidents from './pages/Incidents';
-import Documents from './pages/Documents';
-import Reports from './pages/Reports';
-import Audit from './pages/Audit';
-import SettingsPage from './pages/Settings';
+import Employees from './pages/HR/Employees';
+import Shifts from './pages/Operations/Shifts';
+import Attendance from './pages/HR/Attendance';
+import Payroll from './pages/HR/Payroll';
+import Clients from './pages/ClientManagement/Clients';
+import Invoicing from './pages/Finance/Invoicing';
+import Assets from './pages/Inventory/Assets';
+import Incidents from './pages/Operations/Incidents';
+import Documents from './pages/Compliance/Documents';
+import Reports from './pages/Finance/Reports';
+import Audit from './pages/Compliance/Audit';
+import SettingsPage from './pages/ITSupport/Settings';
 import ComingSoon from './pages/ComingSoon';
+import HRDashboard from './pages/HR/Dashboard';
+import OperationsDashboard from './pages/Operations/Dashboard';
+import FinanceDashboard from './pages/Finance/Dashboard';
+import InventoryDashboard from './pages/Inventory/Dashboard';
+import ITSupportDashboard from './pages/ITSupport/Dashboard';
+import ComplianceDashboard from './pages/Compliance/Dashboard';
+import SalesMarketingDashboard from './pages/SalesMarketing/Dashboard';
+import ClientManagementDashboard from './pages/ClientManagement/Dashboard';
+
+const DepartmentDashboardRedirect: React.FC = () => {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/login" replace />;
+  const dept = user.department?.toLowerCase();
+  switch (dept) {
+    case 'hr': return <Navigate to="/hr/dashboard" replace />;
+    case 'operations': return <Navigate to="/operations/dashboard" replace />;
+    case 'finance': return <Navigate to="/finance/dashboard" replace />;
+    case 'inventory': return <Navigate to="/inventory/dashboard" replace />;
+    case 'itsupport': return <Navigate to="/itsupport/dashboard" replace />;
+    case 'compliance': return <Navigate to="/compliance/dashboard" replace />;
+    case 'salesmarketing': return <Navigate to="/salesmarketing/dashboard" replace />;
+    case 'clientmanagement': return <Navigate to="/clientmanagement/dashboard" replace />;
+    default: return <Navigate to="/" replace />;
+  }
+};
 
 const AppContent: React.FC = () => {
   const { isAuthenticated, loading } = useAuth();
@@ -35,7 +60,7 @@ const AppContent: React.FC = () => {
     <Routes>
       <Route 
         path="/login" 
-        element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginForm />} 
+        element={isAuthenticated ? <DepartmentDashboardRedirect /> : <LoginForm />} 
       />
       <Route 
         path="/" 
@@ -45,8 +70,16 @@ const AppContent: React.FC = () => {
           </ProtectedRoute>
         }
       >
-        <Route index element={<Navigate to="/dashboard" replace />} />
-        <Route path="dashboard" element={<Dashboard />} />
+        <Route index element={<DepartmentDashboardRedirect />} />
+        <Route path="dashboard" element={<DepartmentDashboardRedirect />} />
+        <Route path="hr/dashboard" element={<HRDashboard />} />
+        <Route path="operations/dashboard" element={<OperationsDashboard />} />
+        <Route path="finance/dashboard" element={<FinanceDashboard />} />
+        <Route path="inventory/dashboard" element={<InventoryDashboard />} />
+        <Route path="itsupport/dashboard" element={<ITSupportDashboard />} />
+        <Route path="compliance/dashboard" element={<ComplianceDashboard />} />
+        <Route path="salesmarketing/dashboard" element={<SalesMarketingDashboard />} />
+        <Route path="clientmanagement/dashboard" element={<ClientManagementDashboard />} />
         <Route path="employees" element={<Employees />} />
         <Route path="shifts" element={<Shifts />} />
         <Route path="attendance" element={<Attendance />} />
@@ -60,7 +93,7 @@ const AppContent: React.FC = () => {
         <Route path="audit" element={<Audit />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<DepartmentDashboardRedirect />} />
     </Routes>
   );
 };

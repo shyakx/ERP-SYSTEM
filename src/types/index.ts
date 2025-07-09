@@ -3,6 +3,7 @@ export interface User {
   email: string;
   name: string;
   role: UserRole;
+  department: string; // Added for department-based routing
   avatar?: string;
   createdAt: string;
   lastLogin?: string;

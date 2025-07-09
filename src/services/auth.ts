@@ -51,17 +51,23 @@ const mockUsers: User[] = [
 
 export const authService = {
   login: async (email: string, password: string): Promise<{ user: User; token: string } | null> => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const user = mockUsers.find(u => u.email === email);
-    if (user && password === 'password123') {
-      const token = `jwt-token-${user.id}-${Date.now()}`;
-      localStorage.setItem('auth-token', token);
-      localStorage.setItem('user-data', JSON.stringify(user));
-      return { user, token };
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!response.ok) return null;
+      const data = await response.json();
+      if (data.user && data.token) {
+        localStorage.setItem('auth-token', data.token);
+        localStorage.setItem('user-data', JSON.stringify(data.user));
+        return { user: data.user, token: data.token };
+      }
+      return null;
+    } catch {
+      return null;
     }
-    return null;
   },
 
   logout: () => {

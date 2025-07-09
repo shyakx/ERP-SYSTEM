@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Shield, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -10,6 +11,7 @@ const LoginForm: React.FC = () => {
   const [error, setError] = useState('');
 
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,6 +22,13 @@ const LoginForm: React.FC = () => {
       const success = await login(email, password);
       if (!success) {
         setError('Invalid email or password');
+      } else {
+        const userData = JSON.parse(localStorage.getItem('user-data') || '{}');
+        if (userData && userData.department) {
+          navigate(`/${userData.department.toLowerCase()}/dashboard`);
+        } else {
+          navigate('/');
+        }
       }
     } catch (error) {
       setError('Login failed. Please try again.');
