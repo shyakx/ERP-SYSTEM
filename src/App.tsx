@@ -7,7 +7,7 @@ import LoginForm from './components/Auth/LoginForm';
 import ProtectedRoute from './components/Common/ProtectedRoute';
 import Dashboard from './pages/Dashboard';
 import Employees from './pages/HR/Employees';
-import Shifts from './pages/Operations/Shifts';
+import Shifts from './pages/HR/Shifts';
 import Attendance from './pages/HR/Attendance';
 import Payroll from './pages/HR/Payroll';
 import Clients from './pages/ClientManagement/Clients';
@@ -27,6 +27,9 @@ import ITSupportDashboard from './pages/ITSupport/Dashboard';
 import ComplianceDashboard from './pages/Compliance/Dashboard';
 import SalesMarketingDashboard from './pages/SalesMarketing/Dashboard';
 import ClientManagementDashboard from './pages/ClientManagement/Dashboard';
+import AddEmployee from './pages/HR/AddEmployee';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const DepartmentDashboardRedirect: React.FC = () => {
   const { user } = useAuth();
@@ -81,7 +84,8 @@ const AppContent: React.FC = () => {
         <Route path="salesmarketing/dashboard" element={<SalesMarketingDashboard />} />
         <Route path="clientmanagement/dashboard" element={<ClientManagementDashboard />} />
         <Route path="employees" element={<Employees />} />
-        <Route path="shifts" element={<Shifts />} />
+        <Route path="add-employee" element={<AddEmployee />} />
+        <Route path="hr/shifts" element={<Shifts />} />
         <Route path="attendance" element={<Attendance />} />
         <Route path="payroll" element={<Payroll />} />
         <Route path="invoicing" element={<Invoicing />} />
@@ -103,9 +107,10 @@ function App() {
     <AuthProvider>
       <Router>
         <AppContent />
+        <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
       </Router>
     </AuthProvider>
   );
 }
 
-export default App;
+export default App; 

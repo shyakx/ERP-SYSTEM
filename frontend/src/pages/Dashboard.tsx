@@ -1,11 +1,13 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { roleDisplayNames } from '../config/menu';
 import StatsCard from '../components/Dashboard/StatsCard';
 import { Calendar, Clock, Users, AlertTriangle, DollarSign, Package } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const getStatsForRole = () => {
     const baseStats = [
@@ -118,7 +120,10 @@ const Dashboard: React.FC = () => {
           </div>
           <div className="p-6">
             <div className="grid grid-cols-2 gap-4">
-              <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              <button 
+                onClick={() => navigate('/add-employee')}
+                className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              >
                 <Users className="w-6 h-6 text-blue-600 mb-2" />
                 <p className="text-sm font-medium text-gray-900">Add Employee</p>
               </button>

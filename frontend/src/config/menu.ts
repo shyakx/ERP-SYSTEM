@@ -19,8 +19,8 @@ export const menuItems: MenuItem[] = [
     id: 'shifts',
     title: 'Shift Scheduling',
     icon: 'Clock',
-    path: '/shifts',
-    roles: ['system_admin', 'hr_manager', 'operations_supervisor', 'field_officer', 'security_guard']
+    path: '/hr/shifts',
+    roles: ['system_admin', 'hr_manager', 'hr_assistant', 'operations_supervisor', 'field_officer', 'security_guard']
   },
   {
     id: 'attendance',

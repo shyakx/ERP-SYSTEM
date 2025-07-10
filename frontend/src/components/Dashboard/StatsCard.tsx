@@ -5,7 +5,7 @@ interface StatsCardProps {
   title: string;
   value: string | number;
   icon: string;
-  color: 'blue' | 'green' | 'yellow' | 'red' | 'purple' | 'indigo';
+  color: 'blue' | 'green' | 'yellow' | 'red' | 'purple' | 'indigo' | 'orange';
   trend?: {
     direction: 'up' | 'down';
     value: string;
@@ -24,7 +24,8 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon, color, trend 
     yellow: 'bg-yellow-500 text-yellow-600 bg-yellow-50',
     red: 'bg-red-500 text-red-600 bg-red-50',
     purple: 'bg-purple-500 text-purple-600 bg-purple-50',
-    indigo: 'bg-indigo-500 text-indigo-600 bg-indigo-50'
+    indigo: 'bg-indigo-500 text-indigo-600 bg-indigo-50',
+    orange: 'bg-orange-500 text-orange-600 bg-orange-50'
   };
 
   return (

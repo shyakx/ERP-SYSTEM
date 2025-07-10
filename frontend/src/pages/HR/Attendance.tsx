@@ -1,6 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Clock, Users, CheckCircle, XCircle, AlertTriangle, Search, Filter, Download, Calendar, UserCheck } from 'lucide-react';
+import { 
+  UserCheck, 
+  XCircle, 
+  AlertTriangle, 
+  Clock, 
+  Search, 
+  Filter, 
+  Download,
+  CheckCircle,
+  Calendar,
+  MapPin,
+  Users
+} from 'lucide-react';
+
+interface Employee {
+  id: string;
+  name: string;
+  position: string;
+  department: string;
+  email: string;
+  phone: string;
+}
 
 interface AttendanceRecord {
   id: string;
@@ -16,91 +37,84 @@ interface AttendanceRecord {
   shiftId?: string;
 }
 
-// Mock data for development
-const mockAttendance: AttendanceRecord[] = [
-  {
-    id: '1',
-    employeeId: 'EMP001',
-    employeeName: 'John Smith',
-    date: '2024-01-15',
-    clockIn: '08:00',
-    clockOut: '16:00',
-    totalHours: 8,
-    status: 'present',
-    location: 'Downtown Office Building',
-    notes: 'Regular shift',
-    shiftId: 'SHIFT001'
-  },
-  {
-    id: '2',
-    employeeId: 'EMP002',
-    employeeName: 'Sarah Johnson',
-    date: '2024-01-15',
-    clockIn: '16:05',
-    clockOut: '00:00',
-    totalHours: 7.92,
-    status: 'late',
-    location: 'Shopping Mall',
-    notes: '5 minutes late due to traffic',
-    shiftId: 'SHIFT002'
-  },
-  {
-    id: '3',
-    employeeId: 'EMP003',
-    employeeName: 'Michael Brown',
-    date: '2024-01-15',
-    clockIn: '00:00',
-    status: 'present',
-    location: 'Industrial Complex',
-    notes: 'Night shift in progress',
-    shiftId: 'SHIFT003'
-  },
-  {
-    id: '4',
-    employeeId: 'EMP004',
-    employeeName: 'Lisa Davis',
-    date: '2024-01-15',
-    clockIn: '09:00',
-    clockOut: '17:00',
-    totalHours: 8,
-    status: 'present',
-    location: 'Corporate Headquarters',
-    notes: 'Regular shift',
-    shiftId: 'SHIFT004'
-  },
-  {
-    id: '5',
-    employeeId: 'EMP005',
-    employeeName: 'David Wilson',
-    date: '2024-01-15',
-    status: 'absent',
-    location: 'Event Center',
-    notes: 'Called in sick',
-    shiftId: 'SHIFT005'
-  }
-];
+interface RecentActivity {
+  id: string;
+  type: 'clock_in' | 'clock_out' | 'leave_request' | 'overtime';
+  employeeName: string;
+  time: string;
+  description: string;
+}
 
 const Attendance: React.FC = () => {
   const { user } = useAuth();
-  const [attendance, setAttendance] = useState<AttendanceRecord[]>(mockAttendance);
+  const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [dateFilter, setDateFilter] = useState<string>('');
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState(new Date().toISOString().split('T')[0]);
   const [showClockInModal, setShowClockInModal] = useState(false);
   const [showClockOutModal, setShowClockOutModal] = useState(false);
+  const [selectedEmployeeForClockIn, setSelectedEmployeeForClockIn] = useState('');
+  const [selectedEmployeeForClockOut, setSelectedEmployeeForClockOut] = useState('');
+  const [selectedRecordForClockOut, setSelectedRecordForClockOut] = useState<AttendanceRecord | null>(null);
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
+
+  useEffect(() => {
+    fetchAttendance();
+    fetchEmployees();
+  }, []);
+
+  const fetchAttendance = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:5000/api/attendance');
+      if (!response.ok) throw new Error('Failed to fetch attendance');
+      const data = await response.json();
+      
+      // Transform the data to match our frontend interface
+      const transformedData = data.map((record: any) => ({
+        id: record.id.toString(),
+        employeeId: record.employee_id,
+        employeeName: record.employee_name || 'Unknown Employee',
+        date: record.date,
+        clockIn: record.clock_in,
+        clockOut: record.clock_out,
+        totalHours: record.total_hours,
+        status: record.status,
+        location: record.location,
+        notes: record.notes,
+        shiftId: record.shift_id
+      }));
+      
+      setAttendance(transformedData);
+    } catch (error) {
+      console.error('Error fetching attendance:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchEmployees = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/employees');
+      if (!response.ok) throw new Error('Failed to fetch employees');
+      const data = await response.json();
+      setEmployees(data);
+    } catch (error) {
+      console.error('Error fetching employees:', error);
+    }
+  };
 
   const canManageAttendance = user?.role === 'system_admin' || user?.role === 'hr_manager' || user?.role === 'operations_supervisor' || user?.role === 'field_officer';
 
-  const filteredAttendance = attendance.filter(record => {
-    const matchesSearch = record.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         record.employeeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         record.location.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || record.status === statusFilter;
-    const matchesDate = !dateFilter || record.date === dateFilter;
-    
-    return matchesSearch && matchesStatus && matchesDate;
-  });
+  const filteredAttendance = attendance
+    .filter(record => 
+      record.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      record.employeeId.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .filter(record => statusFilter === 'all' || record.status === statusFilter)
+    .filter(record => !dateFilter || record.date === dateFilter);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -114,11 +128,11 @@ const Attendance: React.FC = () => {
   };
 
   const formatTime = (time: string) => {
-    const [hours, minutes] = time.split(':');
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${displayHour}:${minutes} ${ampm}`;
+    return new Date(`2000-01-01T${time}`).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
   };
 
   const formatDate = (dateString: string) => {
@@ -151,36 +165,84 @@ const Attendance: React.FC = () => {
     return getTodayAttendance().reduce((total, record) => total + (record.totalHours || 0), 0);
   };
 
-  const handleClockIn = (employeeId: string) => {
+  const handleClockIn = async () => {
+    if (!selectedEmployeeForClockIn) return;
+    
     const now = new Date();
     const currentTime = now.toTimeString().split(' ')[0];
     const today = now.toISOString().split('T')[0];
     
-    const newRecord: AttendanceRecord = {
-      id: `ATT${Date.now()}`,
-      employeeId,
-      employeeName: 'Current User', // This would come from the actual employee data
-      date: today,
-      clockIn: currentTime,
-      status: 'present',
-      location: 'Main Office',
-      notes: 'Clock in via system'
-    };
+    const selectedEmployee = employees.find(emp => emp.id === selectedEmployeeForClockIn);
     
-    setAttendance([...attendance, newRecord]);
-    setShowClockInModal(false);
+    try {
+      const response = await fetch('http://localhost:5000/api/attendance/clock-in', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          employeeId: selectedEmployeeForClockIn,
+          location: 'Main Office',
+          notes: 'Clock in via system'
+        }),
+      });
+
+      if (response.ok) {
+        await fetchAttendance(); // Refresh the attendance data
+        setShowClockInModal(false);
+        setSelectedEmployeeForClockIn('');
+      } else {
+        const errorData = await response.json();
+        alert(`Error: ${errorData.error}`);
+      }
+    } catch (error) {
+      console.error('Error clocking in:', error);
+      alert('Error clocking in. Please try again.');
+    }
   };
 
-  const handleClockOut = (recordId: string) => {
+  const handleClockOut = async () => {
+    if (!selectedRecordForClockOut) return;
+    
     const now = new Date();
     const currentTime = now.toTimeString().split(' ')[0];
     
-    setAttendance(attendance.map(record => 
-      record.id === recordId 
-        ? { ...record, clockOut: currentTime, totalHours: 8 } // Simplified calculation
-        : record
-    ));
-    setShowClockOutModal(false);
+    try {
+      const response = await fetch('http://localhost:5000/api/attendance/clock-out', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          employeeId: selectedRecordForClockOut.employeeId
+        }),
+      });
+
+      if (response.ok) {
+        await fetchAttendance(); // Refresh the attendance data
+        setShowClockOutModal(false);
+        setSelectedRecordForClockOut(null);
+      } else {
+        const errorData = await response.json();
+        alert(`Error: ${errorData.error}`);
+      }
+    } catch (error) {
+      console.error('Error clocking out:', error);
+      alert('Error clocking out. Please try again.');
+    }
+  };
+
+  const getActiveEmployees = () => {
+    return employees.filter(emp => emp.id !== '');
+  };
+
+  const getEmployeesForClockOut = () => {
+    const today = new Date().toISOString().split('T')[0];
+    return attendance.filter(record => 
+      record.date === today && 
+      record.clockIn && 
+      !record.clockOut
+    );
   };
 
   return (
@@ -357,7 +419,10 @@ const Attendance: React.FC = () => {
                     <div className="flex justify-end space-x-2">
                       {!record.clockOut && record.clockIn && (
                         <button
-                          onClick={() => handleClockOut(record.id)}
+                          onClick={() => {
+                            setSelectedRecordForClockOut(record);
+                            setShowClockOutModal(true);
+                          }}
                           className="text-red-600 hover:text-red-900 p-1"
                           title="Clock Out"
                         >
@@ -366,7 +431,10 @@ const Attendance: React.FC = () => {
                       )}
                       {!record.clockIn && (
                         <button
-                          onClick={() => handleClockIn(record.employeeId)}
+                          onClick={() => {
+                            setSelectedEmployeeForClockIn(record.employeeId);
+                            setShowClockInModal(true);
+                          }}
                           className="text-green-600 hover:text-green-900 p-1"
                           title="Clock In"
                         >
@@ -406,13 +474,15 @@ const Attendance: React.FC = () => {
             <div className="p-6">
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Employee</label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                  <option>Select Employee</option>
-                  <option>John Smith</option>
-                  <option>Sarah Johnson</option>
-                  <option>Michael Brown</option>
-                  <option>Lisa Davis</option>
-                  <option>David Wilson</option>
+                <select
+                  value={selectedEmployeeForClockIn}
+                  onChange={(e) => setSelectedEmployeeForClockIn(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select Employee</option>
+                  {getActiveEmployees().map(emp => (
+                    <option key={emp.id} value={emp.id}>{emp.name}</option>
+                  ))}
                 </select>
               </div>
               <div className="mb-4">
@@ -432,8 +502,9 @@ const Attendance: React.FC = () => {
                 Cancel
               </button>
               <button 
-                onClick={() => handleClockIn('EMP001')}
+                onClick={handleClockIn}
                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                disabled={!selectedEmployeeForClockIn}
               >
                 Clock In
               </button>
@@ -443,7 +514,7 @@ const Attendance: React.FC = () => {
       )}
 
       {/* Clock Out Modal */}
-      {showClockOutModal && (
+      {showClockOutModal && selectedRecordForClockOut && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
             <div className="p-6 border-b border-gray-200">
@@ -452,29 +523,36 @@ const Attendance: React.FC = () => {
             <div className="p-6">
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Employee</label>
-                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                  <option>Select Employee</option>
-                  <option>John Smith</option>
-                  <option>Sarah Johnson</option>
-                  <option>Michael Brown</option>
-                  <option>Lisa Davis</option>
-                  <option>David Wilson</option>
-                </select>
+                <div className="px-3 py-2 border border-gray-300 rounded-lg bg-gray-50">
+                  <div className="text-sm font-medium text-gray-900">{selectedRecordForClockOut.employeeName}</div>
+                  <div className="text-xs text-gray-500">ID: {selectedRecordForClockOut.employeeId}</div>
+                </div>
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Clock In Time</label>
+                <div className="px-3 py-2 border border-gray-300 rounded-lg bg-gray-50">
+                  <div className="text-sm text-gray-900">
+                    {selectedRecordForClockOut.clockIn ? formatTime(selectedRecordForClockOut.clockIn) : 'Not clocked in'}
+                  </div>
+                </div>
               </div>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-                <textarea rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                <textarea rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Add any notes about the clock out..."></textarea>
               </div>
             </div>
             <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
               <button
-                onClick={() => setShowClockOutModal(false)}
+                onClick={() => {
+                  setShowClockOutModal(false);
+                  setSelectedRecordForClockOut(null);
+                }}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button 
-                onClick={() => handleClockOut('1')}
+                onClick={handleClockOut}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
                 Clock Out
