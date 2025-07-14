@@ -1,371 +1,321 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { 
-  Users, 
-  Clock, 
-  DollarSign, 
-  TrendingUp, 
-  AlertTriangle, 
-  CheckCircle, 
-  Calendar,
-  UserPlus,
-  FileText,
-  BarChart3,
-  Activity,
-  ArrowUpRight,
-  ArrowDownRight
-} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
+import { Users, Clock, DollarSign, AlertTriangle, Plus, Calendar, Megaphone } from 'lucide-react';
+import { formatRWF } from '../../utils/formatRWF';
 
-interface DashboardStats {
-  totalEmployees: number;
-  activeEmployees: number;
-  newHires: number;
-  departments: number;
-  totalPayroll: number;
-  pendingPayroll: number;
-  attendanceRate: number;
-  averageHours: number;
+interface Announcement {
+  id: number;
+  title: string;
+  content: string;
+  type: string;
+  priority: string;
+  created_at: string;
 }
 
-interface RecentActivity {
-  id: string;
-  type: 'hire' | 'termination' | 'promotion' | 'attendance' | 'payroll';
-  employeeName: string;
-  description: string;
-  timestamp: string;
-  status: 'success' | 'warning' | 'info';
-}
-
-const HRDashboard = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [stats, setStats] = useState<DashboardStats>({
-    totalEmployees: 0,
-    activeEmployees: 0,
-    newHires: 0,
-    departments: 0,
-    totalPayroll: 0,
-    pendingPayroll: 0,
-    attendanceRate: 0,
-    averageHours: 0
+const HRDashboard: React.FC = () => {
+  // State for stats
+  const [stats, setStats] = useState({
+    total: 0,
+    onDuty: 0,
+    payroll: 0,
+    incidents: 0,
   });
-  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedPeriod, setSelectedPeriod] = useState('month');
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [statsError, setStatsError] = useState('');
+  const [incidentsLoading, setIncidentsLoading] = useState(true);
+  const [incidentsError, setIncidentsError] = useState('');
+  const [onDutyLoading, setOnDutyLoading] = useState(true);
+  const [onDutyError, setOnDutyError] = useState('');
+  const [payrollLoading, setPayrollLoading] = useState(true);
+  const [payrollError, setPayrollError] = useState('');
+
+  // State for attendance chart
+  const [attendanceData, setAttendanceData] = useState([]);
+  const [attendanceLoading, setAttendanceLoading] = useState(true);
+  const [attendanceError, setAttendanceError] = useState('');
+
+  // State for recent activity
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [activityLoading, setActivityLoading] = useState(true);
+  const [activityError, setActivityError] = useState('');
+
+  // State for announcements
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [announcementsLoading, setAnnouncementsLoading] = useState(true);
+  const [announcementsError, setAnnouncementsError] = useState('');
 
   useEffect(() => {
-    fetchDashboardData();
-  }, [selectedPeriod]);
-
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      
-      // Fetch employee stats
-      const employeesResponse = await fetch('http://localhost:5000/api/employees/stats');
-      const employeeStats = await employeesResponse.json();
-      
-      // Fetch payroll stats
-      const payrollResponse = await fetch('http://localhost:5000/api/payroll/stats');
-      const payrollStats = await payrollResponse.json();
-      
-      // Fetch attendance stats
-      const attendanceResponse = await fetch('http://localhost:5000/api/attendance/stats');
-      const attendanceStats = await attendanceResponse.json();
-      
-      setStats({
-        totalEmployees: employeeStats.total,
-        activeEmployees: employeeStats.total, // Assuming all are active for now
-        newHires: 0, // Would need hire date tracking
-        departments: employeeStats.byDepartment?.length || 0,
-        totalPayroll: payrollStats.totalAmount,
-        pendingPayroll: payrollStats.pending,
-        attendanceRate: attendanceStats.present > 0 ? 
-          ((attendanceStats.present / (attendanceStats.present + attendanceStats.absent)) * 100) : 0,
-        averageHours: attendanceStats.totalHours / Math.max(attendanceStats.present, 1)
+    setStatsLoading(true);
+    fetch('/api/employees/stats')
+      .then(res => res.json())
+      .then(data => {
+        setStats(prev => ({
+          ...prev,
+          total: data.total,
+        }));
+        setStatsLoading(false);
+      })
+      .catch(() => {
+        setStatsError('Failed to load stats');
+        setStatsLoading(false);
       });
-      
-      // Mock recent activities for now
-      setRecentActivities([
-        {
-          id: '1',
-          type: 'hire',
-          employeeName: 'Sarah Johnson',
-          description: 'New employee hired',
-          timestamp: new Date().toISOString(),
-          status: 'success'
-        },
-        {
-          id: '2',
-          type: 'payroll',
-          employeeName: 'John Smith',
-          description: 'Payroll processed',
-          timestamp: new Date(Date.now() - 86400000).toISOString(),
-          status: 'success'
-        },
-        {
-          id: '3',
-          type: 'attendance',
-          employeeName: 'Michael Brown',
-          description: 'Late arrival recorded',
-          timestamp: new Date(Date.now() - 172800000).toISOString(),
-          status: 'warning'
-        }
-      ]);
-      
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, []);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
+  useEffect(() => {
+    setIncidentsLoading(true);
+    fetch('/api/disciplinary-cases/stats')
+      .then(res => res.json())
+      .then(data => {
+        setStats(prev => ({ ...prev, incidents: data.open }));
+        setIncidentsLoading(false);
+      })
+      .catch(() => {
+        setIncidentsError('Failed to load incidents');
+        setIncidentsLoading(false);
+      });
+  }, []);
 
-  const formatPercentage = (value: number) => {
-    return `${value.toFixed(1)}%`;
-  };
+  useEffect(() => {
+    setOnDutyLoading(true);
+    fetch('/api/attendance/stats')
+      .then(res => res.json())
+      .then(data => {
+        setStats(prev => ({ ...prev, onDuty: data.present }));
+        setOnDutyLoading(false);
+      })
+      .catch(() => {
+        setOnDutyError('Failed to load on duty');
+        setOnDutyLoading(false);
+      });
+  }, []);
 
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'hire': return <UserPlus className="h-4 w-4" />;
-      case 'payroll': return <DollarSign className="h-4 w-4" />;
-      case 'attendance': return <Clock className="h-4 w-4" />;
-      case 'promotion': return <TrendingUp className="h-4 w-4" />;
-      default: return <Activity className="h-4 w-4" />;
-    }
-  };
+  useEffect(() => {
+    setPayrollLoading(true);
+    fetch('/api/payroll/stats')
+      .then(res => res.json())
+      .then(data => {
+        setStats(prev => ({ ...prev, payroll: data.totalAmount }));
+        setPayrollLoading(false);
+      })
+      .catch(() => {
+        setPayrollError('Failed to load payroll');
+        setPayrollLoading(false);
+      });
+  }, []);
 
-  const getActivityColor = (status: string) => {
-    switch (status) {
-      case 'success': return 'text-green-600 bg-green-100';
-      case 'warning': return 'text-yellow-600 bg-yellow-100';
-      case 'info': return 'text-blue-600 bg-blue-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
+  useEffect(() => {
+    setAttendanceLoading(true);
+    fetch('/api/attendance/trend')
+      .then(res => res.json())
+      .then(data => {
+        // Map backend data to chart format
+        const chartData = data.map((d: any) => ({
+          name: d.date, // Use full date string
+          Present: d.present,
+          Absent: d.absent,
+          Late: d.leave,
+        }));
+        setAttendanceData(chartData);
+        setAttendanceLoading(false);
+      })
+      .catch(() => {
+        setAttendanceError('Failed to load attendance data');
+        setAttendanceLoading(false);
+      });
+  }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    setActivityLoading(true);
+    fetch('/api/activity/recent')
+      .then(res => res.json())
+      .then(data => {
+        setRecentActivity(data.map((item: any) => ({
+          icon: <Users className="w-4 h-4 text-blue-600" />,
+          text: item.description,
+          time: new Date(item.timestamp).toLocaleDateString(),
+        })));
+        setActivityLoading(false);
+      })
+      .catch(() => {
+        setActivityError('Failed to load recent activity');
+        setActivityLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    setAnnouncementsLoading(true);
+    fetch('/api/announcements')
+      .then(res => res.json())
+      .then(data => {
+        setAnnouncements(data.slice(0, 3)); // Get first 3 announcements
+        setAnnouncementsLoading(false);
+      })
+      .catch(() => {
+        setAnnouncementsError('Failed to load announcements');
+        setAnnouncementsLoading(false);
+      });
+  }, []);
+
+  const statsCards = [
+    { title: 'Employees', value: statsLoading ? '...' : stats.total, icon: <Users className="w-6 h-6 text-blue-600" />, color: 'bg-blue-50' },
+    { title: 'On Duty', value: onDutyLoading ? '...' : stats.onDuty, icon: <Clock className="w-6 h-6 text-green-600" />, color: 'bg-green-50' },
+    { title: 'Payroll (This Month)', value: payrollLoading ? '...' : (typeof stats.payroll === 'number' ? formatRWF(stats.payroll) : stats.payroll), icon: <DollarSign className="w-6 h-6 text-yellow-600" />, color: 'bg-yellow-50' },
+    { title: 'Incidents', value: incidentsLoading ? '...' : stats.incidents, icon: <AlertTriangle className="w-6 h-6 text-red-600" />, color: 'bg-red-50' },
+  ];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="min-h-screen flex flex-col bg-gray-50">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">HR Dashboard</h1>
-          <p className="text-gray-600 mt-1">Overview of your organization's human resources</p>
+      <header className="flex items-center justify-between px-8 py-6 bg-white shadow-sm border-b border-gray-200">
+        <div className="flex items-center space-x-4">
+          <img src="/logo.png" alt="Company Logo" className="w-12 h-12 rounded-lg bg-white object-contain border-2 border-blue-600 shadow" />
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Welcome, HR Manager!</h1>
+            <p className="text-gray-500 text-sm">HR Dashboard</p>
+          </div>
         </div>
-        <div className="flex space-x-3">
-          <select
-            value={selectedPeriod}
-            onChange={(e) => setSelectedPeriod(e.target.value)}
-            className="block px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-          >
-            <option value="week">This Week</option>
-            <option value="month">This Month</option>
-            <option value="quarter">This Quarter</option>
-            <option value="year">This Year</option>
-          </select>
-        </div>
-      </div>
+        <div className="text-gray-400 text-sm font-medium">{new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+      </header>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Total Employees */}
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Users className="h-8 w-8 text-blue-600" />
-            </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt className="text-sm font-medium text-gray-500 truncate">Total Employees</dt>
-                <dd className="text-lg font-medium text-gray-900">{stats.totalEmployees}</dd>
-              </dl>
-            </div>
-          </div>
-          <div className="mt-4">
-            <div className="flex items-center text-sm text-green-600">
-              <ArrowUpRight className="h-4 w-4 mr-1" />
-              <span>+2.5% from last month</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Active Employees */}
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <CheckCircle className="h-8 w-8 text-green-600" />
-            </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt className="text-sm font-medium text-gray-500 truncate">Active Employees</dt>
-                <dd className="text-lg font-medium text-gray-900">{stats.activeEmployees}</dd>
-              </dl>
-            </div>
-          </div>
-          <div className="mt-4">
-            <div className="flex items-center text-sm text-green-600">
-              <ArrowUpRight className="h-4 w-4 mr-1" />
-              <span>100% active rate</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Total Payroll */}
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <DollarSign className="h-8 w-8 text-purple-600" />
-            </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt className="text-sm font-medium text-gray-500 truncate">Total Payroll</dt>
-                <dd className="text-lg font-medium text-gray-900">{formatCurrency(stats.totalPayroll)}</dd>
-              </dl>
-            </div>
-          </div>
-          <div className="mt-4">
-            <div className="flex items-center text-sm text-green-600">
-              <ArrowUpRight className="h-4 w-4 mr-1" />
-              <span>+8.2% from last month</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Attendance Rate */}
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Clock className="h-8 w-8 text-yellow-600" />
-            </div>
-            <div className="ml-5 w-0 flex-1">
-              <dl>
-                <dt className="text-sm font-medium text-gray-500 truncate">Attendance Rate</dt>
-                <dd className="text-lg font-medium text-gray-900">{formatPercentage(stats.attendanceRate)}</dd>
-              </dl>
-            </div>
-          </div>
-          <div className="mt-4">
-            <div className="flex items-center text-sm text-green-600">
-              <ArrowUpRight className="h-4 w-4 mr-1" />
-              <span>+1.2% from last week</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Additional Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Departments */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
+      {/* Stats Cards */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-8 mt-8">
+        {statsCards.map((stat, i) => (
+          <div key={i} className={`flex items-center p-5 rounded-xl shadow-sm border border-gray-200 ${stat.color}`}>
+            <div className="mr-4">{stat.icon}</div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Departments</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.departments}</p>
-            </div>
-            <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <BarChart3 className="h-6 w-6 text-blue-600" />
+              <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+              <div className="text-gray-500 text-sm">{stat.title}</div>
             </div>
           </div>
-        </div>
+        ))}
+      </section>
+      {statsError && <div className="text-center text-red-500 mt-2">{statsError}</div>}
+      {incidentsError && <div className="text-center text-red-500 mt-2">{incidentsError}</div>}
+      {onDutyError && <div className="text-center text-red-500 mt-2">{onDutyError}</div>}
+      {payrollError && <div className="text-center text-red-500 mt-2">{payrollError}</div>}
 
-        {/* Pending Payroll */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-500">Pending Payroll</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.pendingPayroll}</p>
-            </div>
-            <div className="h-12 w-12 bg-yellow-100 rounded-full flex items-center justify-center">
-              <AlertTriangle className="h-6 w-6 text-yellow-600" />
-            </div>
+      {/* Main Content */}
+      <main className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-8 px-8 mt-8">
+        {/* Left Column */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* Attendance Chart */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Attendance Overview</h3>
+            {attendanceLoading ? (
+              <div className="text-center text-gray-400">Loading...</div>
+            ) : attendanceError ? (
+              <div className="text-center text-red-500">{attendanceError}</div>
+            ) : (
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart
+                  data={attendanceData}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                  barCategoryGap="20%"
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="name"
+                    tickFormatter={date => {
+                      return new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                    }}
+                    tick={{ fontSize: 12 }}
+                  />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip
+                    formatter={(value, name) => [value, name]}
+                    labelFormatter={label => `Date: ${label}`}
+                  />
+                  <Legend verticalAlign="top" height={36} />
+                  <Bar dataKey="Present" stackId="a" fill="#2563eb" name="Present" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Absent" stackId="a" fill="#f59e42" name="Absent" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Late" stackId="a" fill="#facc15" name="Late" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
-        </div>
 
-        {/* Average Hours */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-500">Avg. Hours/Day</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.averageHours.toFixed(1)}h</p>
-            </div>
-            <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
-              <Clock className="h-6 w-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Activities */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Recent Activities</h3>
-        </div>
-        <div className="divide-y divide-gray-200">
-          {recentActivities.map((activity) => (
-            <div key={activity.id} className="px-6 py-4 hover:bg-gray-50 transition-colors duration-200">
-              <div className="flex items-center space-x-3">
-                <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${getActivityColor(activity.status)}`}>
-                  {getActivityIcon(activity.type)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">{activity.employeeName}</p>
-                  <p className="text-sm text-gray-500">{activity.description}</p>
-                </div>
-                <div className="flex-shrink-0 text-sm text-gray-500">
-                  {new Date(activity.timestamp).toLocaleDateString()}
-                </div>
+          {/* Recent Activity */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+            {activityLoading ? (
+              <div className="text-center text-gray-400">Loading...</div>
+            ) : activityError ? (
+              <div className="text-center text-red-500">{activityError}</div>
+            ) : (
+              <div className="space-y-4">
+                {recentActivity.map((item: any, i: number) => (
+                  <div key={i} className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                      {item.icon}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{item.text}</p>
+                      <p className="text-xs text-gray-500">{item.time}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Quick Actions</h3>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <button 
-              onClick={() => navigate('/add-employee')}
-              className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
-            >
-              <UserPlus className="h-5 w-5 mr-2" />
-              Add Employee
-            </button>
-            <button className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
-              <DollarSign className="h-5 w-5 mr-2" />
-              Process Payroll
-            </button>
-            <button className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
-              <Clock className="h-5 w-5 mr-2" />
-              View Attendance
-            </button>
-            <button className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
-              <FileText className="h-5 w-5 mr-2" />
-              Generate Report
-            </button>
+            )}
           </div>
         </div>
+
+        {/* Right Column */}
+        <div className="space-y-8">
+          {/* Quick Actions */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+            <div className="grid grid-cols-1 gap-4">
+              <button className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-full">
+                <Plus className="w-5 h-5 text-blue-600 mr-2" />
+                <span className="text-sm font-medium text-gray-900">Add Employee</span>
+              </button>
+              <button className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-full">
+                <Calendar className="w-5 h-5 text-green-600 mr-2" />
+                <span className="text-sm font-medium text-gray-900">Assign Work Schedules</span>
+              </button>
+              <button className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-full">
+                <DollarSign className="w-5 h-5 text-yellow-600 mr-2" />
+                <span className="text-sm font-medium text-gray-900">Generate HR Report</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Announcements */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Announcements</h3>
+            {announcementsLoading ? (
+              <div className="text-center text-gray-400">Loading...</div>
+            ) : announcementsError ? (
+              <div className="text-center text-red-500">{announcementsError}</div>
+            ) : (
+              <div className="space-y-3">
+                {announcements.length > 0 ? (
+                  announcements.map((item, i) => (
+                    <div key={i} className="flex items-center space-x-2">
+                      <div className="w-7 h-7 bg-indigo-100 rounded-full flex items-center justify-center">
+                        <Megaphone className="w-4 h-4 text-indigo-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900">{item.title}</p>
+                        <p className="text-xs text-gray-500">{item.content}</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center text-gray-400 py-4">No announcements</div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="mt-12 py-4 text-center text-xs text-gray-400">
+        Version 1.0.0 &nbsp;|&nbsp; © 2024 DICEL Security
+      </footer>
     </div>
-  </div>
-);
+  );
 };
 
 export default HRDashboard; 

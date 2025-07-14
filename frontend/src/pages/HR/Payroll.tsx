@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { DollarSign, Users, Calendar, FileText, Download, Upload, Eye, Edit, CheckCircle, AlertTriangle, Clock, Search } from 'lucide-react';
+import { formatRWF } from '../../utils/formatRWF';
 
 interface PayrollRecord {
   id: string;
@@ -142,37 +143,6 @@ const Payroll: React.FC = () => {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  const getTotalPayroll = () => {
-    return payroll.reduce((total, record) => total + record.netPay, 0);
-  };
-
-  const getPendingPayroll = () => {
-    return payroll.filter(record => record.status === 'pending').length;
-  };
-
-  const getProcessedPayroll = () => {
-    return payroll.filter(record => record.status === 'processed').length;
-  };
-
-  const getPaidPayroll = () => {
-    return payroll.filter(record => record.status === 'paid').length;
-  };
-
   const calculateGrossPay = (record: PayrollRecord) => {
     const regularPay = record.hoursWorked * record.hourlyRate;
     const overtimePay = record.overtimeHours * record.overtimeRate;
@@ -226,7 +196,7 @@ const Payroll: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Payroll</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(getTotalPayroll())}</p>
+              <p className="text-2xl font-bold text-gray-900">{formatRWF(getTotalPayroll())}</p>
             </div>
           </div>
         </div>
@@ -352,13 +322,13 @@ const Payroll: React.FC = () => {
                     {record.hoursWorked}h + {record.overtimeHours}h OT
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {formatCurrency(calculateGrossPay(record))}
+                    {formatRWF(calculateGrossPay(record))}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {formatCurrency(record.deductions)}
+                    {formatRWF(record.deductions)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {formatCurrency(record.netPay)}
+                    {formatRWF(record.netPay)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(record.status)}`}>

@@ -1,3 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.sidebar-bg {
+  background-color: #111827; /* Tailwind bg-gray-900 */
+}

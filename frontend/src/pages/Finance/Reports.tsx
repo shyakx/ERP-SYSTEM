@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { BarChart3, PieChart, TrendingUp, Download, Filter, Calendar, Users, DollarSign, Shield, FileText, AlertTriangle, CheckCircle, Clock, TrendingDown } from 'lucide-react';
+import { formatRWF } from '../../utils/formatRWF';
 
 interface ReportData {
   id: string;
@@ -172,10 +173,7 @@ const Reports: React.FC = () => {
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
+    return formatRWF(amount);
   };
 
   const getTotalReports = () => reports.length;

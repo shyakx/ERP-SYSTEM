@@ -19,13 +19,11 @@ const Sidebar: React.FC = () => {
   );
 
   return (
-    <div className="w-64 bg-gray-900 text-white min-h-screen flex flex-col">
+    <div className="w-64 sidebar-bg text-white h-screen flex flex-col">
       {/* Company Logo */}
       <div className="p-6 border-b border-gray-700">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-            <Icons.Shield className="w-6 h-6 text-white" />
-          </div>
+          <img src="/logo.png" alt="Company Logo" className="w-10 h-10 rounded-lg bg-white object-contain border-2 border-blue-600 shadow" />
           <div>
             <h1 className="text-xl font-bold">DICEL SECURITY</h1>
             <p className="text-xs text-gray-400">ERP System</p>
@@ -70,8 +68,8 @@ const Sidebar: React.FC = () => {
         ))}
       </nav>
 
-      {/* System Info */}
-      <div className="p-4 border-t border-gray-700">
+      {/* System Info pinned to bottom */}
+      <div className="p-4 border-t border-gray-700 mt-auto sidebar-bg">
         <div className="text-xs text-gray-400">
           <p>Version 1.0.0</p>
           <p>© 2024 DICEL Security</p>

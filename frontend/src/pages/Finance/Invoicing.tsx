@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { FileText, DollarSign, Calendar, Clock, CheckCircle, XCircle, AlertCircle, Plus, Search, Filter, Download, Eye, Edit, Trash2, Send, Printer, CreditCard, TrendingUp } from 'lucide-react';
+import { formatRWF } from '../../utils/formatRWF';
 
 interface Invoice {
   id: string;
@@ -221,13 +222,6 @@ const Invoicing: React.FC = () => {
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount);
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -312,7 +306,7 @@ const Invoicing: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Invoiced</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(getTotalInvoiced())}</p>
+              <p className="text-2xl font-bold text-gray-900">{formatRWF(getTotalInvoiced())}</p>
             </div>
           </div>
         </div>
@@ -324,7 +318,7 @@ const Invoicing: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Paid</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(getTotalPaid())}</p>
+              <p className="text-2xl font-bold text-gray-900">{formatRWF(getTotalPaid())}</p>
             </div>
           </div>
         </div>
@@ -336,7 +330,7 @@ const Invoicing: React.FC = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Outstanding</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(getOutstandingAmount())}</p>
+              <p className="text-2xl font-bold text-gray-900">{formatRWF(getOutstandingAmount())}</p>
             </div>
           </div>
         </div>
@@ -475,7 +469,7 @@ const Invoicing: React.FC = () => {
                       {formatDate(invoice.dueDate)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {formatCurrency(invoice.total)}
+                      {formatRWF(invoice.total)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(invoice.status)}`}>
@@ -576,7 +570,7 @@ const Invoicing: React.FC = () => {
                       <div className="text-sm text-gray-900">INV-2024-001</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {formatCurrency(payment.amount)}
+                      {formatRWF(payment.amount)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {formatDate(payment.paymentDate)}
@@ -618,15 +612,15 @@ const Invoicing: React.FC = () => {
             <div className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-gray-600">Total Revenue</span>
-                <span className="font-semibold">{formatCurrency(getTotalInvoiced())}</span>
+                <span className="font-semibold">{formatRWF(getTotalInvoiced())}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Paid Amount</span>
-                <span className="font-semibold text-green-600">{formatCurrency(getTotalPaid())}</span>
+                <span className="font-semibold text-green-600">{formatRWF(getTotalPaid())}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Outstanding</span>
-                <span className="font-semibold text-red-600">{formatCurrency(getOutstandingAmount())}</span>
+                <span className="font-semibold text-red-600">{formatRWF(getOutstandingAmount())}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Collection Rate</span>
@@ -747,6 +741,85 @@ const Invoicing: React.FC = () => {
               <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                 Create Invoice
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Invoice Detail Modal (with logo) */}
+      {selectedInvoice && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto p-8 relative">
+            <button
+              onClick={() => setSelectedInvoice(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl font-bold focus:outline-none"
+              aria-label="Close"
+              type="button"
+            >
+              &times;
+            </button>
+            <div className="flex items-center space-x-4 mb-8">
+              <img src="/logo.png" alt="Company Logo" className="w-16 h-16 rounded-full border-2 border-blue-600 bg-white object-contain shadow" />
+              <div>
+                <h2 className="text-2xl font-bold text-blue-900">DICEL SECURITY</h2>
+                <p className="text-xs text-gray-500">ERP Invoice</p>
+              </div>
+            </div>
+            <div className="mb-4 flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Invoice #{selectedInvoice.invoiceNumber}</h3>
+                <p className="text-sm text-gray-600">{selectedInvoice.clientName}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-gray-500">Issue: {formatDate(selectedInvoice.issueDate)}</p>
+                <p className="text-xs text-gray-500">Due: {formatDate(selectedInvoice.dueDate)}</p>
+                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedInvoice.status)}`}>{selectedInvoice.status}</span>
+              </div>
+            </div>
+            <table className="w-full mb-4 text-sm">
+              <thead>
+                <tr className="bg-gray-50">
+                  <th className="p-2 text-left">Description</th>
+                  <th className="p-2 text-right">Qty</th>
+                  <th className="p-2 text-right">Unit Price</th>
+                  <th className="p-2 text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedInvoice.items.map(item => (
+                  <tr key={item.id}>
+                    <td className="p-2 text-left">{item.description}</td>
+                    <td className="p-2 text-right">{item.quantity}</td>
+                    <td className="p-2 text-right">{formatRWF(item.unitPrice)}</td>
+                    <td className="p-2 text-right">{formatRWF(item.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="flex justify-end mb-2">
+              <div className="w-1/2">
+                <div className="flex justify-between mb-1">
+                  <span className="text-gray-600">Subtotal:</span>
+                  <span>{formatRWF(selectedInvoice.amount)}</span>
+                </div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-gray-600">Tax:</span>
+                  <span>{formatRWF(selectedInvoice.tax)}</span>
+                </div>
+                <div className="flex justify-between font-bold text-blue-900">
+                  <span>Total:</span>
+                  <span>{formatRWF(selectedInvoice.total)}</span>
+                </div>
+              </div>
+            </div>
+            {selectedInvoice.notes && (
+              <div className="mt-4">
+                <p className="text-xs text-gray-500">Notes: {selectedInvoice.notes}</p>
+              </div>
+            )}
+            <div className="mt-6 text-xs text-gray-400 text-center">
+              <p>Thank you for your business!</p>
+              <p>DICEL Security Company Ltd. | Kigali, Rwanda</p>
             </div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import { Plus, Search, Edit, Trash2, Eye } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Search } from 'lucide-react';
+import Modal from '../../components/Common/Modal';
 
 interface Shift {
   id?: string;
@@ -87,7 +88,6 @@ const Shifts: React.FC = () => {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Basic validation
     if (!form.employeeName || !form.date || !form.startTime || !form.endTime || !form.location || !form.status) {
       toast.error('Please fill all required fields.');
       return;
@@ -104,8 +104,8 @@ const Shifts: React.FC = () => {
         toast.success('Shift added');
       } else if (modalType === 'edit' && selectedShift?.id) {
         const res = await fetch(`http://localhost:5000/api/shifts/${selectedShift.id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(form),
         });
         if (!res.ok) throw new Error('Edit failed');
@@ -125,16 +125,44 @@ const Shifts: React.FC = () => {
     (s.location || '').toLowerCase().includes(search.toLowerCase())
   );
 
+  // Helper functions for formatting
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '-';
+    const d = new Date(dateString);
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+  const formatTime = (start: string, end: string) => {
+    if (!start || !end) return '-';
+    const fmt = (t: string) => {
+      const [h, m] = t.split(':');
+      if (!h || !m) return t;
+      const hour = parseInt(h);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const displayHour = hour % 12 || 12;
+      return `${displayHour}:${m} ${ampm}`;
+    };
+    return `${fmt(start)} - ${fmt(end)}`;
+  };
+  const statusBadge = (status: string) => {
+    const color =
+      status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+      status === 'in_progress' ? 'bg-yellow-100 text-yellow-800' :
+      status === 'completed' ? 'bg-green-100 text-green-800' :
+      status === 'missed' ? 'bg-red-100 text-red-800' :
+      'bg-gray-100 text-gray-800';
+    return <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${color}`}>{status.replace('_', ' ')}</span>;
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Shift Scheduling</h1>
-        <button
+            <button
           className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2"
           onClick={() => { setShowModal(true); setModalType('add'); setSelectedShift(null); }}
-        >
+            >
           <Plus className="w-4 h-4" /> Add Shift
-        </button>
+            </button>
       </div>
       <div className="flex gap-4 mb-4">
         <div className="relative flex-1">
@@ -163,17 +191,19 @@ const Shifts: React.FC = () => {
                 <th className="px-4 py-2 text-left">Time</th>
                 <th className="px-4 py-2 text-left">Location</th>
                 <th className="px-4 py-2 text-left">Status</th>
+                <th className="px-4 py-2 text-left">Notes</th>
                 <th className="px-4 py-2 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(shift => (
                 <tr key={shift.id} className="border-b hover:bg-gray-50 transition">
-                  <td className="px-4 py-2">{shift.employeeName}</td>
-                  <td className="px-4 py-2">{shift.date}</td>
-                  <td className="px-4 py-2">{shift.startTime} - {shift.endTime}</td>
-                  <td className="px-4 py-2">{shift.location}</td>
-                  <td className="px-4 py-2">{shift.status}</td>
+                  <td className="px-4 py-2">{shift.employeeName || '-'}</td>
+                  <td className="px-4 py-2">{formatDate(shift.date)}</td>
+                  <td className="px-4 py-2">{formatTime(shift.startTime, shift.endTime)}</td>
+                  <td className="px-4 py-2">{shift.location || '-'}</td>
+                  <td className="px-4 py-2">{statusBadge(shift.status)}</td>
+                  <td className="px-4 py-2">{shift.notes ? <span title={shift.notes}>{shift.notes.length > 20 ? shift.notes.slice(0, 20) + '…' : shift.notes}</span> : '-'}</td>
                   <td className="px-4 py-2 text-right flex gap-2 justify-end">
                     <button className="text-blue-600" title="View"><Eye className="w-4 h-4" /></button>
                     <button className="text-green-600" title="Edit" onClick={() => { setShowModal(true); setModalType('edit'); setSelectedShift(shift); }}><Edit className="w-4 h-4" /></button>
@@ -185,107 +215,93 @@ const Shifts: React.FC = () => {
           </table>
         </div>
       )}
-      {/* Modal (Add/Edit) */}
-      {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md relative transition-transform duration-200 transform scale-100 animate-modal-popin">
-            <button
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl font-bold focus:outline-none"
-              onClick={() => setShowModal(false)}
-              aria-label="Close"
-              type="button"
-            >
-              &times;
-            </button>
-            <h2 className="text-lg font-bold mb-4">{modalType === 'add' ? 'Add Shift' : 'Edit Shift'}</h2>
-            <form onSubmit={handleFormSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Employee Name<span className="text-red-500">*</span></label>
-                <input
-                  name="employeeName"
-                  value={form.employeeName}
-                  onChange={handleFormChange}
-                  className="w-full border rounded px-3 py-2"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Date<span className="text-red-500">*</span></label>
-                <input
-                  type="date"
-                  name="date"
-                  value={form.date}
-                  onChange={handleFormChange}
-                  className="w-full border rounded px-3 py-2"
-                  required
-                />
-              </div>
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <label className="block text-sm font-medium mb-1">Start Time<span className="text-red-500">*</span></label>
-                  <input
-                    type="time"
-                    name="startTime"
-                    value={form.startTime}
-                    onChange={handleFormChange}
-                    className="w-full border rounded px-3 py-2"
-                    required
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="block text-sm font-medium mb-1">End Time<span className="text-red-500">*</span></label>
-                  <input
-                    type="time"
-                    name="endTime"
-                    value={form.endTime}
-                    onChange={handleFormChange}
-                    className="w-full border rounded px-3 py-2"
-                    required
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Location<span className="text-red-500">*</span></label>
-                <input
-                  name="location"
-                  value={form.location}
-                  onChange={handleFormChange}
-                  className="w-full border rounded px-3 py-2"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Status<span className="text-red-500">*</span></label>
-                <select
-                  name="status"
-                  value={form.status}
-                  onChange={handleFormChange}
-                  className="w-full border rounded px-3 py-2"
-                  required
-                >
-                  {statusOptions.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Notes</label>
-                <textarea
-                  name="notes"
-                  value={form.notes}
-                  onChange={handleFormChange}
-                  className="w-full border rounded px-3 py-2"
-                  rows={2}
-                />
-              </div>
-              <div className="flex justify-end gap-2 mt-4">
-                <button type="button" className="px-4 py-2 border rounded" onClick={() => setShowModal(false)} disabled={formLoading}>Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded" disabled={formLoading}>{formLoading ? 'Saving...' : 'Save'}</button>
-              </div>
-            </form>
+      <Modal open={showModal} onClose={() => setShowModal(false)} title={modalType === 'add' ? 'Add Shift' : 'Edit Shift'}>
+        <form onSubmit={handleFormSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Employee Name<span className="text-red-500">*</span></label>
+            <input
+              name="employeeName"
+              value={form.employeeName}
+              onChange={handleFormChange}
+              className="w-full border rounded px-3 py-2"
+              required
+            />
           </div>
-        </div>
-      )}
+          <div>
+            <label className="block text-sm font-medium mb-1">Date<span className="text-red-500">*</span></label>
+            <input
+              type="date"
+              name="date"
+              value={form.date}
+              onChange={handleFormChange}
+              className="w-full border rounded px-3 py-2"
+              required
+            />
+          </div>
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-1">Start Time<span className="text-red-500">*</span></label>
+              <input
+                type="time"
+                name="startTime"
+                value={form.startTime}
+                onChange={handleFormChange}
+                className="w-full border rounded px-3 py-2"
+                required
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-1">End Time<span className="text-red-500">*</span></label>
+              <input
+                type="time"
+                name="endTime"
+                value={form.endTime}
+                onChange={handleFormChange}
+                className="w-full border rounded px-3 py-2"
+                required
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Location<span className="text-red-500">*</span></label>
+            <input
+              name="location"
+              value={form.location}
+              onChange={handleFormChange}
+              className="w-full border rounded px-3 py-2"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Status<span className="text-red-500">*</span></label>
+          <select
+              name="status"
+              value={form.status}
+              onChange={handleFormChange}
+              className="w-full border rounded px-3 py-2"
+              required
+            >
+              {statusOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Notes</label>
+            <textarea
+              name="notes"
+              value={form.notes}
+              onChange={handleFormChange}
+              className="w-full border rounded px-3 py-2"
+              rows={2}
+            />
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <button type="button" className="px-4 py-2 border rounded" onClick={() => setShowModal(false)} disabled={formLoading}>Cancel</button>
+            <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded" disabled={formLoading}>{formLoading ? 'Saving...' : 'Save'}</button>
+                </div>
+              </form>
+      </Modal>
     </div>
   );
 };
