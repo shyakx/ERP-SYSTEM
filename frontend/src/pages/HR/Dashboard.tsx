@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { Users, Clock, DollarSign, AlertTriangle, Plus, Calendar, Megaphone } from 'lucide-react';
 import { formatRWF } from '../../utils/formatRWF';
+import { useNavigate } from 'react-router-dom';
 
 interface Announcement {
   id: number;
@@ -43,6 +44,8 @@ const HRDashboard: React.FC = () => {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [announcementsLoading, setAnnouncementsLoading] = useState(true);
   const [announcementsError, setAnnouncementsError] = useState('');
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     setStatsLoading(true);
@@ -265,15 +268,24 @@ const HRDashboard: React.FC = () => {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div className="grid grid-cols-1 gap-4">
-              <button className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-full">
+              <button
+                className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-full"
+                onClick={() => navigate('/add-employee')}
+              >
                 <Plus className="w-5 h-5 text-blue-600 mr-2" />
                 <span className="text-sm font-medium text-gray-900">Add Employee</span>
               </button>
-              <button className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-full">
+              <button
+                className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-full"
+                onClick={() => navigate('/hr/shifts')}
+              >
                 <Calendar className="w-5 h-5 text-green-600 mr-2" />
                 <span className="text-sm font-medium text-gray-900">Assign Work Schedules</span>
               </button>
-              <button className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-full">
+              <button
+                className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-full"
+                onClick={() => navigate('/reports')}
+              >
                 <DollarSign className="w-5 h-5 text-yellow-600 mr-2" />
                 <span className="text-sm font-medium text-gray-900">Generate HR Report</span>
               </button>

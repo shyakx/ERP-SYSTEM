@@ -4,6 +4,7 @@ import { roleDisplayNames } from '../config/menu';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { Users, Clock, DollarSign, AlertTriangle, Plus, Calendar, Megaphone } from 'lucide-react';
 import { formatRWF } from '../utils/formatRWF';
+import { useNavigate } from 'react-router-dom';
 
 interface DashboardStats {
   employees: number;
@@ -37,6 +38,7 @@ interface Announcement {
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats>({ employees: 0, onDuty: 0, payroll: 0, incidents: 0 });
   const [attendanceData, setAttendanceData] = useState<AttendanceData[]>([]);
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
@@ -240,15 +242,24 @@ const Dashboard: React.FC = () => {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div className="grid grid-cols-1 gap-4">
-              <button className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-full">
+              <button
+                className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-full"
+                onClick={() => navigate('/add-employee')}
+              >
                 <Plus className="w-5 h-5 text-blue-600 mr-2" />
                 <span className="text-sm font-medium text-gray-900">Add Employee</span>
               </button>
-              <button className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-full">
+              <button
+                className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-full"
+                onClick={() => navigate('/hr/shifts')}
+              >
                 <Calendar className="w-5 h-5 text-green-600 mr-2" />
                 <span className="text-sm font-medium text-gray-900">Schedule Shift</span>
               </button>
-              <button className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-full">
+              <button
+                className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-full"
+                onClick={() => navigate('/invoicing')}
+              >
                 <DollarSign className="w-5 h-5 text-yellow-600 mr-2" />
                 <span className="text-sm font-medium text-gray-900">Create Invoice</span>
               </button>
