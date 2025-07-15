@@ -141,6 +141,9 @@ app.get('/api/departments', async (req, res) => {
 
 // Attendance endpoints
 app.get('/api/attendance', async (req, res) => {
+  console.log('➡️  [HIT] /api/attendance');
+  console.log('   ↪️ Query params:', req.query);
+  
   try {
     const { date, employeeId } = req.query;
     let query = `
@@ -167,37 +170,80 @@ app.get('/api/attendance', async (req, res) => {
     
     query += ' ORDER BY a.date DESC, a.clock_in ASC';
     
+    console.log('   ↪️ Final query:', query);
+    console.log('   ↪️ Query params:', params);
+    
     const result = await pool.query(query, params);
+    console.log('   ↪️ Records found:', result.rows.length);
+    
     res.json(result.rows);
   } catch (err) {
+    console.error('❌ Error in /api/attendance:', err);
+    console.error('   ↪️ Error message:', err.message);
+    console.error('   ↪️ Error stack:', err.stack);
     res.status(500).json({ error: err.message });
   }
 });
 
 app.post('/api/attendance/clock-in', async (req, res) => {
+  console.log('➡️  [HIT] /api/attendance/clock-in');
+  console.log('   ↪️ Request body:', req.body);
+  
   try {
     const { employeeId, location, notes } = req.body;
+    
+    // Validate required fields
+    if (!employeeId) {
+      console.error('   ↪️ Error: employeeId is required');
+      return res.status(400).json({ error: 'employeeId is required' });
+    }
+    
+    console.log('   ↪️ Employee ID:', employeeId);
+    console.log('   ↪️ Location:', location);
+    console.log('   ↪️ Notes:', notes);
+    
     const now = new Date();
     const currentTime = now.toTimeString().split(' ')[0];
-    const today = now.toISOString().split('T')[0];
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    
+    console.log('   ↪️ Current time:', currentTime);
+    console.log('   ↪️ Today\'s date:', today);
+    
+    // Check if employee exists
+    console.log('   ↪️ Checking if employee exists...');
+    const employeeCheck = await pool.query('SELECT id FROM employees WHERE id = $1', [employeeId]);
+    if (employeeCheck.rows.length === 0) {
+      console.error('   ↪️ Error: Employee not found:', employeeId);
+      return res.status(400).json({ error: 'Employee not found' });
+    }
+    console.log('   ↪️ Employee found:', employeeCheck.rows[0].id);
     
     // Check if already clocked in today
+    console.log('   ↪️ Checking for existing clock-in record...');
     const existingRecord = await pool.query(
-      'SELECT * FROM attendance WHERE employee_id = $1 AND date = $2 AND clock_out IS NULL',
+      'SELECT * FROM attendance WHERE employee_id = $1 AND date = $2::DATE AND clock_out IS NULL',
       [employeeId, today]
     );
     
+    console.log('   ↪️ Existing records found:', existingRecord.rows.length);
+    
     if (existingRecord.rows.length > 0) {
+      console.error('   ↪️ Error: Already clocked in today');
       return res.status(400).json({ error: 'Already clocked in today' });
     }
     
+    console.log('   ↪️ Inserting new attendance record...');
     const result = await pool.query(
-      'INSERT INTO attendance (employee_id, date, clock_in, location, notes, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      'INSERT INTO attendance (employee_id, date, clock_in, location, notes, status) VALUES ($1, $2::DATE, $3, $4, $5, $6) RETURNING *',
       [employeeId, today, currentTime, location || 'Main Office', notes || 'Clock in via system', 'present']
     );
     
+    console.log('   ↪️ Successfully created attendance record:', result.rows[0]);
     res.status(201).json(result.rows[0]);
   } catch (err) {
+    console.error('❌ Error in /api/attendance/clock-in:', err);
+    console.error('   ↪️ Error message:', err.message);
+    console.error('   ↪️ Error stack:', err.stack);
     res.status(500).json({ error: err.message });
   }
 });
@@ -207,10 +253,10 @@ app.post('/api/attendance/clock-out', async (req, res) => {
     const { employeeId } = req.body;
     const now = new Date();
     const currentTime = now.toTimeString().split(' ')[0];
-    const today = now.toISOString().split('T')[0];
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     
     const result = await pool.query(
-      'UPDATE attendance SET clock_out = $1, total_hours = EXTRACT(EPOCH FROM (clock_out::time - clock_in::time))/3600 WHERE employee_id = $2 AND date = $3 AND clock_out IS NULL RETURNING *',
+      'UPDATE attendance SET clock_out = $1, total_hours = EXTRACT(EPOCH FROM (clock_out::time - clock_in::time))/3600 WHERE employee_id = $2 AND date = $3::DATE AND clock_out IS NULL RETURNING *',
       [currentTime, employeeId, today]
     );
     
@@ -225,36 +271,53 @@ app.post('/api/attendance/clock-out', async (req, res) => {
 });
 
 app.get('/api/attendance/stats', async (req, res) => {
+  console.log('➡️  [HIT] /api/attendance/stats');
   try {
-    const today = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    console.log('   ↪️ Today\'s date:', today);
     
+    console.log('   ↪️ Querying present count...');
     const presentResult = await pool.query(
-      'SELECT COUNT(*) as count FROM attendance WHERE date = $1 AND status = $2',
-      [today, 'present']
-    );
-    
-    const absentResult = await pool.query(
-      'SELECT COUNT(*) as count FROM attendance WHERE date = $1 AND status = $3',
-      [today, 'absent']
-    );
-    
-    const lateResult = await pool.query(
-      'SELECT COUNT(*) as count FROM attendance WHERE date = $1 AND status = $4',
-      [today, 'late']
-    );
-    
-    const totalHoursResult = await pool.query(
-      'SELECT COALESCE(SUM(total_hours), 0) as total FROM attendance WHERE date = $1',
+      'SELECT COUNT(*) as count FROM attendance WHERE date = $1::DATE AND clock_in IS NOT NULL AND clock_out IS NULL',
       [today]
     );
+    console.log('   ↪️ Present count:', presentResult.rows[0].count);
     
-    res.json({
+    console.log('   ↪️ Querying absent count...');
+    const absentResult = await pool.query(
+      'SELECT COUNT(*) as count FROM attendance WHERE date = $1::DATE AND status = $2',
+      [today, 'absent']
+    );
+    console.log('   ↪️ Absent count:', absentResult.rows[0].count);
+    
+    console.log('   ↪️ Querying late count...');
+    const lateResult = await pool.query(
+      'SELECT COUNT(*) as count FROM attendance WHERE date = $1::DATE AND status = $2',
+      [today, 'late']
+    );
+    console.log('   ↪️ Late count:', lateResult.rows[0].count);
+    
+    console.log('   ↪️ Querying total hours...');
+    const totalHoursResult = await pool.query(
+      'SELECT COALESCE(SUM(total_hours), 0) as total FROM attendance WHERE date = $1::DATE',
+      [today]
+    );
+    console.log('   ↪️ Total hours:', totalHoursResult.rows[0].total);
+    
+    const response = {
       present: parseInt(presentResult.rows[0].count),
       absent: parseInt(absentResult.rows[0].count),
       late: parseInt(lateResult.rows[0].count),
       totalHours: parseFloat(totalHoursResult.rows[0].total)
-    });
+    };
+    
+    console.log('   ↪️ Sending response:', response);
+    res.json(response);
   } catch (err) {
+    console.error('❌ Error in /api/attendance/stats:', err);
+    console.error('   ↪️ Error message:', err.message);
+    console.error('   ↪️ Error stack:', err.stack);
     res.status(500).json({ error: err.message });
   }
 });
@@ -1549,3 +1612,118 @@ app.get('/api/dashboard/recent-activities', async (req, res) => {
 });
 
 app.listen(5000, () => console.log('🚀 Server running on port 5000')); 
+
+// Approve selected attendance logs
+app.post('/api/attendance/approve', async (req, res) => {
+  try {
+    const { ids, approvedBy } = req.body;
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'No attendance IDs provided' });
+    }
+    await pool.query(
+      'UPDATE attendance SET approval_status = $1, approved_by = $2 WHERE id = ANY($3)',
+      ['approved', approvedBy || 'system', ids]
+    );
+    res.json({ message: 'Attendance approved' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Reject/flag attendance logs
+app.post('/api/attendance/reject', async (req, res) => {
+  try {
+    const { ids, rejectedBy, reason } = req.body;
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'No attendance IDs provided' });
+    }
+    await pool.query(
+      'UPDATE attendance SET approval_status = $1, approved_by = $2, notes = COALESCE(notes, $3) WHERE id = ANY($4)',
+      ['rejected', rejectedBy || 'system', reason || 'Rejected', ids]
+    );
+    res.json({ message: 'Attendance rejected' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Edit attendance log
+app.put('/api/attendance/edit/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { check_in, check_out, status, notes, approvedBy } = req.body;
+    const result = await pool.query(
+      'UPDATE attendance SET check_in = $1, check_out = $2, status = $3, notes = $4, approval_status = $5, approved_by = $6 WHERE id = $7 RETURNING *',
+      [check_in, check_out, status, notes, 'approved', approvedBy || 'system', id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Attendance record not found' });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Export attendance report
+app.get('/api/attendance/export', async (req, res) => {
+  try {
+    const { week, month, format = 'csv' } = req.query;
+    let query = 'SELECT a.*, e.name as employee_name, e.department FROM attendance a JOIN employees e ON a.employee_id = e.id';
+    let params = [];
+    let conditions = [];
+    if (week) {
+      conditions.push('EXTRACT(WEEK FROM a.date) = $' + (params.length + 1));
+      params.push(week);
+    }
+    if (month) {
+      conditions.push('EXTRACT(MONTH FROM a.date) = $' + (params.length + 1));
+      params.push(month);
+    }
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+    query += ' ORDER BY a.date DESC, a.check_in ASC';
+    const result = await pool.query(query, params);
+    if (format === 'csv') {
+      const csv = result.rows.map(row =>
+        `${row.date},${row.employee_name},${row.department},${row.status},${row.check_in || ''},${row.check_out || ''},${row.approval_status}`
+      ).join('\n');
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename=attendance-${week || month || 'all'}.csv`);
+      res.send('Date,Employee,Department,Status,Check In,Check Out,Approval Status\n' + csv);
+    } else {
+      res.json(result.rows);
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Fetch own logs
+app.get('/api/attendance/self/:employee_id', async (req, res) => {
+  try {
+    const { employee_id } = req.params;
+    const result = await pool.query(
+      'SELECT * FROM attendance WHERE employee_id = $1 ORDER BY date DESC',
+      [employee_id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// By-date alias
+app.get('/api/attendance/by-date', async (req, res) => {
+  try {
+    const { date } = req.query;
+    const result = await pool.query(
+      'SELECT a.*, e.name as employee_name, e.department FROM attendance a JOIN employees e ON a.employee_id = e.id WHERE a.date = $1',
+      [date]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}); 

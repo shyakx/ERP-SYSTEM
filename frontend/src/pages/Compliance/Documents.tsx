@@ -1,6 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { FileText, Folder, Download, Upload, Eye, Edit, Trash2, Plus, Search, CheckCircle, AlertCircle } from 'lucide-react';
+import { 
+  FileText, 
+  Download, 
+  Edit, 
+  Trash2, 
+  Eye, 
+  Upload,
+  Search,
+  Filter,
+  Plus,
+  CheckCircle,
+  AlertCircle,
+  Folder
+} from 'lucide-react';
+import StatCard from '../../components/StatCard';
+import FilterBar, { FilterField } from '../../components/FilterBar';
+import CompactTable, { TableColumn } from '../../components/CompactTable';
+import Modal from '../../components/Common/Modal';
 
 interface Document {
   id: string;
@@ -176,279 +193,274 @@ const Documents: React.FC = () => {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <FileText className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Documents</p>
-              <p className="text-2xl font-bold text-gray-900">{getTotalDocuments()}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Approved</p>
-              <p className="text-2xl font-bold text-gray-900">{getApprovedDocuments()}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <AlertCircle className="w-6 h-6 text-yellow-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Under Review</p>
-              <p className="text-2xl font-bold text-gray-900">{getReviewDocuments()}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <Folder className="w-6 h-6 text-purple-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Size</p>
-              <p className="text-2xl font-bold text-gray-900">{formatFileSize(getTotalFileSize())}</p>
-            </div>
-          </div>
-        </div>
+        <StatCard
+          icon={<FileText className="w-6 h-6 text-blue-600" />}
+          label="Total Documents"
+          value={getTotalDocuments()}
+          colorClass="text-blue-600"
+        />
+        <StatCard
+          icon={<CheckCircle className="w-6 h-6 text-green-600" />}
+          label="Approved Documents"
+          value={getApprovedDocuments()}
+          colorClass="text-green-600"
+        />
+        <StatCard
+          icon={<AlertCircle className="w-6 h-6 text-yellow-600" />}
+          label="Under Review"
+          value={getReviewDocuments()}
+          colorClass="text-yellow-600"
+        />
+        <StatCard
+          icon={<Folder className="w-6 h-6 text-purple-600" />}
+          label="Total File Size"
+          value={formatFileSize(getTotalFileSize())}
+          colorClass="text-purple-600"
+        />
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search documents..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      <FilterBar
+        searchPlaceholder="Search documents..."
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        onSearchClear={() => setSearchTerm('')}
+        searchIcon={<Search className="w-4 h-4 text-gray-400" />}
+        filters={[
+          {
+            label: 'Category',
+            value: categoryFilter,
+            onChange: (e) => setCategoryFilter(e.target.value),
+            options: [
+              { value: 'all', label: 'All Categories' },
+              { value: 'policy', label: 'Policies' },
+              { value: 'procedure', label: 'Procedures' },
+              { value: 'contract', label: 'Contracts' },
+              { value: 'training', label: 'Training' },
+              { value: 'incident_report', label: 'Incident Reports' },
+              { value: 'audit', label: 'Audits' },
+              { value: 'compliance', label: 'Compliance' },
+              { value: 'other', label: 'Other' },
+            ],
+            icon: <Filter className="w-4 h-4 text-gray-400" />,
+          },
+          {
+            label: 'Status',
+            value: statusFilter,
+            onChange: (e) => setStatusFilter(e.target.value),
+            options: [
+              { value: 'all', label: 'All Status' },
+              { value: 'draft', label: 'Draft' },
+              { value: 'review', label: 'Under Review' },
+              { value: 'approved', label: 'Approved' },
+              { value: 'archived', label: 'Archived' },
+              { value: 'expired', label: 'Expired' },
+            ],
+            icon: <Filter className="w-4 h-4 text-gray-400" />,
+          },
+        ]}
+        actions={[
+          {
+            label: 'Export',
+            onClick: () => alert('Export functionality not implemented yet'),
+            icon: <Download className="w-4 h-4" />,
+          },
+        ]}
+      />
+
+      {/* Documents Table */}
+      <CompactTable
+        columns={
+          [
+            {
+              header: 'Document',
+              accessor: 'document',
+              render: (document) => (
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div className="ml-4">
+                    <div className="text-sm font-medium text-gray-900">{document.title}</div>
+                    <div className="text-sm text-gray-500">{document.documentNumber} v{document.version}</div>
+                  </div>
+                </div>
+              ),
+            },
+            {
+              header: 'Category',
+              accessor: 'category',
+              render: (document) => (
+                <div className="text-sm text-gray-900 capitalize">{document.category.replace('_', ' ')}</div>
+              ),
+            },
+            {
+              header: 'Status',
+              accessor: 'status',
+              render: (document) => (
+                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(document.status)}`}>
+                  {document.status}
+                </span>
+              ),
+            },
+            {
+              header: 'Access Level',
+              accessor: 'accessLevel',
+              render: (document) => (
+                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getAccessLevelColor(document.accessLevel)}`}>
+                  {document.accessLevel}
+                </span>
+              ),
+            },
+            {
+              header: 'Last Modified',
+              accessor: 'lastModified',
+              render: (document) => (
+                <div className="text-sm text-gray-900">{formatDate(document.lastModified)}</div>
+              ),
+            },
+            {
+              header: 'Size',
+              accessor: 'fileSize',
+              render: (document) => (
+                <div className="text-sm text-gray-900">{formatFileSize(document.fileSize)}</div>
+              ),
+            },
+            {
+              header: 'Actions',
+              accessor: 'actions',
+              render: (document) => (
+                <div className="flex justify-end space-x-2">
+                  <button className="text-blue-600 hover:text-blue-900 p-1" title="View Details">
+                    <Eye className="w-4 h-4" />
+                  </button>
+                  <button className="text-green-600 hover:text-green-900 p-1" title="Download">
+                    <Download className="w-4 h-4" />
+                  </button>
+                  {canManageDocuments && (
+                    <>
+                      <button className="text-yellow-600 hover:text-yellow-900 p-1" title="Edit">
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteDocument(document.id)}
+                        className="text-red-600 hover:text-red-900 p-1"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
+                </div>
+              ),
+            },
+          ]
+        }
+        data={filteredDocuments}
+        showPagination={true}
+        totalItems={documents.length}
+        itemsPerPage={10}
+        currentPage={1}
+        onPageChange={(page) => console.log('Page changed to:', page)}
+      />
+
+      {/* Upload Document Modal */}
+      <Modal
+        open={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        size="xl"
+        title={
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <Upload className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Upload New Document</h2>
+              <p className="text-sm text-gray-500">Add a new document to the system</p>
+            </div>
+          </div>
+        }
+      >
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Document Title *</label>
+              <input 
+                type="text" 
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                placeholder="Enter document title"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
+              <select className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                <option value="">Select Category</option>
+                <option value="policy">Policy</option>
+                <option value="procedure">Procedure</option>
+                <option value="contract">Contract</option>
+                <option value="training">Training</option>
+                <option value="incident_report">Incident Report</option>
+                <option value="audit">Audit</option>
+                <option value="compliance">Compliance</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Access Level *</label>
+              <select className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                <option value="public">Public</option>
+                <option value="restricted">Restricted</option>
+                <option value="confidential">Confidential</option>
+                <option value="secret">Secret</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Assigned To</label>
+              <input 
+                type="text" 
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                placeholder="Enter assigned person or team"
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            <textarea 
+              rows={3} 
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+              placeholder="Enter document description"
             />
           </div>
           
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="all">All Categories</option>
-            <option value="policy">Policies</option>
-            <option value="procedure">Procedures</option>
-            <option value="contract">Contracts</option>
-            <option value="training">Training</option>
-            <option value="incident_report">Incident Reports</option>
-            <option value="audit">Audits</option>
-            <option value="compliance">Compliance</option>
-            <option value="other">Other</option>
-          </select>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Upload File *</label>
+            <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors duration-200">
+              <Upload className="mx-auto h-12 w-12 text-gray-400" />
+              <div className="mt-4">
+                <button type="button" className="text-blue-600 hover:text-blue-700 font-medium">
+                  Choose a file
+                </button>
+                <p className="text-gray-500">or drag and drop</p>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">PDF, DOC, DOCX, XLS, XLSX up to 10MB</p>
+            </div>
+          </div>
 
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="all">All Status</option>
-            <option value="draft">Draft</option>
-            <option value="review">Under Review</option>
-            <option value="approved">Approved</option>
-            <option value="archived">Archived</option>
-            <option value="expired">Expired</option>
-          </select>
-
-          <div className="flex space-x-2">
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2">
-              <Download className="w-4 h-4" />
-              <span>Export</span>
+          {/* Action Buttons */}
+          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+            <button
+              onClick={() => setShowAddModal(false)}
+              className="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 transform hover:scale-105 font-medium"
+            >
+              Cancel
+            </button>
+            <button className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl transition-all duration-200 transform hover:scale-105 font-medium shadow-lg hover:shadow-xl">
+              Upload Document
             </button>
           </div>
         </div>
-      </div>
-
-      {/* Documents Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Document</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Access Level</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Modified</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredDocuments.map((document) => (
-                <tr key={document.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
-                        <FileText className="w-5 h-5" />
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{document.title}</div>
-                        <div className="text-sm text-gray-500">{document.documentNumber} v{document.version}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 capitalize">{document.category.replace('_', ' ')}</div>
-                    <div className="text-sm text-gray-500">{document.assignedTo}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(document.status)}`}>
-                      {document.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getAccessLevelColor(document.accessLevel)}`}>
-                      {document.accessLevel}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{formatDate(document.lastModified)}</div>
-                    <div className="text-sm text-gray-500">by {document.lastModifiedBy}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {formatFileSize(document.fileSize)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end space-x-2">
-                      <button className="text-blue-600 hover:text-blue-900 p-1" title="View Details">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button className="text-green-600 hover:text-green-900 p-1" title="Download">
-                        <Download className="w-4 h-4" />
-                      </button>
-                      {canManageDocuments && (
-                        <>
-                          <button className="text-yellow-600 hover:text-yellow-900 p-1" title="Edit">
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteDocument(document.id)}
-                            className="text-red-600 hover:text-red-900 p-1"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        
-        {/* Pagination */}
-        <div className="bg-white px-6 py-3 border-t border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-700">
-              Showing {filteredDocuments.length} of {documents.length} documents
-            </div>
-            <div className="flex space-x-2">
-              <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">Previous</button>
-              <button className="px-3 py-1 bg-blue-600 text-white rounded text-sm">1</button>
-              <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">Next</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Upload Document Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Upload New Document</h3>
-            </div>
-            <div className="p-6">
-              <form className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Document Title</label>
-                    <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option>Select Category</option>
-                      <option value="policy">Policy</option>
-                      <option value="procedure">Procedure</option>
-                      <option value="contract">Contract</option>
-                      <option value="training">Training</option>
-                      <option value="incident_report">Incident Report</option>
-                      <option value="audit">Audit</option>
-                      <option value="compliance">Compliance</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Access Level</label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="public">Public</option>
-                      <option value="restricted">Restricted</option>
-                      <option value="confidential">Confidential</option>
-                      <option value="secret">Secret</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Assigned To</label>
-                    <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <textarea rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Upload File</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                    <div className="mt-4">
-                      <button type="button" className="text-blue-600 hover:text-blue-700 font-medium">
-                        Choose a file
-                      </button>
-                      <p className="text-gray-500">or drag and drop</p>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">PDF, DOC, DOCX, XLS, XLSX up to 10MB</p>
-                  </div>
-                </div>
-              </form>
-            </div>
-            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                Upload Document
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      </Modal>
     </div>
   );
 };

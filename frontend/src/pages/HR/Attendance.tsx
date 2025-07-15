@@ -5,14 +5,18 @@ import {
   XCircle, 
   AlertTriangle, 
   Clock, 
-  Search, 
-  Filter, 
-  Download,
   CheckCircle,
+  Download,
+  RefreshCw,
   Calendar,
   MapPin,
   Users
 } from 'lucide-react';
+import StatCard from '../../components/StatCard';
+import FilterBar, { FilterField } from '../../components/FilterBar';
+import CompactTable, { TableColumn } from '../../components/CompactTable';
+import Modal from '../../components/Common/Modal';
+import { toast } from 'react-toastify';
 
 interface Employee {
   id: string;
@@ -35,14 +39,14 @@ interface AttendanceRecord {
   location: string;
   notes?: string;
   shiftId?: string;
+  approvalStatus?: string;
 }
 
-interface RecentActivity {
-  id: string;
-  type: 'clock_in' | 'clock_out' | 'leave_request' | 'overtime';
-  employeeName: string;
-  time: string;
-  description: string;
+interface AttendanceStats {
+  present: number;
+  absent: number;
+  late: number;
+  totalHours: number;
 }
 
 const Attendance: React.FC = () => {
@@ -50,19 +54,23 @@ const Attendance: React.FC = () => {
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [dateFilter, setDateFilter] = useState(new Date().toISOString().split('T')[0]);
+  const [stats, setStats] = useState<AttendanceStats>({ present: 0, absent: 0, late: 0, totalHours: 0 });
   const [showClockInModal, setShowClockInModal] = useState(false);
   const [showClockOutModal, setShowClockOutModal] = useState(false);
   const [selectedEmployeeForClockIn, setSelectedEmployeeForClockIn] = useState('');
-  const [selectedEmployeeForClockOut, setSelectedEmployeeForClockOut] = useState('');
   const [selectedRecordForClockOut, setSelectedRecordForClockOut] = useState<AttendanceRecord | null>(null);
-  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState(new Date().toISOString().split('T')[0]);
+  const [departmentFilter, setDepartmentFilter] = useState('all');
 
   useEffect(() => {
     fetchAttendance();
     fetchEmployees();
+    fetchStats();
   }, []);
 
   const fetchAttendance = async () => {
@@ -72,21 +80,41 @@ const Attendance: React.FC = () => {
       if (!response.ok) throw new Error('Failed to fetch attendance');
       const data = await response.json();
       
+      console.log('Raw attendance data:', data);
+      
       // Transform the data to match our frontend interface
-      const transformedData = data.map((record: any) => ({
+      const transformedData = data.map((record: any) => {
+        // Handle date formatting - convert UTC date to local date
+        let formattedDate = record.date;
+        if (record.date) {
+          // If it's a date string, convert UTC to local date
+          if (typeof record.date === 'string') {
+            const dateObj = new Date(record.date);
+            // Convert to local date string (YYYY-MM-DD)
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            formattedDate = `${year}-${month}-${day}`;
+          }
+        }
+        
+        return {
         id: record.id.toString(),
         employeeId: record.employee_id,
         employeeName: record.employee_name || 'Unknown Employee',
-        date: record.date,
+          date: formattedDate,
         clockIn: record.clock_in,
         clockOut: record.clock_out,
         totalHours: record.total_hours,
         status: record.status,
         location: record.location,
         notes: record.notes,
-        shiftId: record.shift_id
-      }));
+          shiftId: record.shift_id,
+          approvalStatus: record.approval_status
+        };
+      });
       
+      console.log('Transformed attendance data:', transformedData);
       setAttendance(transformedData);
     } catch (error) {
       console.error('Error fetching attendance:', error);
@@ -106,6 +134,22 @@ const Attendance: React.FC = () => {
     }
   };
 
+  const fetchStats = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/attendance/stats');
+      if (!response.ok) throw new Error('Failed to fetch attendance stats');
+      const data = await response.json();
+      setStats({
+        present: data.present || 0,
+        absent: data.absent || 0,
+        late: data.late || 0,
+        totalHours: data.totalHours || 0
+      });
+    } catch (error) {
+      console.error('Error fetching attendance stats:', error);
+    }
+  };
+
   const canManageAttendance = user?.role === 'system_admin' || user?.role === 'hr_manager' || user?.role === 'operations_supervisor' || user?.role === 'field_officer';
 
   const filteredAttendance = attendance
@@ -114,7 +158,24 @@ const Attendance: React.FC = () => {
       record.employeeId.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .filter(record => statusFilter === 'all' || record.status === statusFilter)
-    .filter(record => !dateFilter || record.date === dateFilter);
+    .filter(record => {
+      // Handle date filtering more robustly
+      if (!dateFilter) return true;
+      
+      // Convert both dates to local YYYY-MM-DD format for comparison
+      const recordDate = record.date || '';
+      const filterDate = dateFilter;
+      
+      console.log('Date comparison:', { recordDate, filterDate, matches: recordDate === filterDate });
+      return recordDate === filterDate;
+    })
+    .filter(record => {
+      if (departmentFilter === 'all') return true;
+      const employee = employees.find(emp => emp.id === record.employeeId);
+      return employee?.department === departmentFilter;
+    });
+
+  console.log('Filtered attendance:', filteredAttendance.length, 'records');
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -144,36 +205,10 @@ const Attendance: React.FC = () => {
     });
   };
 
-  const getTodayAttendance = () => {
-    const today = new Date().toISOString().split('T')[0];
-    return attendance.filter(record => record.date === today);
-  };
-
-  const getPresentCount = () => {
-    return getTodayAttendance().filter(record => record.status === 'present').length;
-  };
-
-  const getAbsentCount = () => {
-    return getTodayAttendance().filter(record => record.status === 'absent').length;
-  };
-
-  const getLateCount = () => {
-    return getTodayAttendance().filter(record => record.status === 'late').length;
-  };
-
-  const getTotalHours = () => {
-    return getTodayAttendance().reduce((total, record) => total + (record.totalHours || 0), 0);
-  };
-
   const handleClockIn = async () => {
     if (!selectedEmployeeForClockIn) return;
     
-    const now = new Date();
-    const currentTime = now.toTimeString().split(' ')[0];
-    const today = now.toISOString().split('T')[0];
-    
-    const selectedEmployee = employees.find(emp => emp.id === selectedEmployeeForClockIn);
-    
+    setActionLoading(true);
     try {
       const response = await fetch('http://localhost:5000/api/attendance/clock-in', {
         method: 'POST',
@@ -188,25 +223,26 @@ const Attendance: React.FC = () => {
       });
 
       if (response.ok) {
-        await fetchAttendance(); // Refresh the attendance data
+        await fetchAttendance();
+        await fetchStats();
         setShowClockInModal(false);
         setSelectedEmployeeForClockIn('');
+        toast.success('Clock in successful!');
       } else {
         const errorData = await response.json();
-        alert(`Error: ${errorData.error}`);
+        toast.error(errorData.error || 'Clock in failed');
       }
     } catch (error) {
-      console.error('Error clocking in:', error);
-      alert('Error clocking in. Please try again.');
+      toast.error('Error clocking in. Please try again.');
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleClockOut = async () => {
     if (!selectedRecordForClockOut) return;
     
-    const now = new Date();
-    const currentTime = now.toTimeString().split(' ')[0];
-    
+    setActionLoading(true);
     try {
       const response = await fetch('http://localhost:5000/api/attendance/clock-out', {
         method: 'POST',
@@ -219,16 +255,19 @@ const Attendance: React.FC = () => {
       });
 
       if (response.ok) {
-        await fetchAttendance(); // Refresh the attendance data
+        await fetchAttendance();
+        await fetchStats();
         setShowClockOutModal(false);
         setSelectedRecordForClockOut(null);
+        toast.success('Clock out successful!');
       } else {
         const errorData = await response.json();
-        alert(`Error: ${errorData.error}`);
+        toast.error(errorData.error || 'Clock out failed');
       }
     } catch (error) {
-      console.error('Error clocking out:', error);
-      alert('Error clocking out. Please try again.');
+      toast.error('Error clocking out. Please try again.');
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -237,220 +276,388 @@ const Attendance: React.FC = () => {
   };
 
   const getEmployeesForClockOut = () => {
-    const today = new Date().toISOString().split('T')[0];
+    // Get today's date in local format (YYYY-MM-DD)
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${year}-${month}-${day}`;
+    
     return attendance.filter(record => 
-      record.date === today && 
+      record.date === todayStr && 
       record.clockIn && 
       !record.clockOut
     );
   };
 
+  const departments = [...new Set(employees.map(emp => emp.department))];
+
+  // Filter fields for FilterBar
+  const filterFields: FilterField[] = [
+    {
+      key: 'search',
+      label: 'Search',
+      type: 'text',
+      value: searchTerm,
+      placeholder: 'Search employees...'
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      type: 'select',
+      value: statusFilter,
+      options: [
+        { value: 'all', label: 'All Status' },
+        { value: 'present', label: 'Present' },
+        { value: 'absent', label: 'Absent' },
+        { value: 'late', label: 'Late' },
+        { value: 'early_departure', label: 'Early Departure' },
+        { value: 'on_leave', label: 'On Leave' }
+      ]
+    },
+    {
+      key: 'date',
+      label: 'Date',
+      type: 'text',
+      value: dateFilter
+    },
+    {
+      key: 'department',
+      label: 'Department',
+      type: 'select',
+      value: departmentFilter,
+      options: [
+        { value: 'all', label: 'All Departments' },
+        ...departments.map(dept => ({ value: dept, label: dept }))
+      ]
+    }
+  ];
+
+  const handleFilterChange = (key: string, value: string) => {
+    switch (key) {
+      case 'search':
+        setSearchTerm(value);
+        break;
+      case 'status':
+        setStatusFilter(value);
+        break;
+      case 'date':
+        setDateFilter(value);
+        break;
+      case 'department':
+        setDepartmentFilter(value);
+        break;
+    }
+  };
+
+  // Table columns for CompactTable
+  const columns: TableColumn<AttendanceRecord>[] = [
+    {
+      key: 'employee',
+      label: 'Employee',
+      render: (record) => (
+        <div className="flex items-center">
+          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+            <span className="text-xs font-medium text-gray-600">
+              {record.employeeName.split(' ').map(n => n[0]).join('')}
+            </span>
+          </div>
+          <div className="ml-3">
+            <div className="text-sm font-medium text-gray-900">{record.employeeName}</div>
+            <div className="text-xs text-gray-500">ID: {record.employeeId}</div>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'date',
+      label: 'Date',
+      render: (record) => formatDate(record.date)
+    },
+    {
+      key: 'clockIn',
+      label: 'Clock In',
+      render: (record) => record.clockIn ? formatTime(record.clockIn) : '-'
+    },
+    {
+      key: 'clockOut',
+      label: 'Clock Out',
+      render: (record) => record.clockOut ? formatTime(record.clockOut) : '-'
+    },
+    {
+      key: 'hours',
+      label: 'Hours',
+      render: (record) => record.totalHours ? `${record.totalHours}h` : '-'
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (record) => (
+        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(record.status)}`}>
+          {record.status.replace('_', ' ')}
+        </span>
+      )
+    },
+    {
+      key: 'location',
+      label: 'Location',
+      render: (record) => record.location
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
+      align: 'right',
+      render: (record) => (
+        <div className="flex justify-end space-x-2">
+          {!record.clockOut && record.clockIn && (
+            <button
+              onClick={() => {
+                setSelectedRecordForClockOut(record);
+                setShowClockOutModal(true);
+              }}
+              className="group relative bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 p-2 rounded-lg transition-all duration-200 transform hover:scale-110 hover:shadow-md"
+              title="Clock Out Employee"
+            >
+              <XCircle className="w-4 h-4 group-hover:animate-pulse" />
+              <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full animate-ping"></div>
+            </button>
+          )}
+          {!record.clockIn && (
+            <button
+              onClick={() => {
+                setSelectedEmployeeForClockIn(record.employeeId);
+                setShowClockInModal(true);
+              }}
+              className="group relative bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-700 p-2 rounded-lg transition-all duration-200 transform hover:scale-110 hover:shadow-md"
+              title="Clock In Employee"
+            >
+              <CheckCircle className="w-4 h-4 group-hover:animate-pulse" />
+              <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-ping"></div>
+            </button>
+          )}
+          {/* View Details Button */}
+          <button
+            className="group bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 p-2 rounded-lg transition-all duration-200 transform hover:scale-110 hover:shadow-md"
+            title="View Details"
+          >
+            <svg className="w-4 h-4 group-hover:animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
+        </div>
+      )
+    }
+  ];
+
   return (
-    <div className="p-6">
+    <div className="p-4">
       {/* Header */}
-      <div className="mb-8">
+      <div className="mb-6">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Attendance Management</h1>
             <p className="text-gray-600 mt-1">Track employee attendance and time records</p>
           </div>
           <div className="flex space-x-3">
+            {/* Enhanced Clock In Button */}
             <button
               onClick={() => setShowClockInModal(true)}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+              className="group relative bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-3 rounded-xl flex items-center space-x-3 transition-all duration-200 transform hover:scale-105 hover:shadow-lg font-medium text-sm"
             >
-              <CheckCircle className="w-4 h-4" />
+              <div className="relative">
+                <CheckCircle className="w-5 h-5 group-hover:animate-pulse" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-300 rounded-full animate-ping"></div>
+              </div>
               <span>Clock In</span>
+              <div className="bg-green-400 bg-opacity-30 px-2 py-1 rounded-full text-xs">
+                {getActiveEmployees().length} employees
+              </div>
             </button>
+
+            {/* Enhanced Clock Out Button */}
             <button
               onClick={() => setShowClockOutModal(true)}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+              className="group relative bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-6 py-3 rounded-xl flex items-center space-x-3 transition-all duration-200 transform hover:scale-105 hover:shadow-lg font-medium text-sm"
             >
-              <XCircle className="w-4 h-4" />
+              <div className="relative">
+                <XCircle className="w-5 h-5 group-hover:animate-pulse" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-300 rounded-full animate-ping"></div>
+              </div>
               <span>Clock Out</span>
+              <div className="bg-red-400 bg-opacity-30 px-2 py-1 rounded-full text-xs">
+                {getEmployeesForClockOut().length} on duty
+              </div>
             </button>
+
+            {/* Enhanced Refresh Button */}
+            <button
+              onClick={() => {
+                fetchAttendance();
+                fetchStats();
+              }}
+              disabled={loading}
+              className="group p-3 bg-white rounded-xl shadow-sm border border-gray-200 hover:bg-gray-50 hover:shadow-md transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Refresh Data"
+            >
+              <RefreshCw className={`w-5 h-5 text-gray-600 group-hover:text-gray-800 ${loading ? 'animate-spin' : 'group-hover:animate-pulse'}`} />
+            </button>
+
+            {/* Quick Actions Dropdown */}
+            <div className="relative group">
+              <button className="p-3 bg-white rounded-xl shadow-sm border border-gray-200 hover:bg-gray-50 hover:shadow-md transition-all duration-200 transform hover:scale-105">
+                <div className="w-5 h-5 text-gray-600 group-hover:text-gray-800">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                  </svg>
+                </div>
+              </button>
+              
+              {/* Quick Actions Menu */}
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+                <div className="py-2">
+                  <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
+                    <Download className="w-4 h-4" />
+                    <span>Export Report</span>
+                  </button>
+                  <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
+                    <Calendar className="w-4 h-4" />
+                    <span>View Calendar</span>
+                  </button>
+                  <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
+                    <Users className="w-4 h-4" />
+                    <span>Bulk Actions</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <UserCheck className="w-6 h-6 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Present Today</p>
-              <p className="text-2xl font-bold text-gray-900">{getPresentCount()}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-              <XCircle className="w-6 h-6 text-red-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Absent Today</p>
-              <p className="text-2xl font-bold text-gray-900">{getAbsentCount()}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6 text-yellow-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Late Today</p>
-              <p className="text-2xl font-bold text-gray-900">{getLateCount()}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Clock className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Hours</p>
-              <p className="text-2xl font-bold text-gray-900">{getTotalHours()}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters and Search */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search attendance..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="all">All Status</option>
-            <option value="present">Present</option>
-            <option value="absent">Absent</option>
-            <option value="late">Late</option>
-            <option value="early_departure">Early Departure</option>
-            <option value="on_leave">On Leave</option>
-          </select>
-
-          <input
-            type="date"
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <StatCard
+          label="Present Today"
+          value={stats.present}
+          icon={<UserCheck className="w-4 h-4 text-green-600" />}
+          colorClass="text-green-600"
+        />
+        <StatCard
+          label="Absent Today"
+          value={stats.absent}
+          icon={<XCircle className="w-4 h-4 text-red-600" />}
+          colorClass="text-red-600"
+        />
+        <StatCard
+          label="Late Today"
+          value={stats.late}
+          icon={<AlertTriangle className="w-4 h-4 text-yellow-600" />}
+          colorClass="text-yellow-600"
+        />
+        <StatCard
+          label="Total Hours"
+          value={`${stats.totalHours}h`}
+          icon={<Clock className="w-4 h-4 text-blue-600" />}
+          colorClass="text-blue-600"
           />
-
-          <div className="flex space-x-2">
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2">
-              <Download className="w-4 h-4" />
-              <span>Export</span>
-            </button>
-          </div>
-        </div>
       </div>
 
-      {/* Attendance List */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clock In</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clock Out</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hours</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredAttendance.map((record) => (
-                <tr key={record.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-medium text-gray-600">
-                          {record.employeeName.split(' ').map(n => n[0]).join('')}
+      {/* Currently On Duty Section */}
+      {(() => {
+        // Get today's date in local format (YYYY-MM-DD) - same as getEmployeesForClockOut
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${year}-${month}-${day}`;
+        
+        const currentlyOnDuty = attendance.filter(record => {
+          // Use the same date comparison logic as the main filtering
+          return record.clockIn && !record.clockOut && record.date === todayStr;
+        });
+        
+        if (currentlyOnDuty.length > 0) {
+          return (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold text-green-800 flex items-center">
+                  <UserCheck className="w-5 h-5 mr-2" />
+                  Currently On Duty ({currentlyOnDuty.length})
+                </h3>
+                <span className="text-sm text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                  Active
                         </span>
                       </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{record.employeeName}</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {currentlyOnDuty.map(record => (
+                  <div key={record.id} className="bg-white rounded-lg p-3 border border-green-200">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium text-gray-900">{record.employeeName}</div>
                         <div className="text-sm text-gray-500">ID: {record.employeeId}</div>
+                        <div className="text-sm text-green-600">
+                          Clocked in at {record.clockIn ? formatTime(record.clockIn) : 'N/A'}
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatDate(record.date)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {record.clockIn ? formatTime(record.clockIn) : '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {record.clockOut ? formatTime(record.clockOut) : '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {record.totalHours ? `${record.totalHours}h` : '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(record.status)}`}>
-                      {record.status.replace('_', ' ')}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{record.location}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end space-x-2">
-                      {!record.clockOut && record.clockIn && (
                         <button
                           onClick={() => {
                             setSelectedRecordForClockOut(record);
                             setShowClockOutModal(true);
                           }}
-                          className="text-red-600 hover:text-red-900 p-1"
-                          title="Clock Out"
+                          className="group relative bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 p-2 rounded-lg transition-all duration-200 transform hover:scale-110 hover:shadow-md"
+                          title="Clock Out Employee"
                         >
-                          <XCircle className="w-4 h-4" />
+                          <XCircle className="w-4 h-4 group-hover:animate-pulse" />
+                          <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full animate-ping"></div>
                         </button>
-                      )}
-                      {!record.clockIn && (
-                        <button
-                          onClick={() => {
-                            setSelectedEmployeeForClockIn(record.employeeId);
-                            setShowClockInModal(true);
-                          }}
-                          className="text-green-600 hover:text-green-900 p-1"
-                          title="Clock In"
-                        >
-                          <CheckCircle className="w-4 h-4" />
-                        </button>
-                      )}
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        }
+        return null;
+      })()}
+        
+      {/* Filters */}
+      <FilterBar
+        fields={filterFields}
+        onChange={handleFilterChange}
+        showToggle={true}
+      />
+
+      {/* Attendance List */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-900">Attendance Records</h3>
+            <div className="flex space-x-2">
+              <button className="group px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center space-x-2 font-medium text-sm">
+                <Download className="w-4 h-4 group-hover:animate-pulse" />
+                <span>Export</span>
+              </button>
+            </div>
+          </div>
         </div>
         
+        {loading ? (
+          <div className="p-8 text-center text-gray-500">
+            <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
+            Loading attendance data...
+          </div>
+        ) : (
+          <CompactTable
+            columns={columns}
+            data={filteredAttendance}
+            rowKey={(record) => record.id}
+            emptyText="No attendance records found."
+          />
+        )}
+        
         {/* Pagination */}
-        <div className="bg-white px-6 py-3 border-t border-gray-200">
+        <div className="bg-white px-4 py-3 border-t border-gray-200">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-700">
               Showing {filteredAttendance.length} of {attendance.length} records
@@ -464,103 +671,242 @@ const Attendance: React.FC = () => {
         </div>
       </div>
 
-      {/* Clock In Modal */}
-      {showClockInModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Clock In</h3>
+      {/* Enhanced Clock In Modal */}
+      <Modal
+        open={showClockInModal}
+        onClose={() => setShowClockInModal(false)}
+        size="lg"
+        title={
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+              <CheckCircle className="w-5 h-5 text-green-600" />
             </div>
-            <div className="p-6">
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Employee</label>
-                <select
-                  value={selectedEmployeeForClockIn}
-                  onChange={(e) => setSelectedEmployeeForClockIn(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select Employee</option>
-                  {getActiveEmployees().map(emp => (
-                    <option key={emp.id} value={emp.id}>{emp.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-                <textarea rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
-              </div>
-            </div>
-            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
-              <button
-                onClick={() => setShowClockInModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handleClockIn}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                disabled={!selectedEmployeeForClockIn}
-              >
-                Clock In
-              </button>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Clock In Employee</h2>
+              <p className="text-sm text-gray-500">Record employee attendance</p>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Clock Out Modal */}
-      {showClockOutModal && selectedRecordForClockOut && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Clock Out</h3>
-            </div>
-            <div className="p-6">
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Employee</label>
-                <div className="px-3 py-2 border border-gray-300 rounded-lg bg-gray-50">
-                  <div className="text-sm font-medium text-gray-900">{selectedRecordForClockOut.employeeName}</div>
-                  <div className="text-xs text-gray-500">ID: {selectedRecordForClockOut.employeeId}</div>
-                </div>
+        }
+      >
+        <div className="space-y-6">
+          {/* Employee Selection */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 flex items-center space-x-2">
+              <Users className="w-4 h-4 text-gray-500" />
+              <span>Select Employee *</span>
+            </label>
+            <div className="relative">
+              <select
+                value={selectedEmployeeForClockIn}
+                onChange={(e) => setSelectedEmployeeForClockIn(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white"
+              >
+                <option value="">Choose an employee...</option>
+                {getActiveEmployees().map(emp => (
+                  <option key={emp.id} value={emp.id}>
+                    {emp.name} - {emp.department} ({emp.id})
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Clock In Time</label>
-                <div className="px-3 py-2 border border-gray-300 rounded-lg bg-gray-50">
-                  <div className="text-sm text-gray-900">
-                    {selectedRecordForClockOut.clockIn ? formatTime(selectedRecordForClockOut.clockIn) : 'Not clocked in'}
+            </div>
+            {selectedEmployeeForClockIn && (
+              <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-medium text-green-700">
+                      {employees.find(emp => emp.id === selectedEmployeeForClockIn)?.name?.split(' ').map(n => n[0]).join('')}
+                    </span>
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-green-800">
+                      {employees.find(emp => emp.id === selectedEmployeeForClockIn)?.name}
+                    </div>
+                    <div className="text-xs text-green-600">
+                      {employees.find(emp => emp.id === selectedEmployeeForClockIn)?.department} • {employees.find(emp => emp.id === selectedEmployeeForClockIn)?.position}
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-                <textarea rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Add any notes about the clock out..."></textarea>
+            )}
+          </div>
+
+          {/* Location Selection */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 flex items-center space-x-2">
+              <MapPin className="w-4 h-4 text-gray-500" />
+              <span>Location</span>
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {['Main Office', 'Branch Office', 'Field Work', 'Remote'].map((location) => (
+                <button
+                  key={location}
+                  type="button"
+                  className="p-3 border border-gray-300 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all duration-200 text-left"
+                >
+                  <div className="text-sm font-medium text-gray-900">{location}</div>
+                  <div className="text-xs text-gray-500">Click to select</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Current Time Display */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Clock className="w-4 h-4 text-gray-500" />
+                <span className="text-sm font-medium text-gray-700">Current Time</span>
+              </div>
+              <div className="text-lg font-mono font-semibold text-gray-900">
+                {new Date().toLocaleTimeString('en-US', { 
+                  hour: '2-digit', 
+                  minute: '2-digit', 
+                  second: '2-digit',
+                  hour12: true 
+                })}
               </div>
             </div>
-            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+          </div>
+
+          {/* Notes Section */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 flex items-center space-x-2">
+              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              <span>Notes (Optional)</span>
+            </label>
+            <textarea 
+              rows={3} 
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 resize-none"
+              placeholder="Add any additional notes about this clock-in..."
+            />
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+            <button
+              onClick={() => setShowClockInModal(false)}
+              className="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 transform hover:scale-105 font-medium"
+            >
+              Cancel
+            </button>
+            <button 
+              onClick={handleClockIn}
+              className="group relative px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl transition-all duration-200 transform hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+              disabled={!selectedEmployeeForClockIn || actionLoading}
+            >
+              {actionLoading ? (
+                <div className="flex items-center space-x-2">
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>Processing...</span>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="w-4 h-4 group-hover:animate-pulse" />
+                  <span>Clock In Employee</span>
+                </div>
+              )}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Enhanced Clock Out Modal */}
+      <Modal
+        open={showClockOutModal}
+        onClose={() => {
+          setShowClockOutModal(false);
+          setSelectedRecordForClockOut(null);
+        }}
+        size="lg"
+        title={
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+              <XCircle className="w-5 h-5 text-red-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Clock Out Employee</h2>
+              <p className="text-sm text-gray-500">End employee's shift and record time</p>
+            </div>
+          </div>
+        }
+      >
+        {selectedRecordForClockOut && (
+          <div className="space-y-6">
+            {/* Employee Info Card */}
+            <div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-lg font-bold text-red-700">
+                {selectedRecordForClockOut.employeeName.split(' ').map(n => n[0]).join('')}
+              </div>
+              <div>
+                <div className="text-base font-semibold text-red-800">{selectedRecordForClockOut.employeeName}</div>
+                <div className="text-xs text-red-600">ID: {selectedRecordForClockOut.employeeId}</div>
+                <div className="text-xs text-red-600">Department: {employees.find(emp => emp.id === selectedRecordForClockOut.employeeId)?.department}</div>
+              </div>
+            </div>
+
+            {/* Clock In Time */}
+            <div className="flex items-center space-x-2 bg-gray-50 rounded-lg p-3">
+              <Clock className="w-4 h-4 text-gray-500" />
+              <span className="text-sm text-gray-700">Clock In Time:</span>
+              <span className="text-base font-mono font-semibold text-gray-900">
+                {selectedRecordForClockOut.clockIn ? formatTime(selectedRecordForClockOut.clockIn) : 'Not clocked in'}
+              </span>
+            </div>
+
+            {/* Notes Section */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 flex items-center space-x-2">
+                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <span>Notes (Optional)</span>
+              </label>
+              <textarea 
+                rows={3} 
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 resize-none"
+                placeholder="Add any notes about this clock out..."
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
               <button
                 onClick={() => {
                   setShowClockOutModal(false);
                   setSelectedRecordForClockOut(null);
                 }}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 transform hover:scale-105 font-medium"
               >
                 Cancel
               </button>
               <button 
                 onClick={handleClockOut}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                className="group relative px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl transition-all duration-200 transform hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+                disabled={actionLoading}
               >
-                Clock Out
+                {actionLoading ? (
+                  <div className="flex items-center space-x-2">
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Processing...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <XCircle className="w-4 h-4 group-hover:animate-pulse" />
+                    <span>Clock Out Employee</span>
+                  </div>
+                )}
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 };
