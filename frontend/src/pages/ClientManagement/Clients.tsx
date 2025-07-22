@@ -1,6 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Building, Users, DollarSign, Calendar, Plus, Search, Filter, Edit, Trash2, Eye, Download, Upload, Phone, Mail, MapPin } from 'lucide-react';
+import { 
+  Users, 
+  Eye, 
+  Edit, 
+  Trash2, 
+  Plus, 
+  Search, 
+  Filter,
+  Download,
+  MapPin,
+  Calendar,
+  DollarSign,
+  Building
+} from 'lucide-react';
+import StatCard from '../../components/StatCard';
+import FilterBar, { FilterField } from '../../components/FilterBar';
+import CompactTable, { TableColumn } from '../../components/CompactTable';
+import Modal from '../../components/Common/Modal';
 
 interface Client {
   id: string;
@@ -215,314 +232,309 @@ const Clients: React.FC = () => {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <DollarSign className="w-6 h-6 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Monthly Value</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(getTotalValue())}</p>
-            </div>
-          </div>
-        </div>
+        <StatCard
+          icon={<DollarSign className="w-6 h-6 text-green-600" />}
+          title="Monthly Value"
+          value={formatCurrency(getTotalValue())}
+          description="Total monthly contract value"
+        />
         
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Building className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Active Clients</p>
-              <p className="text-2xl font-bold text-gray-900">{getActiveClients()}</p>
-            </div>
-          </div>
-        </div>
+        <StatCard
+          icon={<Building className="w-6 h-6 text-blue-600" />}
+          title="Active Clients"
+          value={getActiveClients()}
+          description="Number of active client contracts"
+        />
         
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <Calendar className="w-6 h-6 text-yellow-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Expiring Soon</p>
-              <p className="text-2xl font-bold text-gray-900">{getExpiringContracts()}</p>
-            </div>
-          </div>
-        </div>
+        <StatCard
+          icon={<Calendar className="w-6 h-6 text-yellow-600" />}
+          title="Expiring Soon"
+          value={getExpiringContracts()}
+          description="Contracts expiring within 3 months"
+        />
         
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <MapPin className="w-6 h-6 text-purple-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Locations</p>
-              <p className="text-2xl font-bold text-gray-900">{getTotalLocations()}</p>
-            </div>
-          </div>
-        </div>
+        <StatCard
+          icon={<MapPin className="w-6 h-6 text-purple-600" />}
+          title="Total Locations"
+          value={getTotalLocations()}
+          description="Total number of client locations"
+        />
       </div>
 
       {/* Filters and Search */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search clients..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      <FilterBar
+        searchPlaceholder="Search clients..."
+        searchValue={searchTerm}
+        onSearchChange={(e) => setSearchTerm(e.target.value)}
+        statusFilter={statusFilter}
+        onStatusFilterChange={(e) => setStatusFilter(e.target.value)}
+        serviceFilter={serviceFilter}
+        onServiceFilterChange={(e) => setServiceFilter(e.target.value)}
+        showExport={true}
+        showImport={true}
+      />
+
+      {/* Clients List */}
+      <CompactTable
+        columns={columns}
+        data={filteredClients}
+        showPagination={true}
+        totalItems={clients.length}
+        currentPage={1}
+        itemsPerPage={10}
+        onPageChange={() => {}}
+      />
+
+      {/* Add/Edit Client Modal */}
+      <Modal
+        open={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        size="xl"
+        title={
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <Building className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Add New Client</h2>
+              <p className="text-sm text-gray-500">Create a new client account</p>
+            </div>
+          </div>
+        }
+      >
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Company Name *</label>
+              <input 
+                type="text" 
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                placeholder="Enter company name"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Contact Person *</label>
+              <input 
+                type="text" 
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                placeholder="Enter contact person name"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+              <input 
+                type="email" 
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                placeholder="Enter email address"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
+              <input 
+                type="tel" 
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                placeholder="Enter phone number"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Contract Start *</label>
+              <input 
+                type="date" 
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Contract End *</label>
+              <input 
+                type="date" 
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Monthly Value *</label>
+              <input 
+                type="number" 
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                placeholder="Enter monthly value"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Payment Terms *</label>
+              <select className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                <option value="">Select Payment Terms</option>
+                <option value="Net 15">Net 15</option>
+                <option value="Net 30">Net 30</option>
+                <option value="Net 45">Net 45</option>
+                <option value="Net 60">Net 60</option>
+              </select>
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+            <textarea 
+              rows={3} 
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+              placeholder="Enter company address"
             />
           </div>
           
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="pending">Pending</option>
-            <option value="expired">Expired</option>
-          </select>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Services Required *</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                <input type="checkbox" className="mr-3 w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+                <span className="text-sm font-medium">Security Guarding</span>
+              </label>
+              <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                <input type="checkbox" className="mr-3 w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+                <span className="text-sm font-medium">Access Control</span>
+              </label>
+              <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                <input type="checkbox" className="mr-3 w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+                <span className="text-sm font-medium">Patrol Services</span>
+              </label>
+              <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                <input type="checkbox" className="mr-3 w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+                <span className="text-sm font-medium">Event Security</span>
+              </label>
+              <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                <input type="checkbox" className="mr-3 w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+                <span className="text-sm font-medium">VIP Protection</span>
+              </label>
+              <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+                <input type="checkbox" className="mr-3 w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
+                <span className="text-sm font-medium">Crowd Management</span>
+              </label>
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+            <textarea 
+              rows={3} 
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+              placeholder="Enter any additional notes"
+            />
+          </div>
 
-          <select
-            value={serviceFilter}
-            onChange={(e) => setServiceFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="all">All Services</option>
-            <option value="Security Guarding">Security Guarding</option>
-            <option value="Access Control">Access Control</option>
-            <option value="Patrol Services">Patrol Services</option>
-            <option value="Event Security">Event Security</option>
-            <option value="VIP Protection">VIP Protection</option>
-          </select>
-
-          <div className="flex space-x-2">
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2">
-              <Download className="w-4 h-4" />
-              <span>Export</span>
+          {/* Action Buttons */}
+          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+            <button
+              onClick={() => setShowAddModal(false)}
+              className="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 transform hover:scale-105 font-medium"
+            >
+              Cancel
             </button>
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2">
-              <Upload className="w-4 h-4" />
-              <span>Import</span>
+            <button className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl transition-all duration-200 transform hover:scale-105 font-medium shadow-lg hover:shadow-xl">
+              Add Client
             </button>
           </div>
         </div>
-      </div>
-
-      {/* Clients List */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contract Period</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monthly Value</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Services</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredClients.map((client) => (
-                <tr key={client.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-medium text-gray-600">
-                          {client.name.split(' ').map(n => n[0]).join('')}
-                        </span>
-                      </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{client.name}</div>
-                        <div className="text-sm text-gray-500">{client.locations.length} locations</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{client.contactPerson}</div>
-                    <div className="text-sm text-gray-500">{client.email}</div>
-                    <div className="text-sm text-gray-500">{client.phone}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{formatDate(client.contractStart)}</div>
-                    <div className="text-sm text-gray-500">to {formatDate(client.contractEnd)}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {formatCurrency(client.monthlyValue)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex flex-wrap gap-1">
-                      {client.services.slice(0, 2).map((service, index) => (
-                        <span key={index} className="inline-flex px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                          {service}
-                        </span>
-                      ))}
-                      {client.services.length > 2 && (
-                        <span className="inline-flex px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
-                          +{client.services.length - 2} more
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(client.status)}`}>
-                      {client.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end space-x-2">
-                      <button
-                        onClick={() => setSelectedClient(client)}
-                        className="text-blue-600 hover:text-blue-900 p-1"
-                        title="View Details"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      {canManageClients && (
-                        <>
-                          <button
-                            onClick={() => setSelectedClient(client)}
-                            className="text-green-600 hover:text-green-900 p-1"
-                            title="Edit"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteClient(client.id)}
-                            className="text-red-600 hover:text-red-900 p-1"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        
-        {/* Pagination */}
-        <div className="bg-white px-6 py-3 border-t border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-700">
-              Showing {filteredClients.length} of {clients.length} clients
-            </div>
-            <div className="flex space-x-2">
-              <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">Previous</button>
-              <button className="px-3 py-1 bg-blue-600 text-white rounded text-sm">1</button>
-              <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">Next</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Add/Edit Client Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Add New Client</h3>
-            </div>
-            <div className="p-6">
-              <form className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
-                    <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Contact Person</label>
-                    <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input type="email" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                    <input type="tel" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Contract Start</label>
-                    <input type="date" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Contract End</label>
-                    <input type="date" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Value</label>
-                    <input type="number" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Payment Terms</label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option>Net 15</option>
-                      <option>Net 30</option>
-                      <option>Net 45</option>
-                      <option>Net 60</option>
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                  <textarea rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Services Required</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" />
-                      <span className="text-sm">Security Guarding</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" />
-                      <span className="text-sm">Access Control</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" />
-                      <span className="text-sm">Patrol Services</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="mr-2" />
-                      <span className="text-sm">Event Security</span>
-                    </label>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                  <textarea rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
-                </div>
-              </form>
-            </div>
-            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                Add Client
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      </Modal>
     </div>
   );
 };
+
+const columns: TableColumn<Client>[] = [
+  {
+    header: 'Client',
+    accessor: 'name',
+    render: (row) => (
+      <div className="flex items-center">
+        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+          <span className="text-sm font-medium text-gray-600">
+            {row.name.split(' ').map(n => n[0]).join('')}
+          </span>
+        </div>
+        <div className="ml-4">
+          <div className="text-sm font-medium text-gray-900">{row.name}</div>
+          <div className="text-sm text-gray-500">{row.locations.length} locations</div>
+        </div>
+      </div>
+    ),
+  },
+  {
+    header: 'Contact',
+    accessor: 'contactPerson',
+    render: (row) => (
+      <div className="text-sm text-gray-900">{row.contactPerson}</div>
+    ),
+  },
+  {
+    header: 'Contract Period',
+    accessor: 'contractStart',
+    render: (row) => (
+      <div className="text-sm text-gray-900">{formatDate(row.contractStart)}</div>
+    ),
+  },
+  {
+    header: 'Monthly Value',
+    accessor: 'monthlyValue',
+    render: (row) => (
+      <div className="text-sm font-medium text-gray-900">{formatCurrency(row.monthlyValue)}</div>
+    ),
+  },
+  {
+    header: 'Services',
+    accessor: 'services',
+    render: (row) => (
+      <div className="flex flex-wrap gap-1">
+        {row.services.slice(0, 2).map((service, index) => (
+          <span key={index} className="inline-flex px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+            {service}
+          </span>
+        ))}
+        {row.services.length > 2 && (
+          <span className="inline-flex px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
+            +{row.services.length - 2} more
+          </span>
+        )}
+      </div>
+    ),
+  },
+  {
+    header: 'Status',
+    accessor: 'status',
+    render: (row) => (
+      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(row.status)}`}>
+        {row.status}
+      </span>
+    ),
+  },
+  {
+    header: 'Actions',
+    accessor: 'actions',
+    render: (row) => (
+      <div className="flex justify-end space-x-2">
+        <button
+          onClick={() => setSelectedClient(row)}
+          className="text-blue-600 hover:text-blue-900 p-1"
+          title="View Details"
+        >
+          <Eye className="w-4 h-4" />
+        </button>
+        {canManageClients && (
+          <>
+            <button
+              onClick={() => setSelectedClient(row)}
+              className="text-green-600 hover:text-green-900 p-1"
+              title="Edit"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => handleDeleteClient(row.id)}
+              className="text-red-600 hover:text-red-900 p-1"
+              title="Delete"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </>
+        )}
+      </div>
+    ),
+  },
+];
 
 export default Clients; 

@@ -128,7 +128,7 @@ const Dashboard: React.FC = () => {
   };
 
   if (loading) {
-    return (
+  return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -158,7 +158,7 @@ const Dashboard: React.FC = () => {
             <h1 className="text-xl font-bold text-gray-900">Welcome, {user?.name || 'User'}!</h1>
             <p className="text-gray-500 text-sm">{user?.role ? roleDisplayNames[user.role] : 'DICEL Security ERP'}</p>
           </div>
-        </div>
+                </div>
         <div className="text-gray-400 text-sm font-medium">{new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
       </header>
 
@@ -167,11 +167,11 @@ const Dashboard: React.FC = () => {
         {statsCards.map((stat, i) => (
           <div key={i} className={`flex items-center p-5 rounded-xl shadow-sm border border-gray-200 ${stat.color}`}>
             <div className="mr-4">{stat.icon}</div>
-            <div>
+                <div>
               <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
               <div className="text-gray-500 text-sm">{stat.title}</div>
-            </div>
-          </div>
+                </div>
+              </div>
         ))}
       </section>
 
@@ -211,7 +211,7 @@ const Dashboard: React.FC = () => {
             ) : (
               <div className="text-center text-gray-400 py-8">No attendance data available</div>
             )}
-          </div>
+                </div>
 
           {/* Recent Activity */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -222,12 +222,12 @@ const Dashboard: React.FC = () => {
                   <div key={i} className="flex items-center space-x-3">
                     <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
                       {getActivityIcon(item.activity_type)}
-                    </div>
+                </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900">{item.description}</p>
                       <p className="text-xs text-gray-500">{formatTimeAgo(item.timestamp)}</p>
-                    </div>
-                  </div>
+                </div>
+              </div>
                 ))
               ) : (
                 <div className="text-center text-gray-400 py-4">No recent activity</div>
@@ -242,7 +242,7 @@ const Dashboard: React.FC = () => {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div className="grid grid-cols-1 gap-4">
-              <button
+              <button 
                 className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-full"
                 onClick={() => navigate('/add-employee')}
               >

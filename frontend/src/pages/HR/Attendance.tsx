@@ -1,22 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { 
-  UserCheck, 
-  XCircle, 
-  AlertTriangle, 
+  Users, 
   Clock, 
-  CheckCircle,
-  Download,
-  RefreshCw,
+  Filter, 
+  Search, 
+  Plus, 
+  Download, 
   Calendar,
   MapPin,
-  Users
+  UserCheck,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+  Clock as ClockIcon,
+  RefreshCw
 } from 'lucide-react';
+import { toast } from 'react-toastify';
+import apiService from '../../services/api';
 import StatCard from '../../components/StatCard';
 import FilterBar, { FilterField } from '../../components/FilterBar';
 import CompactTable, { TableColumn } from '../../components/CompactTable';
 import Modal from '../../components/Common/Modal';
-import { toast } from 'react-toastify';
 
 interface Employee {
   id: string;
@@ -51,21 +57,21 @@ interface AttendanceStats {
 
 const Attendance: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<AttendanceStats>({ present: 0, absent: 0, late: 0, totalHours: 0 });
+  const [actionLoading, setActionLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
+  const [departmentFilter, setDepartmentFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [showFilters, setShowFilters] = useState(false);
   const [showClockInModal, setShowClockInModal] = useState(false);
   const [showClockOutModal, setShowClockOutModal] = useState(false);
   const [selectedEmployeeForClockIn, setSelectedEmployeeForClockIn] = useState('');
   const [selectedRecordForClockOut, setSelectedRecordForClockOut] = useState<AttendanceRecord | null>(null);
-  const [actionLoading, setActionLoading] = useState(false);
-
-  // Filter states
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [dateFilter, setDateFilter] = useState(new Date().toISOString().split('T')[0]);
-  const [departmentFilter, setDepartmentFilter] = useState('all');
+  const [stats, setStats] = useState<AttendanceStats>({ present: 0, absent: 0, late: 0, totalHours: 0 });
 
   useEffect(() => {
     fetchAttendance();
@@ -76,9 +82,7 @@ const Attendance: React.FC = () => {
   const fetchAttendance = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/attendance');
-      if (!response.ok) throw new Error('Failed to fetch attendance');
-      const data = await response.json();
+      const data = await apiService.get('/api/attendance');
       
       console.log('Raw attendance data:', data);
       
@@ -99,16 +103,16 @@ const Attendance: React.FC = () => {
         }
         
         return {
-        id: record.id.toString(),
-        employeeId: record.employee_id,
-        employeeName: record.employee_name || 'Unknown Employee',
+          id: record.id.toString(),
+          employeeId: record.employee_id,
+          employeeName: record.employee_name || 'Unknown Employee',
           date: formattedDate,
-        clockIn: record.clock_in,
-        clockOut: record.clock_out,
-        totalHours: record.total_hours,
-        status: record.status,
-        location: record.location,
-        notes: record.notes,
+          clockIn: record.clock_in,
+          clockOut: record.clock_out,
+          totalHours: record.total_hours,
+          status: record.status,
+          location: record.location,
+          notes: record.notes,
           shiftId: record.shift_id,
           approvalStatus: record.approval_status
         };
@@ -118,6 +122,7 @@ const Attendance: React.FC = () => {
       setAttendance(transformedData);
     } catch (error) {
       console.error('Error fetching attendance:', error);
+      toast.error('Failed to fetch attendance data');
     } finally {
       setLoading(false);
     }
@@ -125,28 +130,20 @@ const Attendance: React.FC = () => {
 
   const fetchEmployees = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/employees');
-      if (!response.ok) throw new Error('Failed to fetch employees');
-      const data = await response.json();
+      const data = await apiService.get('/api/employees');
       setEmployees(data);
     } catch (error) {
       console.error('Error fetching employees:', error);
+      toast.error('Failed to fetch employees');
     }
   };
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/attendance/stats');
-      if (!response.ok) throw new Error('Failed to fetch attendance stats');
-      const data = await response.json();
-      setStats({
-        present: data.present || 0,
-        absent: data.absent || 0,
-        late: data.late || 0,
-        totalHours: data.totalHours || 0
-      });
+      const data = await apiService.get('/api/attendance/stats');
+      setStats(data);
     } catch (error) {
-      console.error('Error fetching attendance stats:', error);
+      console.error('Error fetching stats:', error);
     }
   };
 
@@ -206,20 +203,16 @@ const Attendance: React.FC = () => {
   };
 
   const handleClockIn = async () => {
-    if (!selectedEmployeeForClockIn) return;
-    
+    if (!selectedEmployeeForClockIn || typeof selectedEmployeeForClockIn !== 'string') {
+      toast.error('Please select a valid employee.');
+      return;
+    }
     setActionLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/attendance/clock-in', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          employeeId: selectedEmployeeForClockIn,
-          location: 'Main Office',
-          notes: 'Clock in via system'
-        }),
+      const response = await apiService.post('/api/attendance/clock-in', {
+        employeeId: selectedEmployeeForClockIn,
+        location: 'Main Office',
+        notes: 'Clock in via system'
       });
 
       if (response.ok) {
@@ -230,7 +223,9 @@ const Attendance: React.FC = () => {
         toast.success('Clock in successful!');
       } else {
         const errorData = await response.json();
-        toast.error(errorData.error || 'Clock in failed');
+        toast.error(
+          errorData.error + (errorData.details ? ': ' + errorData.details.map((d: any) => d.msg).join(', ') : '')
+        );
       }
     } catch (error) {
       toast.error('Error clocking in. Please try again.');
@@ -241,17 +236,10 @@ const Attendance: React.FC = () => {
 
   const handleClockOut = async () => {
     if (!selectedRecordForClockOut) return;
-    
     setActionLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/attendance/clock-out', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          employeeId: selectedRecordForClockOut.employeeId
-        }),
+      const response = await apiService.post('/api/attendance/clock-out', {
+        employeeId: selectedRecordForClockOut.employeeId
       });
 
       if (response.ok) {
@@ -262,7 +250,9 @@ const Attendance: React.FC = () => {
         toast.success('Clock out successful!');
       } else {
         const errorData = await response.json();
-        toast.error(errorData.error || 'Clock out failed');
+        toast.error(
+          errorData.error + (errorData.details ? ': ' + errorData.details.map((d: any) => d.msg).join(', ') : '')
+        );
       }
     } catch (error) {
       toast.error('Error clocking out. Please try again.');
@@ -272,7 +262,27 @@ const Attendance: React.FC = () => {
   };
 
   const getActiveEmployees = () => {
-    return employees.filter(emp => emp.id !== '');
+    // Get today's date in local format (YYYY-MM-DD)
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${year}-${month}-${day}`;
+    
+    // Get employees who are already clocked in today
+    const clockedInToday = attendance
+      .filter(record => 
+        record.date === todayStr && 
+        record.clockIn && 
+        !record.clockOut
+      )
+      .map(record => record.employeeId);
+    
+    // Return employees who are not already clocked in today
+    return employees.filter(emp => 
+      emp.id !== '' && 
+      !clockedInToday.includes(emp.id)
+    );
   };
 
   const getEmployeesForClockOut = () => {
@@ -355,16 +365,16 @@ const Attendance: React.FC = () => {
     {
       key: 'employee',
       label: 'Employee',
-      render: (record) => (
+      render: (record: AttendanceRecord) => (
         <div className="flex items-center">
           <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
             <span className="text-xs font-medium text-gray-600">
-              {record.employeeName.split(' ').map(n => n[0]).join('')}
+              {record.employeeName.split(' ').map((n: string) => n[0]).join('')}
             </span>
           </div>
           <div className="ml-3">
             <div className="text-sm font-medium text-gray-900">{record.employeeName}</div>
-            <div className="text-xs text-gray-500">ID: {record.employeeId}</div>
+            <div className="text-sm text-gray-500">{record.employeeId}</div>
           </div>
         </div>
       )
@@ -372,27 +382,27 @@ const Attendance: React.FC = () => {
     {
       key: 'date',
       label: 'Date',
-      render: (record) => formatDate(record.date)
+      render: (record: AttendanceRecord) => formatDate(record.date)
     },
     {
       key: 'clockIn',
       label: 'Clock In',
-      render: (record) => record.clockIn ? formatTime(record.clockIn) : '-'
+      render: (record: AttendanceRecord) => record.clockIn ? formatTime(record.clockIn) : '-'
     },
     {
       key: 'clockOut',
       label: 'Clock Out',
-      render: (record) => record.clockOut ? formatTime(record.clockOut) : '-'
+      render: (record: AttendanceRecord) => record.clockOut ? formatTime(record.clockOut) : '-'
     },
     {
       key: 'hours',
       label: 'Hours',
-      render: (record) => record.totalHours ? `${record.totalHours}h` : '-'
+      render: (record: AttendanceRecord) => record.totalHours ? `${record.totalHours}h` : '-'
     },
     {
       key: 'status',
       label: 'Status',
-      render: (record) => (
+      render: (record: AttendanceRecord) => (
         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(record.status)}`}>
           {record.status.replace('_', ' ')}
         </span>
@@ -401,13 +411,13 @@ const Attendance: React.FC = () => {
     {
       key: 'location',
       label: 'Location',
-      render: (record) => record.location
+      render: (record: AttendanceRecord) => record.location
     },
     {
       key: 'actions',
       label: 'Actions',
       align: 'right',
-      render: (record) => (
+      render: (record: AttendanceRecord) => (
         <div className="flex justify-end space-x-2">
           {!record.clockOut && record.clockIn && (
             <button
@@ -418,33 +428,9 @@ const Attendance: React.FC = () => {
               className="group relative bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 p-2 rounded-lg transition-all duration-200 transform hover:scale-110 hover:shadow-md"
               title="Clock Out Employee"
             >
-              <XCircle className="w-4 h-4 group-hover:animate-pulse" />
-              <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full animate-ping"></div>
+              <XCircle className="w-4 h-4" />
             </button>
           )}
-          {!record.clockIn && (
-            <button
-              onClick={() => {
-                setSelectedEmployeeForClockIn(record.employeeId);
-                setShowClockInModal(true);
-              }}
-              className="group relative bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-700 p-2 rounded-lg transition-all duration-200 transform hover:scale-110 hover:shadow-md"
-              title="Clock In Employee"
-            >
-              <CheckCircle className="w-4 h-4 group-hover:animate-pulse" />
-              <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-ping"></div>
-            </button>
-          )}
-          {/* View Details Button */}
-          <button
-            className="group bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 p-2 rounded-lg transition-all duration-200 transform hover:scale-110 hover:shadow-md"
-            title="View Details"
-          >
-            <svg className="w-4 h-4 group-hover:animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-          </button>
         </div>
       )
     }
@@ -463,13 +449,14 @@ const Attendance: React.FC = () => {
             {/* Enhanced Clock In Button */}
             <button
               onClick={() => setShowClockInModal(true)}
-              className="group relative bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-3 rounded-xl flex items-center space-x-3 transition-all duration-200 transform hover:scale-105 hover:shadow-lg font-medium text-sm"
+              disabled={getActiveEmployees().length === 0}
+              className="group relative bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-3 rounded-xl flex items-center space-x-3 transition-all duration-200 transform hover:scale-105 hover:shadow-lg font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <div className="relative">
                 <CheckCircle className="w-5 h-5 group-hover:animate-pulse" />
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-300 rounded-full animate-ping"></div>
               </div>
-              <span>Clock In</span>
+              <span>{getActiveEmployees().length === 0 ? 'No Employees Available' : 'Clock In'}</span>
               <div className="bg-green-400 bg-opacity-30 px-2 py-1 rounded-full text-xs">
                 {getActiveEmployees().length} employees
               </div>
@@ -510,7 +497,7 @@ const Attendance: React.FC = () => {
                   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                   </svg>
-                </div>
+            </div>
               </button>
               
               {/* Quick Actions Menu */}
@@ -528,8 +515,8 @@ const Attendance: React.FC = () => {
                     <Users className="w-4 h-4" />
                     <span>Bulk Actions</span>
                   </button>
-                </div>
-              </div>
+          </div>
+        </div>
             </div>
           </div>
         </div>
@@ -552,7 +539,7 @@ const Attendance: React.FC = () => {
         <StatCard
           label="Late Today"
           value={stats.late}
-          icon={<AlertTriangle className="w-4 h-4 text-yellow-600" />}
+          icon={<AlertCircle className="w-4 h-4 text-yellow-600" />}
           colorClass="text-yellow-600"
         />
         <StatCard
@@ -693,27 +680,37 @@ const Attendance: React.FC = () => {
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700 flex items-center space-x-2">
               <Users className="w-4 h-4 text-gray-500" />
-              <span>Select Employee *</span>
+              <span>Select Employee</span>
             </label>
-            <div className="relative">
+            
+            {/* Available employees count */}
+            <div className="text-xs text-gray-500 mb-2">
+              {getActiveEmployees().length} employees available for clock-in today
+            </div>
+            
+            {getActiveEmployees().length === 0 ? (
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="w-4 h-4 text-yellow-600" />
+                  <span className="text-sm text-yellow-800">
+                    All employees are already clocked in today or no employees available.
+                  </span>
+                </div>
+              </div>
+            ) : (
               <select
                 value={selectedEmployeeForClockIn}
                 onChange={(e) => setSelectedEmployeeForClockIn(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
               >
-                <option value="">Choose an employee...</option>
-                {getActiveEmployees().map(emp => (
-                  <option key={emp.id} value={emp.id}>
-                    {emp.name} - {emp.department} ({emp.id})
+                <option value="">Select an employee...</option>
+                {getActiveEmployees().map((employee) => (
+                  <option key={employee.id} value={employee.id}>
+                    {employee.name} - {employee.department}
                   </option>
                 ))}
               </select>
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </div>
+            )}
             {selectedEmployeeForClockIn && (
               <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                 <div className="flex items-center space-x-3">
@@ -790,16 +787,16 @@ const Attendance: React.FC = () => {
 
           {/* Action Buttons */}
           <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-            <button
-              onClick={() => setShowClockInModal(false)}
+              <button
+                onClick={() => setShowClockInModal(false)}
               className="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 transform hover:scale-105 font-medium"
-            >
-              Cancel
-            </button>
-            <button 
-              onClick={handleClockIn}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleClockIn}
               className="group relative px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl transition-all duration-200 transform hover:scale-105 font-medium disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
-              disabled={!selectedEmployeeForClockIn || actionLoading}
+              disabled={!selectedEmployeeForClockIn || actionLoading || getActiveEmployees().length === 0}
             >
               {actionLoading ? (
                 <div className="flex items-center space-x-2">
@@ -812,7 +809,7 @@ const Attendance: React.FC = () => {
                   <span>Clock In Employee</span>
                 </div>
               )}
-            </button>
+              </button>
           </div>
         </div>
       </Modal>
@@ -833,8 +830,8 @@ const Attendance: React.FC = () => {
             <div>
               <h2 className="text-xl font-semibold text-gray-900">Clock Out Employee</h2>
               <p className="text-sm text-gray-500">End employee's shift and record time</p>
-            </div>
-          </div>
+                </div>
+              </div>
         }
       >
         {selectedRecordForClockOut && (
@@ -903,9 +900,9 @@ const Attendance: React.FC = () => {
                   </div>
                 )}
               </button>
-            </div>
           </div>
-        )}
+        </div>
+      )}
       </Modal>
     </div>
   );

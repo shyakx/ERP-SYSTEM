@@ -1,663 +1,554 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { BarChart3, PieChart, TrendingUp, Download, Filter, Calendar, Users, DollarSign, Shield, FileText, AlertTriangle, CheckCircle, Clock, TrendingDown } from 'lucide-react';
+import { 
+  DollarSign, 
+  TrendingUp, 
+  TrendingDown, 
+  BarChart3, 
+  PieChart,
+  Download,
+  Calendar,
+  Filter,
+  Search,
+  AlertTriangle,
+  FileText,
+  Users,
+  CreditCard,
+  Activity,
+  Eye
+} from 'lucide-react';
 import { formatRWF } from '../../utils/formatRWF';
+import CountUp from 'react-countup';
+
+interface FinancialReport {
+  id: number;
+  report_type: string;
+  period: string;
+  generated_at: string;
+  generated_by: string;
+  status: 'generated' | 'exported';
+  file_url?: string;
+}
 
 interface ReportData {
-  id: string;
-  name: string;
-  type: 'financial' | 'operational' | 'security' | 'hr' | 'client' | 'asset';
-  category: string;
-  description: string;
-  lastGenerated: string;
-  generatedBy: string;
-  status: 'scheduled' | 'completed' | 'failed' | 'running';
-  format: 'pdf' | 'excel' | 'csv' | 'json';
-  size: number;
-  schedule?: string;
+  revenue: {
+    total: number;
+    monthly: Array<{ month: string; amount: number }>;
+    by_client: Array<{ client: string; amount: number }>;
+  };
+  expenses: {
+    total: number;
+    monthly: Array<{ month: string; amount: number }>;
+    by_category: Array<{ category: string; amount: number }>;
+  };
+  payroll: {
+    total: number;
+    monthly: Array<{ month: string; amount: number }>;
+    by_department: Array<{ department: string; amount: number }>;
+  };
+  profit: {
+    total: number;
+    monthly: Array<{ month: string; amount: number }>;
+  };
+  invoices: {
+    total: number;
+    paid: number;
+    outstanding: number;
+    overdue: number;
+    collection_rate: number;
+  };
 }
-
-interface AnalyticsData {
-  period: string;
-  revenue: number;
-  expenses: number;
-  profit: number;
-  employees: number;
-  clients: number;
-  incidents: number;
-  assets: number;
-}
-
-const mockReports: ReportData[] = [
-  {
-    id: '1',
-    name: 'Monthly Financial Report',
-    type: 'financial',
-    category: 'Revenue & Expenses',
-    description: 'Comprehensive monthly financial overview including revenue, expenses, and profit analysis',
-    lastGenerated: '2024-01-31',
-    generatedBy: 'John Smith',
-    status: 'completed',
-    format: 'pdf',
-    size: 2048576
-  },
-  {
-    id: '2',
-    name: 'Employee Performance Report',
-    type: 'hr',
-    category: 'Performance Metrics',
-    description: 'Employee attendance, productivity, and performance metrics for the month',
-    lastGenerated: '2024-01-30',
-    generatedBy: 'Sarah Johnson',
-    status: 'completed',
-    format: 'excel',
-    size: 512000
-  },
-  {
-    id: '3',
-    name: 'Security Incident Summary',
-    type: 'security',
-    category: 'Incident Analysis',
-    description: 'Monthly security incident report with trends and recommendations',
-    lastGenerated: '2024-01-29',
-    generatedBy: 'Michael Brown',
-    status: 'completed',
-    format: 'pdf',
-    size: 1024000
-  },
-  {
-    id: '4',
-    name: 'Client Satisfaction Survey',
-    type: 'client',
-    category: 'Client Relations',
-    description: 'Quarterly client satisfaction survey results and feedback analysis',
-    lastGenerated: '2024-01-15',
-    generatedBy: 'Lisa Davis',
-    status: 'completed',
-    format: 'excel',
-    size: 768000
-  },
-  {
-    id: '5',
-    name: 'Asset Utilization Report',
-    type: 'asset',
-    category: 'Asset Management',
-    description: 'Asset utilization, maintenance schedules, and depreciation analysis',
-    lastGenerated: '2024-01-28',
-    generatedBy: 'David Wilson',
-    status: 'completed',
-    format: 'pdf',
-    size: 1536000
-  },
-  {
-    id: '6',
-    name: 'Weekly Operations Dashboard',
-    type: 'operational',
-    category: 'Operations Overview',
-    description: 'Weekly operational metrics and key performance indicators',
-    lastGenerated: '2024-01-26',
-    generatedBy: 'System Auto',
-    status: 'scheduled',
-    format: 'pdf',
-    size: 896000,
-    schedule: 'Every Monday 9:00 AM'
-  }
-];
-
-const mockAnalyticsData: AnalyticsData[] = [
-  { period: 'Jan 2024', revenue: 125000, expenses: 85000, profit: 40000, employees: 45, clients: 12, incidents: 8, assets: 156 },
-  { period: 'Feb 2024', revenue: 132000, expenses: 88000, profit: 44000, employees: 47, clients: 13, incidents: 6, assets: 162 },
-  { period: 'Mar 2024', revenue: 128000, expenses: 87000, profit: 41000, employees: 46, clients: 12, incidents: 9, assets: 158 },
-  { period: 'Apr 2024', revenue: 135000, expenses: 90000, profit: 45000, employees: 48, clients: 14, incidents: 7, assets: 165 },
-  { period: 'May 2024', revenue: 142000, expenses: 92000, profit: 50000, employees: 49, clients: 15, incidents: 5, assets: 168 },
-  { period: 'Jun 2024', revenue: 138000, expenses: 89000, profit: 49000, employees: 48, clients: 14, incidents: 8, assets: 166 }
-];
 
 const Reports: React.FC = () => {
   const { user } = useAuth();
-  const [reports, setReports] = useState<ReportData[]>(mockReports);
-  const [analyticsData] = useState<AnalyticsData[]>(mockAnalyticsData);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [showGenerateModal, setShowGenerateModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'reports' | 'analytics' | 'scheduled'>('reports');
+  const [reports, setReports] = useState<FinancialReport[]>([]);
+  const [reportData, setReportData] = useState<ReportData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedReport, setSelectedReport] = useState<FinancialReport | null>(null);
+  const [showReportDetails, setShowReportDetails] = useState(false);
+  const [reportType, setReportType] = useState<string>('all');
+  const [period, setPeriod] = useState<string>('2024-01');
+  const [viewMode, setViewMode] = useState<'overview' | 'detailed'>('overview');
 
-  const canGenerateReports = user?.role === 'system_admin' || user?.role === 'operations_supervisor' || user?.role === 'finance_manager';
+  // Role-based permissions
+  const isFinanceManager = user?.role === 'finance_manager' || user?.role === 'system_admin';
+  const isAccountant = user?.role === 'accountant';
+  const isBillingOfficer = user?.role === 'billing_officer';
+  const canViewAllReports = isFinanceManager || isAccountant;
+  const canViewBillingReports = isBillingOfficer;
+
+  useEffect(() => {
+    if (canViewAllReports || canViewBillingReports) {
+      fetchReportsData();
+    }
+  }, [canViewAllReports, canViewBillingReports]);
+
+  const fetchReportsData = async () => {
+    try {
+      setLoading(true);
+      // Mock data for now - replace with actual API calls
+      const mockReports: FinancialReport[] = [
+        {
+          id: 1,
+          report_type: 'monthly_financial',
+          period: '2024-01',
+          generated_at: '2024-01-31T23:59:59Z',
+          generated_by: 'Finance Manager',
+          status: 'generated'
+        },
+        {
+          id: 2,
+          report_type: 'payroll_summary',
+          period: '2024-01',
+          generated_at: '2024-01-31T23:59:59Z',
+          generated_by: 'Accountant',
+          status: 'exported',
+          file_url: '/reports/payroll-2024-01.pdf'
+        },
+        {
+          id: 3,
+          report_type: 'invoice_collection',
+          period: '2024-01',
+          generated_at: '2024-01-31T23:59:59Z',
+          generated_by: 'Billing Officer',
+          status: 'generated'
+        }
+      ];
+
+      const mockReportData: ReportData = {
+        revenue: {
+          total: 12500000,
+          monthly: [
+            { month: 'Jan', amount: 8500000 },
+            { month: 'Feb', amount: 9200000 },
+            { month: 'Mar', amount: 12500000 },
+            { month: 'Apr', amount: 11000000 },
+            { month: 'May', amount: 13500000 },
+            { month: 'Jun', amount: 14000000 }
+          ],
+          by_client: [
+            { client: 'ABC Corporation', amount: 3500000 },
+            { client: 'Mall Security LLC', amount: 2800000 },
+            { client: 'Industrial Security Inc', amount: 2200000 },
+            { client: 'Tech Corp', amount: 1800000 },
+            { client: 'Event Security Services', amount: 2200000 }
+          ]
+        },
+        expenses: {
+          total: 8500000,
+          monthly: [
+            { month: 'Jan', amount: 7200000 },
+            { month: 'Feb', amount: 7500000 },
+            { month: 'Mar', amount: 8500000 },
+            { month: 'Apr', amount: 7800000 },
+            { month: 'May', amount: 9200000 },
+            { month: 'Jun', amount: 9500000 }
+          ],
+          by_category: [
+            { category: 'Payroll', amount: 6000000 },
+            { category: 'Office Supplies', amount: 500000 },
+            { category: 'Transportation', amount: 800000 },
+            { category: 'Equipment', amount: 600000 },
+            { category: 'Utilities', amount: 400000 },
+            { category: 'Insurance', amount: 200000 }
+          ]
+        },
+        payroll: {
+          total: 6000000,
+          monthly: [
+            { month: 'Jan', amount: 5800000 },
+            { month: 'Feb', amount: 5900000 },
+            { month: 'Mar', amount: 6000000 },
+            { month: 'Apr', amount: 6100000 },
+            { month: 'May', amount: 6200000 },
+            { month: 'Jun', amount: 6300000 }
+          ],
+          by_department: [
+            { department: 'Security', amount: 3500000 },
+            { department: 'HR', amount: 800000 },
+            { department: 'Operations', amount: 1200000 },
+            { department: 'Finance', amount: 500000 }
+          ]
+        },
+        profit: {
+          total: 4000000,
+          monthly: [
+            { month: 'Jan', amount: 1300000 },
+            { month: 'Feb', amount: 1700000 },
+            { month: 'Mar', amount: 4000000 },
+            { month: 'Apr', amount: 3200000 },
+            { month: 'May', amount: 4300000 },
+            { month: 'Jun', amount: 4500000 }
+          ]
+        },
+        invoices: {
+          total: 15000000,
+          paid: 12000000,
+          outstanding: 2500000,
+          overdue: 500000,
+          collection_rate: 80
+        }
+      };
+
+      setReports(mockReports);
+      setReportData(mockReportData);
+    } catch (err) {
+      setError('Failed to load reports data');
+      console.error('Error fetching reports data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredReports = reports.filter(report => {
-    const matchesSearch = report.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         report.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = typeFilter === 'all' || report.type === typeFilter;
-    const matchesStatus = statusFilter === 'all' || report.status === statusFilter;
+    const matchesType = reportType === 'all' || report.report_type === reportType;
+    const matchesPeriod = report.period === period;
     
-    return matchesSearch && matchesType && matchesStatus;
+    return matchesType && matchesPeriod;
   });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'running': return 'bg-blue-100 text-blue-800';
-      case 'scheduled': return 'bg-yellow-100 text-yellow-800';
-      case 'failed': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getTypeIcon = (type: string) => {
+  const getReportTypeLabel = (type: string) => {
     switch (type) {
-      case 'financial': return <DollarSign className="w-5 h-5" />;
-      case 'operational': return <TrendingUp className="w-5 h-5" />;
-      case 'security': return <Shield className="w-5 h-5" />;
-      case 'hr': return <Users className="w-5 h-5" />;
-      case 'client': return <Users className="w-5 h-5" />;
-      case 'asset': return <FileText className="w-5 h-5" />;
-      default: return <BarChart3 className="w-5 h-5" />;
+      case 'monthly_financial': return 'Monthly Financial Report';
+      case 'payroll_summary': return 'Payroll Summary';
+      case 'invoice_collection': return 'Invoice Collection Report';
+      case 'expense_analysis': return 'Expense Analysis';
+      case 'profit_loss': return 'Profit & Loss Statement';
+      default: return type;
     }
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 
-  const formatCurrency = (amount: number) => {
-    return formatRWF(amount);
-  };
-
-  const getTotalReports = () => reports.length;
-  const getCompletedReports = () => reports.filter(report => report.status === 'completed').length;
-  const getScheduledReports = () => reports.filter(report => report.status === 'scheduled').length;
-  const getTotalFileSize = () => reports.reduce((total, report) => total + report.size, 0);
-
-  const getLatestRevenue = () => analyticsData[analyticsData.length - 1]?.revenue || 0;
-  const getLatestProfit = () => analyticsData[analyticsData.length - 1]?.profit || 0;
-  const getLatestEmployees = () => analyticsData[analyticsData.length - 1]?.employees || 0;
-  const getLatestClients = () => analyticsData[analyticsData.length - 1]?.clients || 0;
-
-  const getRevenueGrowth = () => {
-    if (analyticsData.length < 2) return 0;
-    const current = analyticsData[analyticsData.length - 1].revenue;
-    const previous = analyticsData[analyticsData.length - 2].revenue;
-    return ((current - previous) / previous) * 100;
-  };
-
-  const getProfitGrowth = () => {
-    if (analyticsData.length < 2) return 0;
-    const current = analyticsData[analyticsData.length - 1].profit;
-    const previous = analyticsData[analyticsData.length - 2].profit;
-    return ((current - previous) / previous) * 100;
-  };
-
-  const handleDeleteReport = (reportId: string) => {
-    if (confirm('Are you sure you want to delete this report?')) {
-      setReports(reports.filter(report => report.id !== reportId));
+  const handleGenerateReport = async (type: string) => {
+    try {
+      // API call to generate report
+      console.log(`Generating ${type} report for period ${period}`);
+    } catch (err) {
+      console.error('Error generating report:', err);
     }
   };
 
+  const handleExportReport = async (reportId: number, format: 'pdf' | 'excel') => {
+    try {
+      // API call to export report
+      console.log(`Exporting report ${reportId} as ${format}`);
+    } catch (err) {
+      console.error('Error exporting report:', err);
+    }
+  };
+
+  if (!canViewAllReports && !canViewBillingReports) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex">
+              <AlertTriangle className="h-5 w-5 text-red-400" />
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">Access Denied</h3>
+                <p className="text-sm text-red-700 mt-1">You don't have permission to view financial reports.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="bg-white rounded-lg shadow p-4">
+                  <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                  <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex">
+              <AlertTriangle className="h-5 w-5 text-red-400" />
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">Error</h3>
+                <p className="text-sm text-red-700 mt-1">{error}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1>
-            <p className="text-gray-600 mt-1">Generate reports, view analytics, and track business performance</p>
-          </div>
-          {canGenerateReports && (
-            <button
-              onClick={() => setShowGenerateModal(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-            >
-              <BarChart3 className="w-4 h-4" />
-              <span>Generate Report</span>
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <BarChart3 className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Reports</p>
-              <p className="text-2xl font-bold text-gray-900">{getTotalReports()}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Completed</p>
-              <p className="text-2xl font-bold text-gray-900">{getCompletedReports()}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-              <Clock className="w-6 h-6 text-yellow-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Scheduled</p>
-              <p className="text-2xl font-bold text-gray-900">{getScheduledReports()}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <Download className="w-6 h-6 text-purple-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Size</p>
-              <p className="text-2xl font-bold text-gray-900">{formatFileSize(getTotalFileSize())}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Analytics Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Monthly Revenue</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(getLatestRevenue())}</p>
+              <h1 className="text-3xl font-bold text-gray-900">Financial Reports</h1>
+              <p className="text-gray-600 mt-2">
+                {isFinanceManager && 'Generate and view comprehensive financial reports'}
+                {isAccountant && 'Review financial reports and analysis'}
+                {isBillingOfficer && 'View invoice collection and billing reports'}
+              </p>
             </div>
-            <div className={`flex items-center ${getRevenueGrowth() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {getRevenueGrowth() >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-              <span className="ml-1 text-sm font-medium">{Math.abs(getRevenueGrowth()).toFixed(1)}%</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Monthly Profit</p>
-              <p className="text-2xl font-bold text-gray-900">{formatCurrency(getLatestProfit())}</p>
-            </div>
-            <div className={`flex items-center ${getProfitGrowth() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {getProfitGrowth() >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-              <span className="ml-1 text-sm font-medium">{Math.abs(getProfitGrowth()).toFixed(1)}%</span>
+            <div className="flex space-x-2">
+              <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center">
+                <Download className="h-4 w-4 mr-2" />
+                Export All
+              </button>
             </div>
           </div>
         </div>
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Users className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Active Employees</p>
-              <p className="text-2xl font-bold text-gray-900">{getLatestEmployees()}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <Users className="w-6 h-6 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Active Clients</p>
-              <p className="text-2xl font-bold text-gray-900">{getLatestClients()}</p>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
-            <button
-              onClick={() => setActiveTab('reports')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'reports'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Reports
-            </button>
-            <button
-              onClick={() => setActiveTab('analytics')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'analytics'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Analytics
-            </button>
-            <button
-              onClick={() => setActiveTab('scheduled')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'scheduled'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Scheduled
-            </button>
-          </nav>
-        </div>
-      </div>
+        {/* Quick Stats */}
+        {reportData && (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="bg-gradient-to-r from-blue-900 via-blue-700 to-blue-500 rounded-lg shadow p-6 text-white">
+              <div className="flex items-center">
+                <div className="p-3 bg-green-100 rounded-full">
+                  <TrendingUp className="h-6 w-6 text-green-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    <CountUp
+                      start={0}
+                      end={reportData.revenue.total}
+                      duration={2}
+                      separator=","
+                      prefix="Rwf "
+                    />
+                  </p>
+                </div>
+              </div>
+            </div>
 
-      {/* Filters and Search */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search reports..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+            <div className="bg-gradient-to-r from-rose-700 via-rose-500 to-rose-400 rounded-lg shadow p-6 text-white">
+              <div className="flex items-center">
+                <div className="p-3 bg-red-100 rounded-full">
+                  <TrendingDown className="h-6 w-6 text-red-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Expenses</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    <CountUp
+                      start={0}
+                      end={reportData.expenses.total}
+                      duration={2}
+                      separator=","
+                      prefix="Rwf "
+                    />
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-emerald-700 via-emerald-500 to-emerald-400 rounded-lg shadow p-6 text-white">
+              <div className="flex items-center">
+                <div className="p-3 bg-blue-100 rounded-full">
+                  <DollarSign className="h-6 w-6 text-blue-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Net Profit</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    <CountUp
+                      start={0}
+                      end={reportData.profit.total}
+                      duration={2}
+                      separator=","
+                      prefix="Rwf "
+                    />
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-amber-600 via-amber-400 to-yellow-300 rounded-lg shadow p-6 text-white">
+              <div className="flex items-center">
+                <div className="p-3 bg-yellow-100 rounded-full">
+                  <CreditCard className="h-6 w-6 text-yellow-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Collection Rate</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    <CountUp
+                      start={0}
+                      end={reportData.invoices.collection_rate}
+                      duration={2}
+                      suffix="%"
+                    />
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-          
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="all">All Types</option>
-            <option value="financial">Financial</option>
-            <option value="operational">Operational</option>
-            <option value="security">Security</option>
-            <option value="hr">HR</option>
-            <option value="client">Client</option>
-            <option value="asset">Asset</option>
-          </select>
+        )}
 
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="all">All Status</option>
-            <option value="completed">Completed</option>
-            <option value="running">Running</option>
-            <option value="scheduled">Scheduled</option>
-            <option value="failed">Failed</option>
-          </select>
-
-          <div className="flex space-x-2">
-            <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center space-x-2">
-              <Download className="w-4 h-4" />
-              <span>Export</span>
-            </button>
+        {/* Report Generation Controls */}
+        <div className="bg-white rounded-lg shadow mb-6">
+          <div className="p-6 border-b border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Generate Reports</h3>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <select
+                value={reportType}
+                onChange={(e) => setReportType(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">All Report Types</option>
+                {canViewAllReports && (
+                  <>
+                    <option value="monthly_financial">Monthly Financial Report</option>
+                    <option value="payroll_summary">Payroll Summary</option>
+                    <option value="expense_analysis">Expense Analysis</option>
+                    <option value="profit_loss">Profit & Loss Statement</option>
+                  </>
+                )}
+                {canViewBillingReports && (
+                  <option value="invoice_collection">Invoice Collection Report</option>
+                )}
+              </select>
+              <select
+                value={period}
+                onChange={(e) => setPeriod(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="2024-01">January 2024</option>
+                <option value="2024-02">February 2024</option>
+                <option value="2024-03">March 2024</option>
+                <option value="2024-04">April 2024</option>
+                <option value="2024-05">May 2024</option>
+                <option value="2024-06">June 2024</option>
+              </select>
+              <button
+                onClick={() => handleGenerateReport(reportType)}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Generate Report
+              </button>
+            </div>
           </div>
-        </div>
-      </div>
 
-      {/* Content based on active tab */}
-      {activeTab === 'reports' && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          {/* View Mode Toggle */}
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium text-gray-900">Report View</h3>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setViewMode('overview')}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium ${
+                    viewMode === 'overview'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Overview
+                </button>
+                <button
+                  onClick={() => setViewMode('detailed')}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium ${
+                    viewMode === 'detailed'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Detailed
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Reports Table */}
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Report</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Generated</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Report Type
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Period
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Generated By
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Generated At
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredReports.map((report) => (
                   <tr key={report.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
-                          {getTypeIcon(report.type)}
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{report.name}</div>
-                          <div className="text-sm text-gray-500">{report.category}</div>
-                        </div>
-                      </div>
+                      <div className="text-sm font-medium text-gray-900">{getReportTypeLabel(report.report_type)}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {report.period}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {report.generated_by}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {formatDate(report.generated_at)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900 capitalize">{report.type}</div>
-                      <div className="text-sm text-gray-500">{report.format.toUpperCase()}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(report.status)}`}>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        report.status === 'exported' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
                         {report.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{formatDate(report.lastGenerated)}</div>
-                      <div className="text-sm text-gray-500">by {report.generatedBy}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatFileSize(report.size)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900 p-1" title="View">
-                          <BarChart3 className="w-4 h-4" />
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => {
+                            setSelectedReport(report);
+                            setShowReportDetails(true);
+                          }}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          <Eye className="h-4 w-4" />
                         </button>
-                        <button className="text-green-600 hover:text-green-900 p-1" title="Download">
-                          <Download className="w-4 h-4" />
-                        </button>
-                        {canGenerateReports && (
-                          <>
-                            <button className="text-yellow-600 hover:text-yellow-900 p-1" title="Edit">
-                              <Filter className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteReport(report.id)}
-                              className="text-red-600 hover:text-red-900 p-1"
-                              title="Delete"
-                            >
-                              <AlertTriangle className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          
-          {/* Pagination */}
-          <div className="bg-white px-6 py-3 border-t border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-700">
-                Showing {filteredReports.length} of {reports.length} reports
-              </div>
-              <div className="flex space-x-2">
-                <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">Previous</button>
-                <button className="px-3 py-1 bg-blue-600 text-white rounded text-sm">1</button>
-                <button className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">Next</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'analytics' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Revenue Trends</h3>
-            <div className="space-y-4">
-              {analyticsData.slice(-6).map((data, index) => (
-                <div key={index} className="flex justify-between items-center">
-                  <span className="text-gray-600">{data.period}</span>
-                  <div className="flex items-center space-x-4">
-                    <span className="font-semibold">{formatCurrency(data.revenue)}</span>
-                    <div className="w-20 h-2 bg-gray-200 rounded-full">
-                      <div 
-                        className="h-2 bg-blue-600 rounded-full" 
-                        style={{ width: `${(data.revenue / 150000) * 100}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Profit Analysis</h3>
-            <div className="space-y-4">
-              {analyticsData.slice(-6).map((data, index) => (
-                <div key={index} className="flex justify-between items-center">
-                  <span className="text-gray-600">{data.period}</span>
-                  <div className="flex items-center space-x-4">
-                    <span className="font-semibold">{formatCurrency(data.profit)}</span>
-                    <div className="w-20 h-2 bg-gray-200 rounded-full">
-                      <div 
-                        className="h-2 bg-green-600 rounded-full" 
-                        style={{ width: `${(data.profit / 60000) * 100}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Metrics</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">{getLatestEmployees()}</div>
-                <div className="text-sm text-gray-600">Employees</div>
-              </div>
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">{getLatestClients()}</div>
-                <div className="text-sm text-gray-600">Clients</div>
-              </div>
-              <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                <div className="text-2xl font-bold text-yellow-600">8</div>
-                <div className="text-sm text-gray-600">Incidents</div>
-              </div>
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">168</div>
-                <div className="text-sm text-gray-600">Assets</div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Growth Indicators</h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Revenue Growth</span>
-                <div className={`flex items-center ${getRevenueGrowth() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {getRevenueGrowth() >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                  <span className="ml-1 font-semibold">{Math.abs(getRevenueGrowth()).toFixed(1)}%</span>
-                </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Profit Growth</span>
-                <div className={`flex items-center ${getProfitGrowth() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {getProfitGrowth() >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                  <span className="ml-1 font-semibold">{Math.abs(getProfitGrowth()).toFixed(1)}%</span>
-                </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Client Growth</span>
-                <div className="flex items-center text-green-600">
-                  <TrendingUp className="w-4 h-4" />
-                  <span className="ml-1 font-semibold">+20.0%</span>
-                </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600">Employee Growth</span>
-                <div className="flex items-center text-green-600">
-                  <TrendingUp className="w-4 h-4" />
-                  <span className="ml-1 font-semibold">+8.9%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'scheduled' && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Report</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Schedule</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Next Run</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recipients</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {reports.filter(report => report.status === 'scheduled').map((report) => (
-                  <tr key={report.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
-                          {getTypeIcon(report.type)}
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{report.name}</div>
-                          <div className="text-sm text-gray-500">{report.category}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {report.schedule}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      Next Monday 9:00 AM
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      Management Team
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(report.status)}`}>
-                        {report.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900 p-1">
-                          <Calendar className="w-4 h-4" />
-                        </button>
-                        <button className="text-yellow-600 hover:text-yellow-900 p-1">
-                          <Filter className="w-4 h-4" />
+                        <button
+                          onClick={() => handleExportReport(report.id, 'pdf')}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          <Download className="h-4 w-4" />
                         </button>
                       </div>
                     </td>
@@ -667,88 +558,205 @@ const Reports: React.FC = () => {
             </table>
           </div>
         </div>
-      )}
 
-      {/* Generate Report Modal */}
-      {showGenerateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Generate New Report</h3>
+        {/* Financial Charts (Overview Mode) */}
+        {viewMode === 'overview' && reportData && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Revenue vs Expenses Chart */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Revenue vs Expenses (6 Months)</h3>
+              <div className="space-y-4">
+                {reportData.revenue.monthly.map((item, index) => {
+                  const expense = reportData.expenses.monthly[index];
+                  const profit = item.amount - expense.amount;
+                  return (
+                    <div key={index} className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <Calendar className="h-4 w-4 text-gray-400 mr-2" />
+                        <span className="text-sm text-gray-600">{item.month}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-medium text-green-600">
+                          <CountUp
+                            start={0}
+                            end={item.amount}
+                            duration={2}
+                            separator=","
+                            prefix="Rwf "
+                          />
+                        </div>
+                        <div className="text-sm text-red-600">
+                          <CountUp
+                            start={0}
+                            end={expense.amount}
+                            duration={2}
+                            separator=","
+                            prefix="Rwf "
+                          />
+                        </div>
+                        <div className="text-sm font-bold text-blue-600">
+                          <CountUp
+                            start={0}
+                            end={profit}
+                            duration={2}
+                            separator=","
+                            prefix="Rwf "
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            <div className="p-6">
-              <form className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Report Name</label>
-                    <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+
+            {/* Top Clients Revenue */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Top Clients by Revenue</h3>
+              <div className="space-y-4">
+                {reportData.revenue.by_client.map((client, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Users className="h-4 w-4 text-gray-400 mr-2" />
+                      <span className="text-sm text-gray-600">{client.client}</span>
+                    </div>
+                    <div className="text-sm font-medium text-gray-900">
+                      <CountUp
+                        start={0}
+                        end={client.amount}
+                        duration={2}
+                        separator=","
+                        prefix="Rwf "
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Report Type</label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option>Select Type</option>
-                      <option value="financial">Financial</option>
-                      <option value="operational">Operational</option>
-                      <option value="security">Security</option>
-                      <option value="hr">HR</option>
-                      <option value="client">Client</option>
-                      <option value="asset">Asset</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="last_7_days">Last 7 Days</option>
-                      <option value="last_30_days">Last 30 Days</option>
-                      <option value="last_90_days">Last 90 Days</option>
-                      <option value="this_month">This Month</option>
-                      <option value="this_quarter">This Quarter</option>
-                      <option value="this_year">This Year</option>
-                      <option value="custom">Custom Range</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Output Format</label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="pdf">PDF</option>
-                      <option value="excel">Excel</option>
-                      <option value="csv">CSV</option>
-                      <option value="json">JSON</option>
-                    </select>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <textarea rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
-                </div>
-                
-                <div className="flex space-x-4">
-                  <label className="flex items-center">
-                    <input type="checkbox" className="mr-2" />
-                    <span className="text-sm">Schedule Report</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input type="checkbox" className="mr-2" />
-                    <span className="text-sm">Email Recipients</span>
-                  </label>
-                </div>
-              </form>
+                ))}
+              </div>
             </div>
-            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
-              <button
-                onClick={() => setShowGenerateModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                Generate Report
-              </button>
+
+            {/* Expense Categories */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Expenses by Category</h3>
+              <div className="space-y-4">
+                {reportData.expenses.by_category.map((category, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Activity className="h-4 w-4 text-gray-400 mr-2" />
+                      <span className="text-sm text-gray-600">{category.category}</span>
+                    </div>
+                    <div className="text-sm font-medium text-gray-900">
+                      <CountUp
+                        start={0}
+                        end={category.amount}
+                        duration={2}
+                        separator=","
+                        prefix="Rwf "
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Payroll by Department */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Payroll by Department</h3>
+              <div className="space-y-4">
+                {reportData.payroll.by_department.map((dept, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Users className="h-4 w-4 text-gray-400 mr-2" />
+                      <span className="text-sm text-gray-600">{dept.department}</span>
+                    </div>
+                    <div className="text-sm font-medium text-gray-900">
+                      <CountUp
+                        start={0}
+                        end={dept.amount}
+                        duration={2}
+                        separator=","
+                        prefix="Rwf "
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Report Details Modal */}
+        {showReportDetails && selectedReport && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+            <div className="relative top-20 mx-auto p-5 border w-4/5 max-w-4xl shadow-lg rounded-md bg-white">
+              <div className="mt-3">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    {getReportTypeLabel(selectedReport.report_type)} - {selectedReport.period}
+                  </h3>
+                  <button
+                    onClick={() => setShowReportDetails(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <AlertTriangle className="h-6 w-6" />
+                  </button>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Report Type</label>
+                    <p className="text-sm text-gray-900">{getReportTypeLabel(selectedReport.report_type)}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Period</label>
+                    <p className="text-sm text-gray-900">{selectedReport.period}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Generated By</label>
+                    <p className="text-sm text-gray-900">{selectedReport.generated_by}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Generated At</label>
+                    <p className="text-sm text-gray-900">{formatDate(selectedReport.generated_at)}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Status</label>
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      selectedReport.status === 'exported' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {selectedReport.status}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex justify-end space-x-3">
+                  <button
+                    onClick={() => setShowReportDetails(false)}
+                    className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={() => handleExportReport(selectedReport.id, 'pdf')}
+                    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 flex items-center"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export PDF
+                  </button>
+                  <button
+                    onClick={() => handleExportReport(selectedReport.id, 'excel')}
+                    className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export Excel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

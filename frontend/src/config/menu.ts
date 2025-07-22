@@ -44,6 +44,34 @@ export const menuItems: MenuItem[] = [
     roles: ['system_admin', 'finance_manager', 'accountant', 'billing_officer']
   },
   {
+    id: 'expenses',
+    title: 'Expense Management',
+    icon: 'Receipt',
+    path: '/expenses',
+    roles: ['system_admin', 'finance_manager', 'accountant']
+  },
+  {
+    id: 'finance-payroll',
+    title: 'Finance Payroll',
+    icon: 'CreditCard',
+    path: '/finance/payroll',
+    roles: ['system_admin', 'finance_manager', 'accountant', 'billing_officer']
+  },
+  {
+    id: 'payslips',
+    title: 'Payslips',
+    icon: 'FileText',
+    path: '/payslips',
+    roles: ['system_admin', 'finance_manager', 'accountant']
+  },
+  {
+    id: 'finance-reports',
+    title: 'Finance Reports',
+    icon: 'BarChart3',
+    path: '/finance/reports',
+    roles: ['system_admin', 'finance_manager', 'accountant', 'billing_officer']
+  },
+  {
     id: 'clients',
     title: 'Client Management',
     icon: 'Building',

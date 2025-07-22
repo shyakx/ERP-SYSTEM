@@ -172,7 +172,7 @@ const HRDashboard: React.FC = () => {
       <header className="flex items-center justify-between px-8 py-6 bg-white shadow-sm border-b border-gray-200">
         <div className="flex items-center space-x-4">
           <img src="/logo.png" alt="Company Logo" className="w-12 h-12 rounded-lg bg-white object-contain border-2 border-blue-600 shadow" />
-          <div>
+        <div>
             <h1 className="text-xl font-bold text-gray-900">Welcome, HR Manager!</h1>
             <p className="text-gray-500 text-sm">HR Dashboard</p>
           </div>
@@ -235,7 +235,7 @@ const HRDashboard: React.FC = () => {
                 </BarChart>
               </ResponsiveContainer>
             )}
-          </div>
+        </div>
 
           {/* Recent Activity */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -250,14 +250,14 @@ const HRDashboard: React.FC = () => {
                   <div key={i} className="flex items-center space-x-3">
                     <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
                       {item.icon}
-                    </div>
+            </div>
                     <div>
                       <p className="text-sm font-medium text-gray-900">{item.text}</p>
                       <p className="text-xs text-gray-500">{item.time}</p>
-                    </div>
-                  </div>
+            </div>
+          </div>
                 ))}
-              </div>
+            </div>
             )}
           </div>
         </div>
@@ -289,8 +289,8 @@ const HRDashboard: React.FC = () => {
                 <DollarSign className="w-5 h-5 text-yellow-600 mr-2" />
                 <span className="text-sm font-medium text-gray-900">Generate HR Report</span>
               </button>
-            </div>
           </div>
+        </div>
 
           {/* Announcements */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -306,12 +306,12 @@ const HRDashboard: React.FC = () => {
                     <div key={i} className="flex items-center space-x-2">
                       <div className="w-7 h-7 bg-indigo-100 rounded-full flex items-center justify-center">
                         <Megaphone className="w-4 h-4 text-indigo-600" />
-                      </div>
+            </div>
                       <div className="flex-1">
                         <p className="text-sm font-medium text-gray-900">{item.title}</p>
                         <p className="text-xs text-gray-500">{item.content}</p>
-                      </div>
-                    </div>
+            </div>
+          </div>
                   ))
                 ) : (
                   <div className="text-center text-gray-400 py-4">No announcements</div>
@@ -326,8 +326,8 @@ const HRDashboard: React.FC = () => {
       <footer className="mt-12 py-4 text-center text-xs text-gray-400">
         Version 1.0.0 &nbsp;|&nbsp; © 2024 DICEL Security
       </footer>
-    </div>
-  );
+  </div>
+);
 };
 
 export default HRDashboard; 

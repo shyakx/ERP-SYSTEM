@@ -1,6 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { AlertTriangle, Shield, Users, Clock, CheckCircle, XCircle, Plus, Search, Filter, Download, Eye, Edit, Trash2, FileText, MapPin, Calendar, TrendingUp, AlertCircle } from 'lucide-react';
+import { 
+  AlertTriangle, 
+  Eye, 
+  Edit, 
+  Trash2, 
+  Plus, 
+  Search, 
+  Filter,
+  Download,
+  Clock,
+  MapPin,
+  DollarSign,
+  Users,
+  FileText,
+  Shield,
+  AlertCircle,
+  CheckCircle
+} from 'lucide-react';
+import StatCard from '../../components/StatCard';
+import FilterBar, { FilterField } from '../../components/FilterBar';
+import CompactTable, { TableColumn } from '../../components/CompactTable';
+import Modal from '../../components/Common/Modal';
 
 interface Incident {
   id: string;
@@ -687,114 +708,155 @@ const Incidents: React.FC = () => {
       )}
 
       {/* Report Incident Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Report New Incident</h3>
+      <Modal
+        open={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        size="xl"
+        title={
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 text-red-600" />
             </div>
-            <div className="p-6">
-              <form className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Incident Title</label>
-                    <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Incident Type</label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option>Select Type</option>
-                      <option value="theft">Theft</option>
-                      <option value="vandalism">Vandalism</option>
-                      <option value="trespassing">Trespassing</option>
-                      <option value="assault">Assault</option>
-                      <option value="fire">Fire</option>
-                      <option value="medical">Medical</option>
-                      <option value="suspicious_activity">Suspicious Activity</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Severity</label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="low">Low</option>
-                      <option value="medium">Medium</option>
-                      <option value="high">High</option>
-                      <option value="critical">Critical</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                    <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Client (if applicable)</label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option>Select Client</option>
-                      <option>ABC Corporation</option>
-                      <option>Mall Security LLC</option>
-                      <option>Industrial Security Inc</option>
-                      <option>Tech Corp</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Estimated Loss</label>
-                    <input type="number" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <textarea rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Actions Taken</label>
-                  <textarea rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Witnesses</label>
-                    <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Separate with commas" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Evidence</label>
-                    <input type="text" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="CCTV, photos, etc." />
-                  </div>
-                </div>
-                
-                <div className="flex space-x-4">
-                  <label className="flex items-center">
-                    <input type="checkbox" className="mr-2" />
-                    <span className="text-sm">Police Report Filed</span>
-                  </label>
-                  <label className="flex items-center">
-                    <input type="checkbox" className="mr-2" />
-                    <span className="text-sm">Insurance Claim</span>
-                  </label>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Additional Notes</label>
-                  <textarea rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
-                </div>
-              </form>
-            </div>
-            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                Report Incident
-              </button>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Report New Incident</h2>
+              <p className="text-sm text-gray-500">Document a security incident</p>
             </div>
           </div>
+        }
+      >
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Incident Title *</label>
+              <input 
+                type="text" 
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                placeholder="Enter incident title"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Incident Type *</label>
+              <select className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200">
+                <option value="">Select Type</option>
+                <option value="theft">Theft</option>
+                <option value="vandalism">Vandalism</option>
+                <option value="trespassing">Trespassing</option>
+                <option value="assault">Assault</option>
+                <option value="fire">Fire</option>
+                <option value="medical">Medical</option>
+                <option value="suspicious_activity">Suspicious Activity</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Severity *</label>
+              <select className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200">
+                <option value="">Select Severity</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="critical">Critical</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Location *</label>
+              <input 
+                type="text" 
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                placeholder="Enter incident location"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Client (if applicable)</label>
+              <select className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200">
+                <option value="">Select Client</option>
+                <option value="ABC Corporation">ABC Corporation</option>
+                <option value="Mall Security LLC">Mall Security LLC</option>
+                <option value="Industrial Security Inc">Industrial Security Inc</option>
+                <option value="Tech Corp">Tech Corp</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Estimated Loss</label>
+              <input 
+                type="number" 
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                placeholder="Enter estimated loss amount"
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+            <textarea 
+              rows={4} 
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 resize-none"
+              placeholder="Provide detailed description of the incident"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Actions Taken</label>
+            <textarea 
+              rows={3} 
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 resize-none"
+              placeholder="Describe actions taken in response to the incident"
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Witnesses</label>
+              <input 
+                type="text" 
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                placeholder="Separate names with commas"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Evidence</label>
+              <input 
+                type="text" 
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200"
+                placeholder="CCTV, photos, etc."
+              />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+              <input type="checkbox" className="mr-3 w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300 rounded" />
+              <span className="text-sm font-medium">Police Report Filed</span>
+            </label>
+            <label className="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200">
+              <input type="checkbox" className="mr-3 w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300 rounded" />
+              <span className="text-sm font-medium">Insurance Claim</span>
+            </label>
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Additional Notes</label>
+            <textarea 
+              rows={3} 
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 resize-none"
+              placeholder="Any additional notes or observations"
+            />
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+            <button
+              onClick={() => setShowAddModal(false)}
+              className="px-6 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-200 transform hover:scale-105 font-medium"
+            >
+              Cancel
+            </button>
+            <button className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl transition-all duration-200 transform hover:scale-105 font-medium shadow-lg hover:shadow-xl">
+              Report Incident
+            </button>
+          </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 };
