@@ -51,13 +51,6 @@ export const menuItems: MenuItem[] = [
     roles: ['system_admin', 'finance_manager', 'accountant']
   },
   {
-    id: 'finance-payroll',
-    title: 'Finance Payroll',
-    icon: 'CreditCard',
-    path: '/finance/payroll',
-    roles: ['system_admin', 'finance_manager', 'accountant', 'billing_officer']
-  },
-  {
     id: 'payslips',
     title: 'Payslips',
     icon: 'FileText',
@@ -119,6 +112,13 @@ export const menuItems: MenuItem[] = [
     icon: 'Settings',
     path: '/settings',
     roles: ['system_admin', 'it_support_officer']
+  },
+  {
+    id: 'chatbot-training',
+    title: 'Chatbot Training',
+    icon: 'Bot',
+    path: '/admin/chatbot-training',
+    roles: ['system_admin']
   }
 ];
 

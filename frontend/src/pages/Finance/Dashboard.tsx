@@ -45,69 +45,9 @@ const cardGradients = [
   'linear-gradient(135deg, #14b8a6 0%, #3b82f6 100%)',
 ];
 
-const mockDashboardExtras = {
-  total_clients: 15,
-  total_tax_paid: 2450000,
-  recent_invoices: [
-    { invoice_number: 'INV-2024-011', company_name: 'Kigali Convention Centre', total_amount: 18000, status: 'paid', due_date: '2024-07-10' },
-    { invoice_number: 'INV-2024-012', company_name: 'Rwanda Revenue Authority', total_amount: 25000, status: 'sent', due_date: '2024-07-15' },
-    { invoice_number: 'INV-2024-013', company_name: 'BK Group Plc', total_amount: 32000, status: 'overdue', due_date: '2024-07-05' },
-    { invoice_number: 'INV-2024-014', company_name: 'Rwanda Energy Group', total_amount: 21000, status: 'paid', due_date: '2024-07-01' },
-    { invoice_number: 'INV-2024-015', company_name: 'MTN Rwanda', total_amount: 15000, status: 'sent', due_date: '2024-07-20' },
-    { invoice_number: 'INV-2024-016', company_name: 'Rwanda Trading Company', total_amount: 27000, status: 'paid', due_date: '2024-07-18' },
-    { invoice_number: 'INV-2024-017', company_name: 'Akagera Aviation', total_amount: 22000, status: 'overdue', due_date: '2024-07-03' },
-    { invoice_number: 'INV-2024-018', company_name: 'Rwanda Development Board', total_amount: 19500, status: 'paid', due_date: '2024-07-12' },
-    { invoice_number: 'INV-2024-019', company_name: 'CIMERWA', total_amount: 26000, status: 'sent', due_date: '2024-07-22' },
-    { invoice_number: 'INV-2024-020', company_name: 'Rwanda Biomedical Center', total_amount: 17500, status: 'paid', due_date: '2024-07-08' }
-  ],
-  recent_expenses: [
-    { expense_number: 'EXP-2024-011', category: 'Office Supplies', vendor_name: 'Rwanda Stationers Ltd', amount: 65000, status: 'approved', expense_date: '2024-07-02' },
-    { expense_number: 'EXP-2024-012', category: 'Transportation', vendor_name: 'RITCO', amount: 80000, status: 'approved', expense_date: '2024-07-04' },
-    { expense_number: 'EXP-2024-013', category: 'Equipment', vendor_name: 'Techno Market Rwanda', amount: 120000, status: 'pending', expense_date: '2024-07-06' },
-    { expense_number: 'EXP-2024-014', category: 'Utilities', vendor_name: 'REG', amount: 47000, status: 'approved', expense_date: '2024-07-08' },
-    { expense_number: 'EXP-2024-015', category: 'Insurance', vendor_name: 'Sonarwa Insurance', amount: 210000, status: 'approved', expense_date: '2024-07-10' },
-    { expense_number: 'EXP-2024-016', category: 'Maintenance', vendor_name: 'Kigali Auto Garage', amount: 90000, status: 'approved', expense_date: '2024-07-12' },
-    { expense_number: 'EXP-2024-017', category: 'Communication', vendor_name: 'Airtel Rwanda', amount: 40000, status: 'approved', expense_date: '2024-07-14' },
-    { expense_number: 'EXP-2024-018', category: 'Training', vendor_name: 'Rwanda Training Institute', amount: 70000, status: 'approved', expense_date: '2024-07-16' },
-    { expense_number: 'EXP-2024-019', category: 'Medical', vendor_name: 'Rwanda Medical Center', amount: 30000, status: 'approved', expense_date: '2024-07-18' },
-    { expense_number: 'EXP-2024-020', category: 'Uniforms', vendor_name: 'Uniforms Rwanda', amount: 95000, status: 'approved', expense_date: '2024-07-20' }
-  ],
-  recent_bank_transactions: [
-    { transaction_number: 'TXN-2024-011', account_name: 'DICEL Main Account', amount: 18000, transaction_type: 'deposit', transaction_date: '2024-07-10', description: 'Payment received from Kigali Convention Centre' },
-    { transaction_number: 'TXN-2024-012', account_name: 'DICEL Main Account', amount: -65000, transaction_type: 'withdrawal', transaction_date: '2024-07-02', description: 'Office supplies payment' },
-    { transaction_number: 'TXN-2024-013', account_name: 'DICEL Main Account', amount: -80000, transaction_type: 'withdrawal', transaction_date: '2024-07-04', description: 'Transportation payment' },
-    { transaction_number: 'TXN-2024-014', account_name: 'DICEL Main Account', amount: 25000, transaction_type: 'deposit', transaction_date: '2024-07-15', description: 'Payment received from Rwanda Revenue Authority' },
-    { transaction_number: 'TXN-2024-015', account_name: 'DICEL Main Account', amount: -120000, transaction_type: 'withdrawal', transaction_date: '2024-07-06', description: 'Equipment purchase' },
-    { transaction_number: 'TXN-2024-016', account_name: 'DICEL Main Account', amount: 32000, transaction_type: 'deposit', transaction_date: '2024-07-05', description: 'Payment received from BK Group Plc' },
-    { transaction_number: 'TXN-2024-017', account_name: 'DICEL Main Account', amount: -47000, transaction_type: 'withdrawal', transaction_date: '2024-07-08', description: 'Utilities payment' },
-    { transaction_number: 'TXN-2024-018', account_name: 'DICEL Main Account', amount: 21000, transaction_type: 'deposit', transaction_date: '2024-07-01', description: 'Payment received from Rwanda Energy Group' },
-    { transaction_number: 'TXN-2024-019', account_name: 'DICEL Main Account', amount: -210000, transaction_type: 'withdrawal', transaction_date: '2024-07-10', description: 'Insurance payment' },
-    { transaction_number: 'TXN-2024-020', account_name: 'DICEL Main Account', amount: 15000, transaction_type: 'deposit', transaction_date: '2024-07-20', description: 'Payment received from MTN Rwanda' }
-  ],
-  expense_breakdown_by_category: [
-    { category: 'Office Supplies', total: 65000 },
-    { category: 'Transportation', total: 80000 },
-    { category: 'Equipment', total: 120000 },
-    { category: 'Utilities', total: 47000 },
-    { category: 'Insurance', total: 210000 },
-    { category: 'Maintenance', total: 90000 },
-    { category: 'Communication', total: 40000 },
-    { category: 'Training', total: 70000 },
-    { category: 'Medical', total: 30000 },
-    { category: 'Uniforms', total: 95000 }
-  ],
-  top_vendors: [
-    { vendor_name: 'Sonarwa Insurance', total: 210000 },
-    { vendor_name: 'Techno Market Rwanda', total: 120000 },
-    { vendor_name: 'Uniforms Rwanda', total: 95000 },
-    { vendor_name: 'Kigali Auto Garage', total: 90000 },
-    { vendor_name: 'RITCO', total: 80000 }
-  ]
-};
-
 const FinanceDashboardPage: React.FC = () => {
   const { user } = useAuth();
-  const [dashboardDataState, setDashboardDataState] = useState<FinanceDashboard | null>(null);
+  const [dashboardData, setDashboardData] = useState<FinanceDashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -120,7 +60,7 @@ const FinanceDashboardPage: React.FC = () => {
       setLoading(true);
       setError(null);
       const data = await getFinanceDashboard();
-      setDashboardDataState(data);
+      setDashboardData(data);
     } catch (err) {
       setError('Failed to load dashboard data');
     } finally {
@@ -128,59 +68,7 @@ const FinanceDashboardPage: React.FC = () => {
     }
   };
 
-  // Use backend data only; do not fallback to mock data
-  const dashboardData = dashboardDataState;
-
-  // Helper to get metric value from real data or fallback to mock
-  const getMetricValue = <T,>(real: T | undefined | null, mock: T): T => {
-    if (real === undefined || real === null || (typeof real === 'number' && real === 0)) return mock;
-    return real;
-  };
-
-  const getTotalRevenue = (data: any) =>
-    data?.revenue?.total_revenue ??
-    mockDashboardExtras.recent_invoices.reduce((sum, inv) => sum + inv.total_amount, 0);
-
-  const getOutstanding = (data: any) =>
-    data?.revenue?.outstanding_amount ??
-    mockDashboardExtras.recent_invoices
-      .filter((inv) => inv.status !== 'paid')
-      .reduce((sum, inv) => sum + inv.total_amount, 0);
-
-  const getTotalExpenses = (data: any) =>
-    data?.expenses?.total_expenses ??
-    mockDashboardExtras.expense_breakdown_by_category.reduce((sum, cat) => sum + cat.total, 0);
-
-  const getNetProfit = (data: any) =>
-    (data?.revenue?.total_paid ?? getTotalRevenue(data)) - getTotalExpenses(data);
-
-  const getOverdueInvoices = (data: any) =>
-    data?.revenue?.overdue_invoices ??
-    mockDashboardExtras.recent_invoices.filter((inv) => inv.status === 'overdue').length;
-
-  const getExpenseCount = (data: any) =>
-    data?.expenses?.expense_count ?? mockDashboardExtras.recent_expenses.length;
-
-  const getTrend = (data: any) =>
-    data?.trend ?? mockDashboardExtras.recent_invoices.map((inv) => ({
-      month: inv.due_date,
-      revenue: inv.total_amount,
-      paid: inv.status === 'paid' ? inv.total_amount : 0,
-    }));
-
-  const getTopClients = (data: any) =>
-    data?.topClients ?? mockDashboardExtras.recent_invoices.map((inv) => ({
-      company_name: inv.company_name,
-      invoice_count: 1,
-      total_amount: inv.total_amount,
-    }));
-
-  const getBankAccounts = (data: any) =>
-    data?.bankAccounts ?? mockDashboardExtras.recent_bank_transactions.map((tx) => ({
-      account_name: tx.account_name,
-      current_balance: tx.amount,
-      currency: 'RWF',
-    }));
+  // Use backend data only
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -211,7 +99,7 @@ const FinanceDashboardPage: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Revenue</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  <CountUp start={0} end={getTotalRevenue(dashboardData)} duration={2} separator="," />
+                  <CountUp start={0} end={dashboardData.revenue?.total_revenue || 0} duration={2} separator="," />
                 </p>
               </div>
               <div className="p-3 bg-green-100 rounded-full transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
@@ -233,7 +121,7 @@ const FinanceDashboardPage: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Outstanding</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  <CountUp start={0} end={getOutstanding(dashboardData)} duration={2} separator="," />
+                  <CountUp start={0} end={dashboardData.revenue?.outstanding_amount || 0} duration={2} separator="," />
                 </p>
               </div>
               <div className="p-3 bg-yellow-100 rounded-full transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
@@ -242,7 +130,7 @@ const FinanceDashboardPage: React.FC = () => {
             </div>
             <div className="mt-4">
               <div className="flex items-center text-sm">
-                <span className="text-gray-500">{getOverdueInvoices(dashboardData)} overdue invoices</span>
+                <span className="text-gray-500">{dashboardData.revenue?.overdue_invoices || 0} overdue invoices</span>
               </div>
             </div>
           </div>
@@ -253,7 +141,7 @@ const FinanceDashboardPage: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Expenses</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  <CountUp start={0} end={getTotalExpenses(dashboardData)} duration={2} separator="," />
+                  <CountUp start={0} end={dashboardData.expenses?.total_expenses || 0} duration={2} separator="," />
                 </p>
               </div>
               <div className="p-3 bg-red-100 rounded-full transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
@@ -262,7 +150,7 @@ const FinanceDashboardPage: React.FC = () => {
             </div>
             <div className="mt-4">
               <div className="flex items-center text-sm">
-                <span className="text-gray-500">{getExpenseCount(dashboardData)} expenses this month</span>
+                <span className="text-gray-500">{dashboardData.expenses?.expense_count || 0} expenses this month</span>
               </div>
             </div>
           </div>
@@ -273,7 +161,7 @@ const FinanceDashboardPage: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Net Profit</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  <CountUp start={0} end={getNetProfit(dashboardData)} duration={2} separator="," />
+                  <CountUp start={0} end={((dashboardData.revenue?.total_paid || 0) - (dashboardData.expenses?.total_expenses || 0))} duration={2} separator="," />
                 </p>
               </div>
               <div className="p-3 bg-blue-100 rounded-full transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
@@ -369,6 +257,7 @@ const FinanceDashboardPage: React.FC = () => {
         </div>
 
         {/* Recent Invoices Table */}
+        {Array.isArray(dashboardData.recent_invoices) && dashboardData.recent_invoices.length > 0 && (
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Invoices</h3>
           <div className="overflow-x-auto">
@@ -383,8 +272,7 @@ const FinanceDashboardPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {Array.isArray(dashboardData.recent_invoices) && dashboardData.recent_invoices.length > 0 ? (
-                  dashboardData.recent_invoices.map((inv, idx) => (
+                {dashboardData.recent_invoices.map((inv: any, idx: number) => (
                     <tr key={inv.invoice_number} className="hover:bg-blue-50 transition-all">
                       <td className="px-4 py-2 whitespace-nowrap">{inv.invoice_number}</td>
                       <td className="px-4 py-2 whitespace-nowrap">{inv.company_name}</td>
@@ -394,18 +282,15 @@ const FinanceDashboardPage: React.FC = () => {
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap">{inv.due_date}</td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-2 text-center text-gray-500">No data available</td>
-                  </tr>
-                )}
+                ))}
               </tbody>
             </table>
           </div>
         </div>
+        )}
 
         {/* Recent Expenses Table */}
+        {Array.isArray(dashboardData.recent_expenses) && dashboardData.recent_expenses.length > 0 && (
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Expenses</h3>
           <div className="overflow-x-auto">
@@ -421,8 +306,7 @@ const FinanceDashboardPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {Array.isArray(dashboardData.recent_expenses) && dashboardData.recent_expenses.length > 0 ? (
-                  dashboardData.recent_expenses.map((exp, idx) => (
+                {dashboardData.recent_expenses.map((exp: any, idx: number) => (
                     <tr key={exp.expense_number} className="hover:bg-green-50 transition-all">
                       <td className="px-4 py-2 whitespace-nowrap">{exp.expense_number}</td>
                       <td className="px-4 py-2 whitespace-nowrap">{exp.category}</td>
@@ -433,18 +317,15 @@ const FinanceDashboardPage: React.FC = () => {
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap">{exp.expense_date}</td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6} className="px-4 py-2 text-center text-gray-500">No data available</td>
-                  </tr>
-                )}
+                ))}
               </tbody>
             </table>
           </div>
         </div>
+        )}
 
         {/* Recent Bank Transactions Table */}
+        {Array.isArray(dashboardData.recent_bank_transactions) && dashboardData.recent_bank_transactions.length > 0 && (
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Bank Transactions</h3>
           <div className="overflow-x-auto">
@@ -460,8 +341,7 @@ const FinanceDashboardPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {Array.isArray(dashboardData.recent_bank_transactions) && dashboardData.recent_bank_transactions.length > 0 ? (
-                  dashboardData.recent_bank_transactions.map((tx, idx) => (
+                {dashboardData.recent_bank_transactions.map((tx: any, idx: number) => (
                     <tr key={tx.transaction_number || tx.id || idx} className="hover:bg-yellow-50 transition-all">
                       <td className="px-4 py-2 whitespace-nowrap">{tx.transaction_number || tx.id || ''}</td>
                       <td className="px-4 py-2 whitespace-nowrap">{tx.account_name || ''}</td>
@@ -472,33 +352,27 @@ const FinanceDashboardPage: React.FC = () => {
                       <td className="px-4 py-2 whitespace-nowrap">{tx.transaction_date ? new Date(tx.transaction_date).toLocaleDateString() : ''}</td>
                       <td className="px-4 py-2 whitespace-nowrap">{tx.description || ''}</td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-2 text-center text-gray-500">No data available</td>
-                  </tr>
-                )}
+                ))}
               </tbody>
             </table>
           </div>
         </div>
+        )}
 
         {/* Top Vendors List */}
+        {Array.isArray(dashboardData.top_vendors) && dashboardData.top_vendors.length > 0 && (
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Vendors</h3>
           <ul className="divide-y divide-gray-200">
-            {Array.isArray(dashboardData.top_vendors) && dashboardData.top_vendors.length > 0 ? (
-              dashboardData.top_vendors.map((vendor, idx) => (
+            {dashboardData.top_vendors.map((vendor: any, idx: number) => (
                 <li key={vendor.vendor_name || idx} className="flex items-center justify-between py-2 hover:bg-purple-50 transition-all">
                   <span className="font-medium text-gray-900">{vendor.vendor_name}</span>
                   <span className="text-sm font-semibold text-purple-700">{vendor.total_spent != null ? vendor.total_spent.toLocaleString() : ''}</span>
                 </li>
-              ))
-            ) : (
-              <li className="px-4 py-2 text-center text-gray-500">No data available</li>
-            )}
+            ))}
           </ul>
         </div>
+        )}
 
         {/* Bank Accounts */}
         <div className="bg-white rounded-lg shadow p-6">

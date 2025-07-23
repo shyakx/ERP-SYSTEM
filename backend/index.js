@@ -17,6 +17,7 @@ const {
   validateId, 
   sanitizeQuery 
 } = require('./middleware/validation');
+const chatbotService = require('./services/chatbotService');
 
 const app = express();
 
@@ -249,6 +250,24 @@ app.delete('/api/employees/:id', authenticateToken, authorizeRoles('hr_manager',
     res.json({ message: 'Employee deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Payroll summary endpoint for dashboard cards
+app.get('/api/payroll/summary', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        COALESCE(SUM(gross_pay), 0) AS total_gross_pay,
+        COALESCE(SUM(net_pay), 0) AS total_net_pay,
+        COALESCE(SUM(tax_deduction), 0) AS total_tax,
+        COUNT(*) FILTER (WHERE status = 'submitted') AS pending_approval
+      FROM payroll
+    `);
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error fetching payroll summary:', err);
+    res.status(500).json({ error: 'Failed to fetch payroll summary' });
   }
 });
 
@@ -551,7 +570,13 @@ app.get('/api/payroll', authenticateToken, authorizeRoles('hr_manager', 'finance
     params.push(parseInt(limit), parseInt(offset));
     
     const result = await pool.query(query, params);
-    res.json(result.rows);
+    // Convert net_pay and deductions to numbers for each row
+    const rows = result.rows.map(row => ({
+      ...row,
+      net_pay: row.net_pay !== undefined && row.net_pay !== null ? Number(row.net_pay) : 0,
+      deductions: row.deductions !== undefined && row.deductions !== null ? Number(row.deductions) : 0,
+    }));
+    res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -560,6 +585,19 @@ app.get('/api/payroll', authenticateToken, authorizeRoles('hr_manager', 'finance
 // Enhanced payroll creation with all new fields
 app.post('/api/payroll', authenticateToken, authorizeRoles('hr_manager', 'finance_manager', 'system_admin'), validatePayroll, async (req, res) => {
   try {
+    console.log('--- Incoming payroll POST request ---');
+    console.log('Request body:', req.body);
+    const requiredFields = [
+      'employeeId', 'period', 'baseSalary', 'hoursWorked', 'hourlyRate', 'overtimeHours', 'overtimeRate',
+      'transportAllowance', 'housingAllowance', 'performanceBonus', 'nightShiftAllowance',
+      'taxDeduction', 'insuranceDeduction', 'loanDeduction', 'otherDeductions',
+      'grossPay', 'netPay', 'deductions', 'bonuses', 'paymentMethod', 'status'
+    ];
+    for (const field of requiredFields) {
+      if (!(field in req.body)) {
+        console.error('Missing required field:', field);
+      }
+    }
     const { 
       employeeId, 
       period, 
@@ -2899,7 +2937,28 @@ app.post('/api/finance/payments', authenticateToken, authorizeRoles('finance_man
     res.status(500).json({ error: err.message });
   }
 });
-
+// Payroll batches endpoint for dashboard table
+app.get('/api/payroll/batches', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        period,
+        COUNT(*) AS employees,
+        SUM(gross_pay) AS gross,
+        SUM(net_pay) AS net,
+        MAX(status) AS status,
+        MAX(processed_at) AS submitted
+      FROM payroll
+      GROUP BY period
+      ORDER BY period DESC
+      LIMIT 12
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching payroll batches:', err);
+    res.status(500).json({ error: 'Failed to fetch payroll batches' });
+  }
+});
 // EXPENSES ENDPOINTS
 app.get('/api/finance/expenses', authenticateToken, authorizeRoles('finance_manager', 'accountant', 'system_admin'), sanitizeQuery, async (req, res) => {
   try {
@@ -3005,3 +3064,67 @@ app.put('/api/finance/expenses/:id/approve', authenticateToken, authorizeRoles('
 });
 
 // =====================================================
+
+// Chatbot endpoints
+app.post('/api/chatbot/message', authenticateToken, async (req, res) => {
+  try {
+    console.log('🤖 Chatbot message endpoint called');
+    console.log('📝 Request body:', req.body);
+    console.log('📝 User ID:', req.user.id);
+    
+    const { message } = req.body;
+    const userId = req.user.id;
+
+    if (!message || message.trim().length === 0) {
+      console.log('❌ No message provided');
+      return res.status(400).json({ error: 'Message is required' });
+    }
+
+    console.log('🚀 Calling chatbot service...');
+    const result = await chatbotService.generateResponse(message, userId);
+    console.log('✅ Chatbot service returned:', result);
+    
+    res.json(result);
+  } catch (error) {
+    console.error('❌ Chatbot message error:', error);
+    console.error('❌ Error stack:', error.stack);
+    res.status(500).json({ error: 'Failed to process message' });
+  }
+});
+
+app.post('/api/chatbot/train', authenticateToken, authorizeRoles(['admin', 'hr']), async (req, res) => {
+  try {
+    const { category, data } = req.body;
+
+    if (!category || !data) {
+      return res.status(400).json({ error: 'Category and data are required' });
+    }
+
+    const result = await chatbotService.trainWithData(category, data);
+    res.json(result);
+  } catch (error) {
+    console.error('Chatbot training error:', error);
+    res.status(500).json({ error: 'Failed to train chatbot' });
+  }
+});
+
+app.get('/api/chatbot/knowledge', authenticateToken, async (req, res) => {
+  try {
+    const knowledge = chatbotService.getCompanyKnowledge();
+    res.json(knowledge);
+  } catch (error) {
+    console.error('Get knowledge error:', error);
+    res.status(500).json({ error: 'Failed to get knowledge' });
+  }
+});
+
+app.delete('/api/chatbot/history', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const result = chatbotService.clearConversationHistory(userId);
+    res.json(result);
+  } catch (error) {
+    console.error('Clear history error:', error);
+    res.status(500).json({ error: 'Failed to clear history' });
+  }
+});

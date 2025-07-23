@@ -261,50 +261,47 @@ const Expenses: React.FC = () => {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-blue-100 rounded-full">
-                <DollarSign className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
+          <div className="bg-white rounded-lg shadow p-6 group hover:scale-105 hover:shadow-2xl transition-all duration-300" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #60a5fa 100%)', opacity: 1, filter: 'none' }}>
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm font-medium text-gray-600">Total Expenses</p>
                 <p className="text-2xl font-bold text-gray-900">{formatRWF(getTotalExpenses())}</p>
               </div>
+              <div className="p-3 bg-blue-100 rounded-full transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+                <DollarSign className="h-6 w-6 text-blue-600" />
+              </div>
             </div>
           </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-yellow-100 rounded-full">
-                <AlertTriangle className="h-6 w-6 text-yellow-600" />
-              </div>
-              <div className="ml-4">
+          <div className="bg-white rounded-lg shadow p-6 group hover:scale-105 hover:shadow-2xl transition-all duration-300" style={{ background: 'linear-gradient(135deg, #fbbf24 0%, #f59e42 100%)', opacity: 1, filter: 'none' }}>
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm font-medium text-gray-600">Pending</p>
                 <p className="text-2xl font-bold text-gray-900">{getPendingExpenses()}</p>
               </div>
+              <div className="p-3 bg-yellow-100 rounded-full transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+                <AlertTriangle className="h-6 w-6 text-yellow-600" />
+              </div>
             </div>
           </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-green-100 rounded-full">
-                <CheckCircle className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="ml-4">
+          <div className="bg-white rounded-lg shadow p-6 group hover:scale-105 hover:shadow-2xl transition-all duration-300" style={{ background: 'linear-gradient(135deg, #10b981 0%, #34d399 100%)', opacity: 1, filter: 'none' }}>
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm font-medium text-gray-600">Approved</p>
                 <p className="text-2xl font-bold text-gray-900">{getApprovedExpenses()}</p>
               </div>
+              <div className="p-3 bg-green-100 rounded-full transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+              </div>
             </div>
           </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-3 bg-red-100 rounded-full">
-                <XCircle className="h-6 w-6 text-red-600" />
-              </div>
-              <div className="ml-4">
+          <div className="bg-white rounded-lg shadow p-6 group hover:scale-105 hover:shadow-2xl transition-all duration-300" style={{ background: 'linear-gradient(135deg, #ef4444 0%, #f472b6 100%)', opacity: 1, filter: 'none' }}>
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm font-medium text-gray-600">Rejected</p>
                 <p className="text-2xl font-bold text-gray-900">{getRejectedExpenses()}</p>
+              </div>
+              <div className="p-3 bg-red-100 rounded-full transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6">
+                <XCircle className="h-6 w-6 text-red-600" />
               </div>
             </div>
           </div>
