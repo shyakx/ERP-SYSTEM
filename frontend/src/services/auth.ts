@@ -7,6 +7,7 @@ const mockUsers: User[] = [
     email: 'admin@dicelsecurity.com',
     name: 'System Administrator',
     role: 'system_admin',
+    department: 'IT',
     createdAt: '2024-01-01T00:00:00Z',
     lastLogin: '2024-01-15T10:30:00Z',
     isActive: true
@@ -16,6 +17,7 @@ const mockUsers: User[] = [
     email: 'hr@dicelsecurity.com',
     name: 'HR Manager',
     role: 'hr_manager',
+    department: 'HR',
     createdAt: '2024-01-01T00:00:00Z',
     lastLogin: '2024-01-15T09:15:00Z',
     isActive: true
@@ -25,6 +27,7 @@ const mockUsers: User[] = [
     email: 'finance@dicelsecurity.com',
     name: 'Finance Manager',
     role: 'finance_manager',
+    department: 'Finance',
     createdAt: '2024-01-01T00:00:00Z',
     lastLogin: '2024-01-15T08:45:00Z',
     isActive: true
@@ -34,6 +37,7 @@ const mockUsers: User[] = [
     email: 'operations@dicelsecurity.com',
     name: 'Operations Supervisor',
     role: 'operations_supervisor',
+    department: 'Operations',
     createdAt: '2024-01-01T00:00:00Z',
     lastLogin: '2024-01-15T07:30:00Z',
     isActive: true
@@ -43,6 +47,7 @@ const mockUsers: User[] = [
     email: 'guard@dicelsecurity.com',
     name: 'Security Guard',
     role: 'security_guard',
+    department: 'Operations',
     createdAt: '2024-01-01T00:00:00Z',
     lastLogin: '2024-01-15T06:00:00Z',
     isActive: true
@@ -52,7 +57,7 @@ const mockUsers: User[] = [
 export const authService = {
   login: async (email: string, password: string): Promise<{ user: User; token: string } | null> => {
     try {
-      const response = await fetch('/api/login', {
+      const response = await fetch('http://localhost:5000/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

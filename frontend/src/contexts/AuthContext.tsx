@@ -22,11 +22,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const initAuth = () => {
-      const currentUser = authService.getCurrentUser();
-      if (currentUser && authService.isAuthenticated()) {
-        setUser(currentUser);
+      // Check if there's already a user in localStorage
+      const existingUserData = localStorage.getItem('user-data');
+      
+      if (existingUserData) {
+        try {
+          const existingUser = JSON.parse(existingUserData);
+          setUser(existingUser);
+        } catch (error) {
+          console.error('Error parsing existing user data:', error);
+          // Clear invalid data
+          localStorage.removeItem('user-data');
+          localStorage.removeItem('auth-token');
+        }
       }
-      setLoading(false);
+      
+      // Force a small delay to ensure state updates
+      setTimeout(() => {
+        setLoading(false);
+      }, 100);
     };
 
     initAuth();
@@ -51,12 +65,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(null);
   };
 
+  const switchUser = async (email: string, password: string = 'Password123!') => {
+    try {
+      const success = await login(email, password);
+      if (success) {
+        console.log('Switched to user:', email);
+      } else {
+        console.error('Failed to switch to user:', email);
+      }
+    } catch (error) {
+      console.error('Error switching user:', error);
+    }
+  };
+
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
     login,
     logout,
-    loading
+    loading,
+    switchUser
   };
 
   return (

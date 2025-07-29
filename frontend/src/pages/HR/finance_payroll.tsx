@@ -50,12 +50,7 @@ const Payroll: React.FC = () => {
       try {
         const [employeeData, payrollData] = await Promise.all([
           apiService.get('/api/employees'),
-          fetch('/api/payroll', {
-            headers: { Authorization: `Bearer ${token}` },
-          }).then(res => {
-            if (!res.ok) throw new Error('Failed to fetch payroll data');
-            return res.json();
-          })
+          apiService.get('/api/payroll')
         ]);
         setEmployees(employeeData);
         setPayrolls(payrollData);
@@ -97,11 +92,12 @@ const Payroll: React.FC = () => {
   const handleDownloadPayslip = async (employeeId: string, period: string) => {
     setActionLoading(true);
     try {
-      const res = await fetch(`/api/payslip/${employeeId}?month=${period}`, {
-        headers: { Authorization: `Bearer ${authService.getToken()}` },
+      const token = authService.getToken();
+      const response = await fetch(`http://localhost:5000/api/payslip/${employeeId}?month=${period}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error('Failed to download payslip');
-      const blob = await res.blob();
+      if (!response.ok) throw new Error('Failed to download payslip');
+      const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -122,11 +118,7 @@ const Payroll: React.FC = () => {
     if (!window.confirm('Are you sure you want to delete this payroll record?')) return;
     setActionLoading(true);
     try {
-      const res = await fetch(`/api/payroll/${payrollId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${authService.getToken()}` },
-      });
-      if (!res.ok) throw new Error('Failed to delete payroll');
+      await apiService.delete(`/api/payroll/${payrollId}`);
       setPayrolls((prev: any[]) => prev.filter(p => p.id !== payrollId));
       alert('Payroll record deleted!');
     } catch (err) {
@@ -139,16 +131,7 @@ const Payroll: React.FC = () => {
   const handleStatusChange = async (payroll: any, newStatus: string) => {
     setActionLoading(true);
     try {
-      const res = await fetch(`/api/payroll/${payroll.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authService.getToken()}`,
-        },
-        body: JSON.stringify({ ...payroll, status: newStatus }),
-      });
-      if (!res.ok) throw new Error('Failed to update status');
-      const updated = await res.json();
+      const updated = await apiService.put(`/api/payroll/${payroll.id}`, { ...payroll, status: newStatus });
       setPayrolls((prev: any[]) => prev.map(p => (p.id === payroll.id ? updated : p)));
       alert('Status updated!');
     } catch (err) {
@@ -241,26 +224,19 @@ const Payroll: React.FC = () => {
     setEditError(null);
     setEditSuccess(false);
     try {
-      let res, updated;
+      let updated: any;
       if (editForm.id) {
         // Update existing payroll
-        res = await fetch(`/api/payroll/${editForm.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${authService.getToken()}`,
-          },
-          body: JSON.stringify({
-            gross_pay: Number(editForm.gross_pay),
-            net_pay: Number(editForm.net_pay),
-            deductions: Number(editForm.deductions),
-            bonuses: Number(editForm.bonuses),
-            notes: editForm.notes,
-            status: editForm.status,
-          }),
+        const response = await apiService.put(`/api/payroll/${editForm.id}`, {
+          gross_pay: Number(editForm.gross_pay),
+          net_pay: Number(editForm.net_pay),
+          deductions: Number(editForm.deductions),
+          bonuses: Number(editForm.bonuses),
+          notes: editForm.notes,
+          status: editForm.status,
         });
-        if (!res.ok) throw new Error('Failed to update payroll');
-        updated = await res.json();
+        if (!response.ok) throw new Error('Failed to update payroll');
+        updated = await response.json();
       } else {
         // Create new payroll
         const payload = {
@@ -288,16 +264,9 @@ const Payroll: React.FC = () => {
           status: editForm.status,
         };
         console.log('Creating payroll with payload:', payload);
-        res = await fetch('/api/payroll', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${authService.getToken()}`,
-          },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error('Failed to create payroll');
-        updated = await res.json();
+        const response = await apiService.post('/api/payroll', payload);
+        if (!response.ok) throw new Error('Failed to create payroll');
+        updated = await response.json();
       }
       setPayrolls((prev: any[]) => {
         // If new, add; if update, replace

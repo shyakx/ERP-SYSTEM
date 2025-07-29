@@ -76,14 +76,15 @@ const Documents: React.FC = () => {
       });
       
       if (data && data.documents) {
-        setDocuments(data.documents);
+        setDocuments(Array.isArray(data.documents) ? data.documents : []);
         setPagination(data.pagination);
       } else {
-        setDocuments(data || []);
+        setDocuments(Array.isArray(data) ? data : []);
       }
     } catch (err) {
       console.error('Error fetching documents:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch documents');
+      setDocuments([]); // Ensure it's an empty array on error
     } finally {
       setLoading(false);
     }

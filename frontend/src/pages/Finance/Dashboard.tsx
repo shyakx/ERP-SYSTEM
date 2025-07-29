@@ -13,8 +13,7 @@ import {
   PieChart,
   Activity,
   Plus,
-  UserPlus,
-  Banknote
+  UserPlus
 } from 'lucide-react';
 import { formatRWF } from '../../utils/formatRWF';
 import { getFinanceDashboard, FinanceDashboard } from '../../services/finance';

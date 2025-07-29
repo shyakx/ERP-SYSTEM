@@ -61,10 +61,11 @@ const Shifts: React.FC = () => {
       const res = await fetch('http://localhost:5000/api/shifts');
       if (!res.ok) throw new Error('Failed to fetch shifts');
       const data = await res.json();
-      setShifts(data);
+      setShifts(Array.isArray(data) ? data : []);
     } catch (err: any) {
       setError('Could not load shifts.');
       toast.error('Could not load shifts.');
+      setShifts([]);
     } finally {
       setLoading(false);
     }

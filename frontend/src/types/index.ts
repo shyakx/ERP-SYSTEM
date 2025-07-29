@@ -14,16 +14,26 @@ export type UserRole =
   | 'system_admin'
   | 'hr_manager'
   | 'hr_assistant'
+  | 'hr_officer'
   | 'finance_manager'
   | 'accountant'
+  | 'finance_officer'
   | 'operations_supervisor'
   | 'field_officer'
   | 'security_guard'
   | 'asset_manager'
+  | 'inventory_officer'
   | 'logistics_officer'
   | 'client_relationship_manager'
+  | 'client_officer'
   | 'billing_officer'
-  | 'it_support_officer';
+  | 'it_support_officer'
+  | 'auditor'
+  | 'compliance_manager'
+  | 'compliance_officer'
+  | 'sales_manager'
+  | 'sales_officer'
+  | 'marketing_officer';
 
 export interface AuthContextType {
   user: User | null;
@@ -31,6 +41,7 @@ export interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   loading: boolean;
+  switchUser: (email: string, password?: string) => Promise<void>;
 }
 
 export interface MenuItem {
