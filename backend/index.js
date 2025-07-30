@@ -2173,6 +2173,7 @@ app.get('/api/inventory/stats', mockAuthenticateToken, async (req, res) => {
     await pool.query('DROP TABLE IF EXISTS inventory_items CASCADE');
     await pool.query('DROP TABLE IF EXISTS suppliers CASCADE');
     await pool.query('DROP TABLE IF EXISTS warehouses CASCADE');
+    await pool.query('DROP TABLE IF EXISTS purchase_orders CASCADE');
     
     await pool.query(`
       CREATE TABLE IF NOT EXISTS inventory_items (
@@ -2254,6 +2255,22 @@ app.get('/api/inventory/stats', mockAuthenticateToken, async (req, res) => {
       );
     `);
     
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS purchase_orders (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        order_number VARCHAR(50) UNIQUE NOT NULL,
+        supplier_id UUID REFERENCES suppliers(id),
+        order_date DATE NOT NULL,
+        expected_delivery_date DATE,
+        total_amount DECIMAL(12,2) DEFAULT 0,
+        status VARCHAR(50) DEFAULT 'pending',
+        description TEXT,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    
     // Check if inventory_items table is empty and insert sample data
     const itemsCheck = await pool.query('SELECT COUNT(*) as count FROM inventory_items');
     if (parseInt(itemsCheck.rows[0].count) === 0) {
@@ -2316,6 +2333,22 @@ app.get('/api/inventory/stats', mockAuthenticateToken, async (req, res) => {
         INSERT INTO inventory_items (sku, name, description, category, subcategory, brand, model, unit_of_measure, cost_price, selling_price, min_stock_level, max_stock_level, current_stock, reorder_point, reorder_quantity, supplier_id, location_id, status)
         VALUES ('NET-001', 'Network Switch', '24-port managed network switch', 'Electronics', 'Networking', 'Cisco', 'Catalyst 2960', 'piece', 300000, 450000, 2, 3, 1, 2, 2, $1, $2, 'active')
       `, [supplier1.rows[0].id, warehouse2.rows[0].id]);
+      
+      // Insert sample purchase orders
+      await pool.query(`
+        INSERT INTO purchase_orders (order_number, supplier_id, order_date, expected_delivery_date, total_amount, status, description)
+        VALUES ('PO-2024-001', $1, '2024-01-15', '2024-01-30', 2500000, 'approved', 'Laptop and monitor order for new office setup')
+      `, [supplier1.rows[0].id]);
+      
+      await pool.query(`
+        INSERT INTO purchase_orders (order_number, supplier_id, order_date, expected_delivery_date, total_amount, status, description)
+        VALUES ('PO-2024-002', $1, '2024-01-20', '2024-02-05', 1500000, 'pending', 'Security camera system for warehouse')
+      `, [supplier2.rows[0].id]);
+      
+      await pool.query(`
+        INSERT INTO purchase_orders (order_number, supplier_id, order_date, expected_delivery_date, total_amount, status, description)
+        VALUES ('PO-2024-003', $1, '2024-01-25', '2024-02-10', 800000, 'delivered', 'Office furniture for new employees')
+      `, [supplier3.rows[0].id]);
     }
     
     // Get actual statistics from the database
@@ -2568,7 +2601,49 @@ app.get('/api/inventory/suppliers', mockAuthenticateToken, async (req, res) => {
 // Get warehouses for filter dropdown
 app.get('/api/inventory/warehouses', mockAuthenticateToken, async (req, res) => {
   try {
-    const result = await pool.query('SELECT id, name FROM warehouses WHERE status = \'active\' ORDER BY name');
+    const { search, status, city, country } = req.query;
+    
+    let query = `
+      SELECT 
+        w.*,
+        COUNT(i.id) as item_count,
+        SUM(i.current_stock * i.cost_price) as total_inventory_value,
+        AVG(i.cost_price) as avg_item_cost
+      FROM warehouses w
+      LEFT JOIN inventory_items i ON w.id = i.location_id
+      WHERE 1=1
+    `;
+    
+    const params = [];
+    let paramCount = 0;
+    
+    if (search) {
+      paramCount++;
+      query += ` AND (w.name ILIKE $${paramCount} OR w.code ILIKE $${paramCount} OR w.contact_person ILIKE $${paramCount})`;
+      params.push(`%${search}%`);
+    }
+    
+    if (status) {
+      paramCount++;
+      query += ` AND w.status = $${paramCount}`;
+      params.push(status);
+    }
+    
+    if (city) {
+      paramCount++;
+      query += ` AND w.city ILIKE $${paramCount}`;
+      params.push(`%${city}%`);
+    }
+    
+    if (country) {
+      paramCount++;
+      query += ` AND w.country ILIKE $${paramCount}`;
+      params.push(`%${country}%`);
+    }
+    
+    query += ` GROUP BY w.id ORDER BY w.created_at DESC`;
+    
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
     console.error('Error in /api/inventory/warehouses:', err.message);
@@ -2613,13 +2688,9 @@ app.get('/api/inventory/warehouses/:id', mockAuthenticateToken, async (req, res)
         w.*,
         COUNT(i.id) as item_count,
         SUM(i.current_stock * i.cost_price) as total_inventory_value,
-        AVG(i.cost_price) as avg_item_cost,
-        e.name as manager_name,
-        e.email as manager_email,
-        e.phone as manager_phone
+        AVG(i.cost_price) as avg_item_cost
       FROM warehouses w
       LEFT JOIN inventory_items i ON w.id = i.location_id
-      LEFT JOIN employees e ON w.manager_id = e.id
       WHERE w.id = $1
       GROUP BY w.id, e.name, e.email, e.phone
     `;
@@ -2998,6 +3069,204 @@ app.get('/api/inventory/cities', mockAuthenticateToken, async (req, res) => {
     res.json(result.rows.map(row => row.city));
   } catch (err) {
     console.error('Error in /api/inventory/cities:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get cities for suppliers filter dropdown
+app.get('/api/inventory/suppliers/cities', mockAuthenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT DISTINCT city FROM suppliers WHERE city IS NOT NULL ORDER BY city');
+    res.json(result.rows.map(row => row.city));
+  } catch (err) {
+    console.error('Error in /api/inventory/suppliers/cities:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get countries for suppliers filter dropdown
+app.get('/api/inventory/suppliers/countries', mockAuthenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT DISTINCT country FROM suppliers WHERE country IS NOT NULL ORDER BY country');
+    res.json(result.rows.map(row => row.country));
+  } catch (err) {
+    console.error('Error in /api/inventory/suppliers/countries:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// =====================================================
+// PURCHASE ORDERS API ENDPOINTS
+// =====================================================
+
+// Get all purchase orders
+app.get('/api/inventory/purchase-orders', mockAuthenticateToken, async (req, res) => {
+  try {
+    const { search, status, supplier, date_from, date_to } = req.query;
+    
+    let query = `
+      SELECT 
+        po.*,
+        s.name as supplier_name,
+        s.contact_person as supplier_contact,
+        s.phone as supplier_phone,
+        s.email as supplier_email
+      FROM purchase_orders po
+      LEFT JOIN suppliers s ON po.supplier_id = s.id
+      WHERE 1=1
+    `;
+    
+    const params = [];
+    let paramCount = 0;
+    
+    if (search) {
+      paramCount++;
+      query += ` AND (po.order_number ILIKE $${paramCount} OR po.description ILIKE $${paramCount})`;
+      params.push(`%${search}%`);
+    }
+    
+    if (status) {
+      paramCount++;
+      query += ` AND po.status = $${paramCount}`;
+      params.push(status);
+    }
+    
+    if (supplier) {
+      paramCount++;
+      query += ` AND po.supplier_id = $${paramCount}::uuid`;
+      params.push(supplier);
+    }
+    
+    if (date_from) {
+      paramCount++;
+      query += ` AND po.order_date >= $${paramCount}`;
+      params.push(date_from);
+    }
+    
+    if (date_to) {
+      paramCount++;
+      query += ` AND po.order_date <= $${paramCount}`;
+      params.push(date_to);
+    }
+    
+    query += ' ORDER BY po.created_at DESC';
+    
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error in GET /api/inventory/purchase-orders:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get purchase order by ID
+app.get('/api/inventory/purchase-orders/:id', mockAuthenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const query = `
+      SELECT 
+        po.*,
+        s.name as supplier_name,
+        s.contact_person as supplier_contact,
+        s.phone as supplier_phone,
+        s.email as supplier_email
+      FROM purchase_orders po
+      LEFT JOIN suppliers s ON po.supplier_id = s.id
+      WHERE po.id = $1
+    `;
+    
+    const result = await pool.query(query, [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Purchase order not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error in GET /api/inventory/purchase-orders/:id:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Create new purchase order
+app.post('/api/inventory/purchase-orders', mockAuthenticateToken, async (req, res) => {
+  try {
+    const {
+      order_number, supplier_id, order_date, expected_delivery_date,
+      total_amount, status, description, notes
+    } = req.body;
+    
+    const query = `
+      INSERT INTO purchase_orders (
+        order_number, supplier_id, order_date, expected_delivery_date,
+        total_amount, status, description, notes
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *
+    `;
+    
+    const values = [
+      order_number, supplier_id, order_date, expected_delivery_date,
+      total_amount, status, description, notes
+    ];
+    
+    const result = await pool.query(query, values);
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error in POST /api/inventory/purchase-orders:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update purchase order
+app.put('/api/inventory/purchase-orders/:id', mockAuthenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      order_number, supplier_id, order_date, expected_delivery_date,
+      total_amount, status, description, notes
+    } = req.body;
+    
+    const query = `
+      UPDATE purchase_orders SET
+        order_number = $1, supplier_id = $2, order_date = $3, expected_delivery_date = $4,
+        total_amount = $5, status = $6, description = $7, notes = $8, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $9
+      RETURNING *
+    `;
+    
+    const values = [
+      order_number, supplier_id, order_date, expected_delivery_date,
+      total_amount, status, description, notes, id
+    ];
+    
+    const result = await pool.query(query, values);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Purchase order not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error in PUT /api/inventory/purchase-orders/:id:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete purchase order
+app.delete('/api/inventory/purchase-orders/:id', mockAuthenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await pool.query('DELETE FROM purchase_orders WHERE id = $1 RETURNING *', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Purchase order not found' });
+    }
+    
+    res.json({ message: 'Purchase order deleted successfully' });
+  } catch (err) {
+    console.error('Error in DELETE /api/inventory/purchase-orders/:id:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
