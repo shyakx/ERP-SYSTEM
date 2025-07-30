@@ -40,26 +40,26 @@ app.use((req, res, next) => {
 // Security headers
 app.use(helmet());
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// Rate limiting - TEMPORARILY DISABLED FOR DEVELOPMENT
+// const limiter = rateLimit({
+//   windowMs: 15 * 60 * 1000, // 15 minutes
+//   max: 100, // limit each IP to 100 requests per windowMs
+//   message: 'Too many requests from this IP, please try again later.',
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
 
 // Apply rate limiting to all routes
-app.use(limiter);
+// app.use(limiter);
 
-// Stricter rate limiting for login attempts
-const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 login attempts per windowMs
-  message: 'Too many login attempts, please try again later.',
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// Stricter rate limiting for login attempts - TEMPORARILY DISABLED FOR DEVELOPMENT
+// const loginLimiter = rateLimit({
+//   windowMs: 15 * 60 * 1000, // 15 minutes
+//   max: 5, // limit each IP to 5 login attempts per windowMs
+//   message: 'Too many login attempts, please try again later.',
+//   standardHeaders: true,
+//   legacyHeaders: false,
+// });
 
 // Remove X-Powered-By header
 app.disable('x-powered-by');
@@ -68,7 +68,7 @@ app.disable('x-powered-by');
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
     ? [process.env.CORS_ORIGIN, 'https://your-production-frontend.com']
-    : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:4173'],
+    : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:4173'],
   credentials: true
 }));
 
@@ -143,8 +143,34 @@ pool.connect()
     process.exit(1);
   });
 
+// Mock authentication middleware for development
+const mockAuthenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'Access token required' });
+  }
+
+  // Check if it's a mock token (for development)
+  if (token.startsWith('mock-jwt-token-')) {
+    // Mock user for development
+    req.user = {
+      id: '6',
+      email: 'inventory@dicelsecurity.com',
+      name: 'Inventory Manager',
+      role: 'inventory_manager',
+      department: 'Inventory'
+    };
+    return next();
+  }
+
+  // Use real authentication for non-mock tokens
+  return authenticateToken(req, res, next);
+};
+
 // EMPLOYEES ENDPOINTS
-app.get('/api/employees', authenticateToken, sanitizeQuery, async (req, res) => {
+app.get('/api/employees', mockAuthenticateToken, sanitizeQuery, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM employees ORDER BY name');
     res.json(result.rows);
@@ -189,7 +215,7 @@ app.get('/api/employees/distribution', async (req, res) => {
   }
 });
 
-app.get('/api/employees/:id', authenticateToken, validateId, async (req, res) => {
+app.get('/api/employees/:id', mockAuthenticateToken, validateId, async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query('SELECT * FROM employees WHERE id = $1', [id]);
@@ -202,7 +228,7 @@ app.get('/api/employees/:id', authenticateToken, validateId, async (req, res) =>
   }
 });
 
-app.post('/api/employees', authenticateToken, authorizeRoles('hr_manager', 'system_admin'), validateEmployee, async (req, res) => {
+app.post('/api/employees', mockAuthenticateToken, authorizeRoles('hr_manager', 'system_admin'), validateEmployee, async (req, res) => {
   try {
     const { name, position, department, email, phone } = req.body;
     
@@ -220,7 +246,7 @@ app.post('/api/employees', authenticateToken, authorizeRoles('hr_manager', 'syst
   }
 });
 
-app.put('/api/employees/:id', authenticateToken, authorizeRoles('hr_manager', 'system_admin'), validateId, validateEmployee, async (req, res) => {
+app.put('/api/employees/:id', mockAuthenticateToken, authorizeRoles('hr_manager', 'system_admin'), validateId, validateEmployee, async (req, res) => {
   try {
     const { id } = req.params;
     const { name, position, department, email, phone } = req.body;
@@ -239,7 +265,7 @@ app.put('/api/employees/:id', authenticateToken, authorizeRoles('hr_manager', 's
   }
 });
 
-app.delete('/api/employees/:id', authenticateToken, authorizeRoles('hr_manager', 'system_admin'), validateId, async (req, res) => {
+app.delete('/api/employees/:id', mockAuthenticateToken, authorizeRoles('hr_manager', 'system_admin'), validateId, async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query('DELETE FROM employees WHERE id = $1 RETURNING *', [id]);
@@ -254,7 +280,7 @@ app.delete('/api/employees/:id', authenticateToken, authorizeRoles('hr_manager',
 });
 
 // ATTENDANCE ENDPOINTS - FIXED VERSION
-app.get('/api/attendance', authenticateToken, sanitizeQuery, async (req, res) => {
+app.get('/api/attendance', mockAuthenticateToken, sanitizeQuery, async (req, res) => {
   console.log('➡️  [HIT] /api/attendance');
   console.log('   ↪️ Query params:', req.query);
   
@@ -299,7 +325,7 @@ app.get('/api/attendance', authenticateToken, sanitizeQuery, async (req, res) =>
   }
 });
 
-app.post('/api/attendance/clock-in', authenticateToken, validateAttendance, async (req, res) => {
+app.post('/api/attendance/clock-in', mockAuthenticateToken, validateAttendance, async (req, res) => {
   console.log('➡️  [HIT] /api/attendance/clock-in');
   console.log('   ↪️ Request body:', req.body);
   
@@ -376,7 +402,7 @@ app.post('/api/attendance/clock-in', authenticateToken, validateAttendance, asyn
   }
 });
 
-app.post('/api/attendance/clock-out', authenticateToken, validateAttendance, async (req, res) => {
+app.post('/api/attendance/clock-out', mockAuthenticateToken, validateAttendance, async (req, res) => {
   console.log('➡️  [HIT] /api/attendance/clock-out');
   console.log('   ↪️ Request body:', req.body);
   
@@ -894,7 +920,7 @@ app.get('/api/payroll/summary', async (req, res) => {
 });
 
 // Enhanced payroll creation with all new fields
-app.post('/api/payroll', authenticateToken, authorizeRoles('hr_manager', 'finance_manager', 'system_admin'), validatePayroll, async (req, res) => {
+app.post('/api/payroll', mockAuthenticateToken, authorizeRoles('hr_manager', 'finance_manager', 'system_admin'), validatePayroll, async (req, res) => {
   try {
     console.log('--- Incoming payroll POST request ---');
     console.log('Request body:', req.body);
@@ -1076,7 +1102,7 @@ app.put('/api/payroll/:id/cancel', async (req, res) => {
 });
 
 // UPDATE INDIVIDUAL PAYROLL RECORD
-app.put('/api/payroll/:id', authenticateToken, authorizeRoles('hr_manager', 'finance_manager', 'system_admin'), async (req, res) => {
+app.put('/api/payroll/:id', mockAuthenticateToken, authorizeRoles('hr_manager', 'finance_manager', 'system_admin'), async (req, res) => {
   try {
     const { id } = req.params;
     const { gross_pay, net_pay, deductions, bonuses, notes, status } = req.body;
@@ -1097,7 +1123,7 @@ app.put('/api/payroll/:id', authenticateToken, authorizeRoles('hr_manager', 'fin
 });
 
 // DELETE INDIVIDUAL PAYROLL RECORD
-app.delete('/api/payroll/:id', authenticateToken, authorizeRoles('hr_manager', 'finance_manager', 'system_admin'), async (req, res) => {
+app.delete('/api/payroll/:id', mockAuthenticateToken, authorizeRoles('hr_manager', 'finance_manager', 'system_admin'), async (req, res) => {
   try {
     const { id } = req.params;
     
@@ -1124,7 +1150,7 @@ app.get('/api/demo-users', async (req, res) => {
 });
 
 // LOGIN ENDPOINT
-app.post('/api/login', loginLimiter, async (req, res) => {
+app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   
   try {
@@ -1170,7 +1196,7 @@ app.post('/api/login', loginLimiter, async (req, res) => {
 });
 
 // COMPLIANCE ENDPOINTS
-app.get('/api/compliance/stats', authenticateToken, async (req, res) => {
+app.get('/api/compliance/stats', mockAuthenticateToken, async (req, res) => {
   try {
     // Mock compliance statistics
     const stats = {
@@ -1191,7 +1217,7 @@ app.get('/api/compliance/stats', authenticateToken, async (req, res) => {
   }
 });
 
-app.get('/api/compliance/alerts', authenticateToken, async (req, res) => {
+app.get('/api/compliance/alerts', mockAuthenticateToken, async (req, res) => {
   try {
     // Mock compliance alerts
     const alerts = [
@@ -1238,7 +1264,7 @@ app.get('/api/compliance/alerts', authenticateToken, async (req, res) => {
   }
 });
 
-app.get('/api/compliance/recent-audits', authenticateToken, async (req, res) => {
+app.get('/api/compliance/recent-audits', mockAuthenticateToken, async (req, res) => {
   try {
     // Mock recent audits
     const audits = [
@@ -1288,7 +1314,7 @@ app.get('/api/compliance/recent-audits', authenticateToken, async (req, res) => 
   }
 });
 
-app.get('/api/compliance/policies', authenticateToken, async (req, res) => {
+app.get('/api/compliance/policies', mockAuthenticateToken, async (req, res) => {
   try {
     // Mock compliance policies
     const policies = [
@@ -1444,6 +1470,671 @@ app.get('/api/compliance/incidents', authenticateToken, async (req, res) => {
   }
 });
 
+// =====================================================
+// SALES & MARKETING API ENDPOINTS
+// =====================================================
+
+// SALES DASHBOARD STATS
+app.get('/api/sales/stats', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        COUNT(DISTINCT l.id) as total_leads,
+        COUNT(DISTINCT o.id) as total_opportunities,
+        COUNT(DISTINCT c.id) as total_customers,
+        COUNT(DISTINCT q.id) as total_quotes,
+        COUNT(DISTINCT ord.id) as total_orders,
+        SUM(o.estimated_value) as pipeline_value,
+        SUM(CASE WHEN o.stage = 'closed_won' THEN o.actual_value ELSE 0 END) as won_revenue,
+        COUNT(DISTINCT CASE WHEN l.status = 'qualified' THEN l.id END) as qualified_leads,
+        COUNT(DISTINCT CASE WHEN o.stage = 'proposal' THEN o.id END) as proposals_sent
+      FROM leads l
+      FULL OUTER JOIN opportunities o ON l.id = o.lead_id
+      FULL OUTER JOIN customers c ON o.customer_id = c.id
+      FULL OUTER JOIN quotes q ON o.id = q.opportunity_id
+      FULL OUTER JOIN orders ord ON q.id = ord.quote_id
+    `);
+    
+    const stats = result.rows[0] || {
+      total_leads: 0,
+      total_opportunities: 0,
+      total_customers: 0,
+      total_quotes: 0,
+      total_orders: 0,
+      pipeline_value: 0,
+      won_revenue: 0,
+      qualified_leads: 0,
+      proposals_sent: 0
+    };
+    
+    res.json(stats);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PRODUCTS ENDPOINTS
+app.get('/api/sales/products', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM products ORDER BY name');
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/sales/products', authenticateToken, authorizeRoles('sales_manager', 'system_admin'), async (req, res) => {
+  try {
+    const { name, description, sku, category, price, cost, stock_quantity, min_stock_level, supplier } = req.body;
+    
+    const result = await pool.query(
+      'INSERT INTO products (name, description, sku, category, price, cost, stock_quantity, min_stock_level, supplier) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+      [name, description, sku, category, price, cost, stock_quantity, min_stock_level, supplier]
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/sales/products/:id', authenticateToken, authorizeRoles('sales_manager', 'system_admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, sku, category, price, cost, stock_quantity, min_stock_level, supplier } = req.body;
+    
+    const result = await pool.query(
+      'UPDATE products SET name = $1, description = $2, sku = $3, category = $4, price = $5, cost = $6, stock_quantity = $7, min_stock_level = $8, supplier = $9, updated_at = CURRENT_TIMESTAMP WHERE id = $10 RETURNING *',
+      [name, description, sku, category, price, cost, stock_quantity, min_stock_level, supplier, id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/sales/products/:id', authenticateToken, authorizeRoles('sales_manager', 'system_admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await pool.query('DELETE FROM products WHERE id = $1 RETURNING *', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    
+    res.json({ message: 'Product deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// CUSTOMERS ENDPOINTS
+app.get('/api/sales/customers', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM customers ORDER BY company_name');
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/sales/customers', authenticateToken, authorizeRoles('sales_manager', 'sales_representative', 'system_admin'), async (req, res) => {
+  try {
+    const { company_name, contact_name, email, phone, address, city, state, country, postal_code, industry, company_size, website, source, notes } = req.body;
+    
+    const result = await pool.query(
+      'INSERT INTO customers (company_name, contact_name, email, phone, address, city, state, country, postal_code, industry, company_size, website, source, notes) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *',
+      [company_name, contact_name, email, phone, address, city, state, country, postal_code, industry, company_size, website, source, notes]
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/sales/customers/:id', authenticateToken, authorizeRoles('sales_manager', 'sales_representative', 'system_admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { company_name, contact_name, email, phone, address, city, state, country, postal_code, industry, company_size, website, source, status, notes } = req.body;
+    
+    const result = await pool.query(
+      'UPDATE customers SET company_name = $1, contact_name = $2, email = $3, phone = $4, address = $5, city = $6, state = $7, country = $8, postal_code = $9, industry = $10, company_size = $11, website = $12, source = $13, status = $14, notes = $15, updated_at = CURRENT_TIMESTAMP WHERE id = $16 RETURNING *',
+      [company_name, contact_name, email, phone, address, city, state, country, postal_code, industry, company_size, website, source, status, notes, id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Customer not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/sales/customers/:id', authenticateToken, authorizeRoles('sales_manager', 'system_admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await pool.query('DELETE FROM customers WHERE id = $1 RETURNING *', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Customer not found' });
+    }
+    
+    res.json({ message: 'Customer deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// LEADS ENDPOINTS
+app.get('/api/sales/leads', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT l.*, e.name as assigned_to_name 
+      FROM leads l 
+      LEFT JOIN employees e ON l.assigned_to = e.id 
+      ORDER BY l.created_at DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/sales/leads', authenticateToken, authorizeRoles('sales_manager', 'sales_representative', 'system_admin'), async (req, res) => {
+  try {
+    const { first_name, last_name, email, phone, company, job_title, industry, source, status, priority, assigned_to, estimated_value, notes } = req.body;
+    
+    const result = await pool.query(
+      'INSERT INTO leads (first_name, last_name, email, phone, company, job_title, industry, source, status, priority, assigned_to, estimated_value, notes) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *',
+      [first_name, last_name, email, phone, company, job_title, industry, source, status, priority, assigned_to, estimated_value, notes]
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/sales/leads/:id', authenticateToken, authorizeRoles('sales_manager', 'sales_representative', 'system_admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { first_name, last_name, email, phone, company, job_title, industry, source, status, priority, assigned_to, estimated_value, notes } = req.body;
+    
+    const result = await pool.query(
+      'UPDATE leads SET first_name = $1, last_name = $2, email = $3, phone = $4, company = $5, job_title = $6, industry = $7, source = $8, status = $9, priority = $10, assigned_to = $11, estimated_value = $12, notes = $13, updated_at = CURRENT_TIMESTAMP WHERE id = $14 RETURNING *',
+      [first_name, last_name, email, phone, company, job_title, industry, source, status, priority, assigned_to, estimated_value, notes, id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/sales/leads/:id', authenticateToken, authorizeRoles('sales_manager', 'system_admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await pool.query('DELETE FROM leads WHERE id = $1 RETURNING *', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+    
+    res.json({ message: 'Lead deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// OPPORTUNITIES ENDPOINTS
+app.get('/api/sales/opportunities', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT o.*, c.company_name as customer_name, e.name as assigned_to_name 
+      FROM opportunities o 
+      LEFT JOIN customers c ON o.customer_id = c.id 
+      LEFT JOIN employees e ON o.assigned_to = e.id 
+      ORDER BY o.created_at DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/sales/opportunities', authenticateToken, authorizeRoles('sales_manager', 'sales_representative', 'system_admin'), async (req, res) => {
+  try {
+    const { title, customer_id, lead_id, assigned_to, stage, probability, estimated_value, actual_value, expected_close_date, close_date, source, description, notes } = req.body;
+    
+    const result = await pool.query(
+      'INSERT INTO opportunities (title, customer_id, lead_id, assigned_to, stage, probability, estimated_value, actual_value, expected_close_date, close_date, source, description, notes) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *',
+      [title, customer_id, lead_id, assigned_to, stage, probability, estimated_value, actual_value, expected_close_date, close_date, source, description, notes]
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/sales/opportunities/:id', authenticateToken, authorizeRoles('sales_manager', 'sales_representative', 'system_admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, customer_id, lead_id, assigned_to, stage, probability, estimated_value, actual_value, expected_close_date, close_date, source, description, notes } = req.body;
+    
+    const result = await pool.query(
+      'UPDATE opportunities SET title = $1, customer_id = $2, lead_id = $3, assigned_to = $4, stage = $5, probability = $6, estimated_value = $7, actual_value = $8, expected_close_date = $9, close_date = $10, source = $11, description = $12, notes = $13, updated_at = CURRENT_TIMESTAMP WHERE id = $14 RETURNING *',
+      [title, customer_id, lead_id, assigned_to, stage, probability, estimated_value, actual_value, expected_close_date, close_date, source, description, notes, id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Opportunity not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/sales/opportunities/:id', authenticateToken, authorizeRoles('sales_manager', 'system_admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await pool.query('DELETE FROM opportunities WHERE id = $1 RETURNING *', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Opportunity not found' });
+    }
+    
+    res.json({ message: 'Opportunity deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// CAMPAIGNS ENDPOINTS
+app.get('/api/sales/campaigns', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT c.*, e.name as created_by_name 
+      FROM campaigns c 
+      LEFT JOIN employees e ON c.created_by = e.id 
+      ORDER BY c.created_at DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/sales/campaigns', authenticateToken, authorizeRoles('sales_manager', 'marketing_manager', 'system_admin'), async (req, res) => {
+  try {
+    const { name, description, type, status, start_date, end_date, budget, actual_cost, target_audience, goals, created_by } = req.body;
+    
+    const result = await pool.query(
+      'INSERT INTO campaigns (name, description, type, status, start_date, end_date, budget, actual_cost, target_audience, goals, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
+      [name, description, type, status, start_date, end_date, budget, actual_cost, target_audience, goals, created_by]
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/sales/campaigns/:id', authenticateToken, authorizeRoles('sales_manager', 'marketing_manager', 'system_admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description, type, status, start_date, end_date, budget, actual_cost, target_audience, goals } = req.body;
+    
+    const result = await pool.query(
+      'UPDATE campaigns SET name = $1, description = $2, type = $3, status = $4, start_date = $5, end_date = $6, budget = $7, actual_cost = $8, target_audience = $9, goals = $10, updated_at = CURRENT_TIMESTAMP WHERE id = $11 RETURNING *',
+      [name, description, type, status, start_date, end_date, budget, actual_cost, target_audience, goals, id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Campaign not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/sales/campaigns/:id', authenticateToken, authorizeRoles('sales_manager', 'marketing_manager', 'system_admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await pool.query('DELETE FROM campaigns WHERE id = $1 RETURNING *', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Campaign not found' });
+    }
+    
+    res.json({ message: 'Campaign deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// SALES ACTIVITIES ENDPOINTS
+app.get('/api/sales/activities', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT sa.*, c.company_name as customer_name, e.name as assigned_to_name 
+      FROM sales_activities sa 
+      LEFT JOIN customers c ON sa.customer_id = c.id 
+      LEFT JOIN employees e ON sa.assigned_to = e.id 
+      ORDER BY sa.due_date ASC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/sales/activities', authenticateToken, authorizeRoles('sales_manager', 'sales_representative', 'system_admin'), async (req, res) => {
+  try {
+    const { title, description, type, status, priority, assigned_to, customer_id, opportunity_id, lead_id, due_date, notes } = req.body;
+    
+    const result = await pool.query(
+      'INSERT INTO sales_activities (title, description, type, status, priority, assigned_to, customer_id, opportunity_id, lead_id, due_date, notes) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
+      [title, description, type, status, priority, assigned_to, customer_id, opportunity_id, lead_id, due_date, notes]
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/sales/activities/:id', authenticateToken, authorizeRoles('sales_manager', 'sales_representative', 'system_admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, type, status, priority, assigned_to, customer_id, opportunity_id, lead_id, due_date, completed_date, notes } = req.body;
+    
+    const result = await pool.query(
+      'UPDATE sales_activities SET title = $1, description = $2, type = $3, status = $4, priority = $5, assigned_to = $6, customer_id = $7, opportunity_id = $8, lead_id = $9, due_date = $10, completed_date = $11, notes = $12, updated_at = CURRENT_TIMESTAMP WHERE id = $13 RETURNING *',
+      [title, description, type, status, priority, assigned_to, customer_id, opportunity_id, lead_id, due_date, completed_date, notes, id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Sales activity not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/sales/activities/:id', authenticateToken, authorizeRoles('sales_manager', 'system_admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await pool.query('DELETE FROM sales_activities WHERE id = $1 RETURNING *', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Sales activity not found' });
+    }
+    
+    res.json({ message: 'Sales activity deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// QUOTES ENDPOINTS
+app.get('/api/sales/quotes', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT q.*, c.company_name as customer_name, e.name as assigned_to_name 
+      FROM quotes q 
+      LEFT JOIN customers c ON q.customer_id = c.id 
+      LEFT JOIN employees e ON q.assigned_to = e.id 
+      ORDER BY q.created_at DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/sales/quotes', authenticateToken, authorizeRoles('sales_manager', 'sales_representative', 'system_admin'), async (req, res) => {
+  try {
+    const { quote_number, customer_id, opportunity_id, assigned_to, status, total_amount, tax_amount, discount_amount, final_amount, valid_until, notes } = req.body;
+    
+    const result = await pool.query(
+      'INSERT INTO quotes (quote_number, customer_id, opportunity_id, assigned_to, status, total_amount, tax_amount, discount_amount, final_amount, valid_until, notes) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
+      [quote_number, customer_id, opportunity_id, assigned_to, status, total_amount, tax_amount, discount_amount, final_amount, valid_until, notes]
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/sales/quotes/:id', authenticateToken, authorizeRoles('sales_manager', 'sales_representative', 'system_admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { quote_number, customer_id, opportunity_id, assigned_to, status, total_amount, tax_amount, discount_amount, final_amount, valid_until, notes } = req.body;
+    
+    const result = await pool.query(
+      'UPDATE quotes SET quote_number = $1, customer_id = $2, opportunity_id = $3, assigned_to = $4, status = $5, total_amount = $6, tax_amount = $7, discount_amount = $8, final_amount = $9, valid_until = $10, notes = $11, updated_at = CURRENT_TIMESTAMP WHERE id = $12 RETURNING *',
+      [quote_number, customer_id, opportunity_id, assigned_to, status, total_amount, tax_amount, discount_amount, final_amount, valid_until, notes, id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Quote not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/sales/quotes/:id', authenticateToken, authorizeRoles('sales_manager', 'system_admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await pool.query('DELETE FROM quotes WHERE id = $1 RETURNING *', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Quote not found' });
+    }
+    
+    res.json({ message: 'Quote deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ORDERS ENDPOINTS
+app.get('/api/sales/orders', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT o.*, c.company_name as customer_name, e.name as assigned_to_name 
+      FROM orders o 
+      LEFT JOIN customers c ON o.customer_id = c.id 
+      LEFT JOIN employees e ON o.assigned_to = e.id 
+      ORDER BY o.created_at DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/sales/orders', authenticateToken, authorizeRoles('sales_manager', 'sales_representative', 'system_admin'), async (req, res) => {
+  try {
+    const { order_number, customer_id, quote_id, assigned_to, status, order_date, delivery_date, total_amount, tax_amount, discount_amount, final_amount, payment_status, shipping_address, billing_address, notes } = req.body;
+    
+    const result = await pool.query(
+      'INSERT INTO orders (order_number, customer_id, quote_id, assigned_to, status, order_date, delivery_date, total_amount, tax_amount, discount_amount, final_amount, payment_status, shipping_address, billing_address, notes) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *',
+      [order_number, customer_id, quote_id, assigned_to, status, order_date, delivery_date, total_amount, tax_amount, discount_amount, final_amount, payment_status, shipping_address, billing_address, notes]
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/sales/orders/:id', authenticateToken, authorizeRoles('sales_manager', 'sales_representative', 'system_admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { order_number, customer_id, quote_id, assigned_to, status, order_date, delivery_date, total_amount, tax_amount, discount_amount, final_amount, payment_status, shipping_address, billing_address, notes } = req.body;
+    
+    const result = await pool.query(
+      'UPDATE orders SET order_number = $1, customer_id = $2, quote_id = $3, assigned_to = $4, status = $5, order_date = $6, delivery_date = $7, total_amount = $8, tax_amount = $9, discount_amount = $10, final_amount = $11, payment_status = $12, shipping_address = $13, billing_address = $14, notes = $15, updated_at = CURRENT_TIMESTAMP WHERE id = $16 RETURNING *',
+      [order_number, customer_id, quote_id, assigned_to, status, order_date, delivery_date, total_amount, tax_amount, discount_amount, final_amount, payment_status, shipping_address, billing_address, notes, id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/sales/orders/:id', authenticateToken, authorizeRoles('sales_manager', 'system_admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await pool.query('DELETE FROM orders WHERE id = $1 RETURNING *', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    res.json({ message: 'Order deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// SALES REPORTS ENDPOINTS
+app.get('/api/sales/reports', authenticateToken, async (req, res) => {
+  try {
+    // First, check if the table exists
+    const tableCheck = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'sales_reports'
+      );
+    `);
+    
+    if (!tableCheck.rows[0].exists) {
+      // Create the table if it doesn't exist
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS sales_reports (
+          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+          report_type VARCHAR(50) NOT NULL,
+          period VARCHAR(50) NOT NULL,
+          total_revenue DECIMAL(15,2) DEFAULT 0,
+          total_orders INTEGER DEFAULT 0,
+          total_customers INTEGER DEFAULT 0,
+          average_order_value DECIMAL(15,2) DEFAULT 0,
+          conversion_rate DECIMAL(5,2) DEFAULT 0,
+          data JSONB,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+      
+      // Insert sample data
+      await pool.query(`
+        INSERT INTO sales_reports (report_type, period, total_revenue, total_orders, total_customers, average_order_value, conversion_rate, data) VALUES
+        ('sales_summary', 'this_month', 125000.00, 45, 28, 2777.78, 15.5, '{"top_products": [{"name": "Security System A", "revenue": 45000, "quantity": 15}, {"name": "CCTV Package", "revenue": 38000, "quantity": 12}], "top_customers": [{"name": "TechCorp Ltd", "revenue": 25000, "orders": 3}, {"name": "SecureNet Inc", "revenue": 22000, "orders": 2}]}'),
+        ('product_performance', 'this_month', 125000.00, 45, 28, 2777.78, 15.5, '{"product_breakdown": [{"name": "Security System A", "revenue": 45000, "percentage": 36}, {"name": "CCTV Package", "revenue": 38000, "percentage": 30.4}, {"name": "Access Control", "revenue": 42000, "percentage": 33.6}]}'),
+        ('customer_analysis', 'this_month', 125000.00, 45, 28, 2777.78, 15.5, '{"customer_segments": [{"segment": "Enterprise", "revenue": 75000, "customers": 8}, {"segment": "SMB", "revenue": 35000, "customers": 12}, {"segment": "Individual", "revenue": 15000, "customers": 8}]}'),
+        ('campaign_effectiveness', 'this_month', 125000.00, 45, 28, 2777.78, 15.5, '{"campaigns": [{"name": "Q4 Security Push", "leads": 120, "conversions": 18, "roi": 250}, {"name": "Holiday Special", "leads": 85, "conversions": 12, "roi": 180}]}'),
+        ('revenue_forecast', 'next_quarter', 180000.00, 65, 35, 2769.23, 18.2, '{"forecast": [{"month": "January", "projected": 60000}, {"month": "February", "projected": 65000}, {"month": "March", "projected": 55000}]}')
+        ON CONFLICT DO NOTHING;
+      `);
+    }
+    
+    const result = await pool.query(`
+      SELECT * FROM sales_reports 
+      ORDER BY created_at DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error in /api/sales/reports:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/sales/reports', authenticateToken, authorizeRoles('sales_manager', 'marketing_officer', 'system_admin'), async (req, res) => {
+  try {
+    const { report_type, period, total_revenue, total_orders, total_customers, average_order_value, conversion_rate, data } = req.body;
+    
+    const result = await pool.query(
+      'INSERT INTO sales_reports (report_type, period, total_revenue, total_orders, total_customers, average_order_value, conversion_rate, data) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+      [report_type, period, total_revenue, total_orders, total_customers, average_order_value, conversion_rate, JSON.stringify(data)]
+    );
+    
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/sales/reports/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await pool.query('SELECT * FROM sales_reports WHERE id = $1', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/sales/reports/:id', authenticateToken, authorizeRoles('sales_manager', 'system_admin'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await pool.query('DELETE FROM sales_reports WHERE id = $1 RETURNING *', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    
+    res.json({ message: 'Report deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Centralized error handler with enhanced logging
 app.use((err, req, res, next) => {
   console.error('💥 [ERROR] Unhandled error:');
@@ -1463,5 +2154,850 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`   📝 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`   📝 Database: ${process.env.DB_NAME || 'dicel_erp_development'}`);
-  console.log(`   📝 CORS Origins: ${process.env.NODE_ENV === 'production' ? 'Production URLs' : 'http://localhost:3000, http://localhost:5173, http://localhost:4173'}`);
+  console.log(`   📝 CORS Origins: ${process.env.NODE_ENV === 'production' ? 'Production URLs' : 'http://localhost:3000, http://localhost:5173, http://localhost:5174, http://localhost:4173'}`);
 }); 
+
+// =====================================================
+// INVENTORY MANAGEMENT API ENDPOINTS
+// =====================================================
+
+// INVENTORY STATS
+app.get('/api/inventory/stats', mockAuthenticateToken, async (req, res) => {
+  try {
+    // Check if tables exist and create them if they don't
+    await pool.query(`
+      CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+    `);
+    
+    // Drop existing tables if they exist (for development)
+    await pool.query('DROP TABLE IF EXISTS inventory_items CASCADE');
+    await pool.query('DROP TABLE IF EXISTS suppliers CASCADE');
+    await pool.query('DROP TABLE IF EXISTS warehouses CASCADE');
+    
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS inventory_items (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        sku VARCHAR(50) UNIQUE NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        category VARCHAR(100),
+        subcategory VARCHAR(100),
+        brand VARCHAR(100),
+        model VARCHAR(100),
+        unit_of_measure VARCHAR(50),
+        cost_price DECIMAL(10,2) DEFAULT 0,
+        selling_price DECIMAL(10,2) DEFAULT 0,
+        min_stock_level INTEGER DEFAULT 0,
+        max_stock_level INTEGER DEFAULT 0,
+        current_stock INTEGER DEFAULT 0,
+        reserved_stock INTEGER DEFAULT 0,
+        available_stock INTEGER DEFAULT 0,
+        reorder_point INTEGER DEFAULT 0,
+        reorder_quantity INTEGER DEFAULT 0,
+        supplier_id UUID,
+        location_id UUID,
+        status VARCHAR(50) DEFAULT 'active',
+        barcode VARCHAR(100),
+        weight DECIMAL(8,2),
+        dimensions VARCHAR(100),
+        expiry_date DATE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS suppliers (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        name VARCHAR(255) NOT NULL,
+        contact_person VARCHAR(255),
+        email VARCHAR(255),
+        phone VARCHAR(50),
+        address TEXT,
+        city VARCHAR(100),
+        state VARCHAR(100),
+        country VARCHAR(100),
+        postal_code VARCHAR(20),
+        website VARCHAR(255),
+        tax_id VARCHAR(100),
+        payment_terms VARCHAR(100),
+        credit_limit DECIMAL(12,2) DEFAULT 0,
+        current_balance DECIMAL(12,2) DEFAULT 0,
+        status VARCHAR(50) DEFAULT 'active',
+        rating INTEGER DEFAULT 0,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS warehouses (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        name VARCHAR(255) NOT NULL,
+        code VARCHAR(50) UNIQUE NOT NULL,
+        address TEXT,
+        city VARCHAR(100),
+        state VARCHAR(100),
+        country VARCHAR(100),
+        postal_code VARCHAR(20),
+        contact_person VARCHAR(255),
+        phone VARCHAR(50),
+        email VARCHAR(255),
+        manager_id UUID,
+        capacity INTEGER DEFAULT 0,
+        used_capacity INTEGER DEFAULT 0,
+        status VARCHAR(50) DEFAULT 'active',
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    
+    // Check if inventory_items table is empty and insert sample data
+    const itemsCheck = await pool.query('SELECT COUNT(*) as count FROM inventory_items');
+    if (parseInt(itemsCheck.rows[0].count) === 0) {
+      console.log('📦 Inserting sample inventory data...');
+      
+      // Insert sample suppliers
+      const supplier1 = await pool.query(`
+        INSERT INTO suppliers (name, contact_person, email, phone, city, country, status, rating)
+        VALUES ('Tech Supplies Co.', 'John Smith', 'john@techsupplies.com', '+250788123456', 'Kigali', 'Rwanda', 'active', 4)
+        RETURNING id
+      `);
+      
+      const supplier2 = await pool.query(`
+        INSERT INTO suppliers (name, contact_person, email, phone, city, country, status, rating)
+        VALUES ('Security Equipment Ltd.', 'Mary Johnson', 'mary@securityequipment.com', '+250788234567', 'Kigali', 'Rwanda', 'active', 5)
+        RETURNING id
+      `);
+      
+      const supplier3 = await pool.query(`
+        INSERT INTO suppliers (name, contact_person, email, phone, city, country, status, rating)
+        VALUES ('Office Solutions', 'David Wilson', 'david@officesolutions.com', '+250788345678', 'Kigali', 'Rwanda', 'active', 3)
+        RETURNING id
+      `);
+      
+      // Insert sample warehouses
+      const warehouse1 = await pool.query(`
+        INSERT INTO warehouses (name, code, address, city, country, contact_person, phone, capacity, status)
+        VALUES ('Main Warehouse', 'WH-001', '123 Main Street, Kigali', 'Kigali', 'Rwanda', 'Manager One', '+250788456789', 1000, 'active')
+        RETURNING id
+      `);
+      
+      const warehouse2 = await pool.query(`
+        INSERT INTO warehouses (name, code, address, city, country, contact_person, phone, capacity, status)
+        VALUES ('Secondary Storage', 'WH-002', '456 Secondary Road, Kigali', 'Kigali', 'Rwanda', 'Manager Two', '+250788567890', 500, 'active')
+        RETURNING id
+      `);
+      
+      // Insert sample inventory items
+      await pool.query(`
+        INSERT INTO inventory_items (sku, name, description, category, subcategory, brand, model, unit_of_measure, cost_price, selling_price, min_stock_level, max_stock_level, current_stock, reorder_point, reorder_quantity, supplier_id, location_id, status)
+        VALUES ('LAP-001', 'Dell Latitude Laptop', 'Business laptop with 16GB RAM, 512GB SSD', 'Electronics', 'Computers', 'Dell', 'Latitude 5520', 'piece', 800000, 1200000, 5, 15, 8, 5, 10, $1, $2, 'active')
+      `, [supplier1.rows[0].id, warehouse1.rows[0].id]);
+      
+      await pool.query(`
+        INSERT INTO inventory_items (sku, name, description, category, subcategory, brand, model, unit_of_measure, cost_price, selling_price, min_stock_level, max_stock_level, current_stock, reorder_point, reorder_quantity, supplier_id, location_id, status)
+        VALUES ('MON-001', '24-inch LED Monitor', 'Full HD monitor for office use', 'Electronics', 'Displays', 'Samsung', 'LS24R350', 'piece', 150000, 250000, 3, 8, 5, 3, 5, $1, $2, 'active')
+      `, [supplier1.rows[0].id, warehouse1.rows[0].id]);
+      
+      await pool.query(`
+        INSERT INTO inventory_items (sku, name, description, category, subcategory, brand, model, unit_of_measure, cost_price, selling_price, min_stock_level, max_stock_level, current_stock, reorder_point, reorder_quantity, supplier_id, location_id, status)
+        VALUES ('SEC-001', 'Security Camera System', '4-channel CCTV system with night vision', 'Security', 'Cameras', 'Hikvision', 'DS-7604NI-K1', 'piece', 500000, 750000, 2, 5, 3, 2, 3, $1, $2, 'active')
+      `, [supplier2.rows[0].id, warehouse2.rows[0].id]);
+      
+      await pool.query(`
+        INSERT INTO inventory_items (sku, name, description, category, subcategory, brand, model, unit_of_measure, cost_price, selling_price, min_stock_level, max_stock_level, current_stock, reorder_point, reorder_quantity, supplier_id, location_id, status)
+        VALUES ('OFF-001', 'Office Chair', 'Ergonomic office chair with armrests', 'Furniture', 'Chairs', 'IKEA', 'MARKUS', 'piece', 80000, 120000, 10, 25, 15, 10, 15, $1, $2, 'active')
+      `, [supplier3.rows[0].id, warehouse1.rows[0].id]);
+      
+      await pool.query(`
+        INSERT INTO inventory_items (sku, name, description, category, subcategory, brand, model, unit_of_measure, cost_price, selling_price, min_stock_level, max_stock_level, current_stock, reorder_point, reorder_quantity, supplier_id, location_id, status)
+        VALUES ('NET-001', 'Network Switch', '24-port managed network switch', 'Electronics', 'Networking', 'Cisco', 'Catalyst 2960', 'piece', 300000, 450000, 2, 3, 1, 2, 2, $1, $2, 'active')
+      `, [supplier1.rows[0].id, warehouse2.rows[0].id]);
+    }
+    
+    // Get actual statistics from the database
+    const [itemsResult, suppliersResult, warehousesResult] = await Promise.all([
+      pool.query('SELECT COUNT(*) as count, SUM(cost_price * current_stock) as total_value FROM inventory_items'),
+      pool.query('SELECT COUNT(*) as count FROM suppliers WHERE status = \'active\''),
+      pool.query('SELECT COUNT(*) as count FROM warehouses WHERE status = \'active\'')
+    ]);
+    
+    const lowStockResult = await pool.query(`
+      SELECT COUNT(*) as count 
+      FROM inventory_items 
+      WHERE current_stock <= min_stock_level AND status = 'active'
+    `);
+    
+    const outOfStockResult = await pool.query(`
+      SELECT COUNT(*) as count 
+      FROM inventory_items 
+      WHERE current_stock = 0 AND status = 'active'
+    `);
+    
+    const stats = {
+      total_items: parseInt(itemsResult.rows[0].count) || 0,
+      total_inventory_value: parseFloat(itemsResult.rows[0].total_value) || 0,
+      total_suppliers: parseInt(suppliersResult.rows[0].count) || 0,
+      total_warehouses: parseInt(warehousesResult.rows[0].count) || 0,
+      low_stock_items: parseInt(lowStockResult.rows[0].count) || 0,
+      out_of_stock_items: parseInt(outOfStockResult.rows[0].count) || 0
+    };
+    
+    res.json(stats);
+  } catch (err) {
+    console.error('Error in /api/inventory/stats:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// INVENTORY ITEMS
+app.get('/api/inventory/items', mockAuthenticateToken, async (req, res) => {
+  try {
+    const { search, category, status, supplier, warehouse } = req.query;
+    
+    let query = `
+      SELECT 
+        i.*,
+        s.name as supplier_name,
+        s.contact_person as supplier_contact,
+        s.phone as supplier_phone,
+        s.email as supplier_email,
+        w.name as warehouse_name,
+        w.code as warehouse_code
+      FROM inventory_items i
+      LEFT JOIN suppliers s ON i.supplier_id = s.id
+      LEFT JOIN warehouses w ON i.location_id = w.id
+      WHERE 1=1
+    `;
+    
+    const params = [];
+    let paramCount = 0;
+    
+    if (search) {
+      paramCount++;
+      query += ` AND (i.name ILIKE $${paramCount} OR i.sku ILIKE $${paramCount} OR i.description ILIKE $${paramCount})`;
+      params.push(`%${search}%`);
+    }
+    
+    if (category) {
+      paramCount++;
+      query += ` AND i.category = $${paramCount}`;
+      params.push(category);
+    }
+    
+    if (status) {
+      paramCount++;
+      query += ` AND i.status = $${paramCount}`;
+      params.push(status);
+    }
+    
+    if (supplier) {
+      paramCount++;
+      query += ` AND s.name ILIKE $${paramCount}`;
+      params.push(`%${supplier}%`);
+    }
+    
+    if (warehouse) {
+      paramCount++;
+      query += ` AND w.name ILIKE $${paramCount}`;
+      params.push(`%${warehouse}%`);
+    }
+    
+    query += ` ORDER BY i.created_at DESC`;
+    
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error in /api/inventory/items:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/inventory/items', mockAuthenticateToken, async (req, res) => {
+  try {
+    const {
+      sku, name, description, category, subcategory, brand, model,
+      unit_of_measure, cost_price, selling_price, min_stock_level,
+      max_stock_level, current_stock, reorder_point, reorder_quantity,
+      supplier_id, location_id, barcode, weight, dimensions, expiry_date
+    } = req.body;
+    
+    const query = `
+      INSERT INTO inventory_items (
+        sku, name, description, category, subcategory, brand, model,
+        unit_of_measure, cost_price, selling_price, min_stock_level,
+        max_stock_level, current_stock, reorder_point, reorder_quantity,
+        supplier_id, location_id, barcode, weight, dimensions, expiry_date,
+        available_stock
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $13)
+      RETURNING *
+    `;
+    
+    const values = [
+      sku, name, description, category, subcategory, brand, model,
+      unit_of_measure, cost_price, selling_price, min_stock_level,
+      max_stock_level, current_stock, reorder_point, reorder_quantity,
+      supplier_id, location_id, barcode, weight, dimensions, expiry_date
+    ];
+    
+    const result = await pool.query(query, values);
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error in POST /api/inventory/items:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/inventory/items/:id', mockAuthenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const query = `
+      SELECT 
+        i.*,
+        s.name as supplier_name,
+        s.contact_person as supplier_contact,
+        s.phone as supplier_phone,
+        s.email as supplier_email,
+        w.name as warehouse_name,
+        w.code as warehouse_code
+      FROM inventory_items i
+      LEFT JOIN suppliers s ON i.supplier_id = s.id
+      LEFT JOIN warehouses w ON i.location_id = w.id
+      WHERE i.id = $1
+    `;
+    
+    const result = await pool.query(query, [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error in GET /api/inventory/items/:id:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/inventory/items/:id', mockAuthenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      sku, name, description, category, subcategory, brand, model,
+      unit_of_measure, cost_price, selling_price, min_stock_level,
+      max_stock_level, current_stock, reorder_point, reorder_quantity,
+      supplier_id, location_id, barcode, weight, dimensions, expiry_date, status
+    } = req.body;
+    
+    const query = `
+      UPDATE inventory_items SET
+        sku = $1, name = $2, description = $3, category = $4, subcategory = $5,
+        brand = $6, model = $7, unit_of_measure = $8, cost_price = $9,
+        selling_price = $10, min_stock_level = $11, max_stock_level = $12,
+        current_stock = $13, reorder_point = $14, reorder_quantity = $15,
+        supplier_id = $16, location_id = $17, barcode = $18, weight = $19,
+        dimensions = $20, expiry_date = $21, status = $22, available_stock = $13,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $23
+      RETURNING *
+    `;
+    
+    const values = [
+      sku, name, description, category, subcategory, brand, model,
+      unit_of_measure, cost_price, selling_price, min_stock_level,
+      max_stock_level, current_stock, reorder_point, reorder_quantity,
+      supplier_id, location_id, barcode, weight, dimensions, expiry_date, status, id
+    ];
+    
+    const result = await pool.query(query, values);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error in PUT /api/inventory/items/:id:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/inventory/items/:id', mockAuthenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const result = await pool.query('DELETE FROM inventory_items WHERE id = $1 RETURNING *', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+    
+    res.json({ message: 'Item deleted successfully' });
+  } catch (err) {
+    console.error('Error in DELETE /api/inventory/items/:id:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get categories for filter dropdown
+app.get('/api/inventory/categories', mockAuthenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT DISTINCT category FROM inventory_items WHERE category IS NOT NULL ORDER BY category');
+    res.json(result.rows.map(row => row.category));
+  } catch (err) {
+    console.error('Error in /api/inventory/categories:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get suppliers for filter dropdown
+app.get('/api/inventory/suppliers', mockAuthenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, name FROM suppliers WHERE status = \'active\' ORDER BY name');
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error in /api/inventory/suppliers:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get warehouses for filter dropdown
+app.get('/api/inventory/warehouses', mockAuthenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, name FROM warehouses WHERE status = \'active\' ORDER BY name');
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error in /api/inventory/warehouses:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/inventory/warehouses', mockAuthenticateToken, async (req, res) => {
+  try {
+    const {
+      name, code, address, city, state, country, postal_code,
+      contact_person, phone, email, manager_id, capacity, notes
+    } = req.body;
+    
+    const query = `
+      INSERT INTO warehouses (
+        name, code, address, city, state, country, postal_code,
+        contact_person, phone, email, manager_id, capacity, notes
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      RETURNING *
+    `;
+    
+    const values = [
+      name, code, address, city, state, country, postal_code,
+      contact_person, phone, email, manager_id, capacity, notes
+    ];
+    
+    const result = await pool.query(query, values);
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error in POST /api/inventory/warehouses:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/inventory/warehouses/:id', mockAuthenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const query = `
+      SELECT 
+        w.*,
+        COUNT(i.id) as item_count,
+        SUM(i.current_stock * i.cost_price) as total_inventory_value,
+        AVG(i.cost_price) as avg_item_cost,
+        e.name as manager_name,
+        e.email as manager_email,
+        e.phone as manager_phone
+      FROM warehouses w
+      LEFT JOIN inventory_items i ON w.id = i.location_id
+      LEFT JOIN employees e ON w.manager_id = e.id
+      WHERE w.id = $1
+      GROUP BY w.id, e.name, e.email, e.phone
+    `;
+    
+    const result = await pool.query(query, [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Warehouse not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error in GET /api/inventory/warehouses/:id:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/inventory/warehouses/:id', mockAuthenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      name, code, address, city, state, country, postal_code,
+      contact_person, phone, email, manager_id, capacity, used_capacity, status, notes
+    } = req.body;
+    
+    const query = `
+      UPDATE warehouses SET
+        name = $1, code = $2, address = $3, city = $4, state = $5, country = $6,
+        postal_code = $7, contact_person = $8, phone = $9, email = $10,
+        manager_id = $11, capacity = $12, used_capacity = $13, status = $14,
+        notes = $15, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $16
+      RETURNING *
+    `;
+    
+    const values = [
+      name, code, address, city, state, country, postal_code,
+      contact_person, phone, email, manager_id, capacity, used_capacity, status, notes, id
+    ];
+    
+    const result = await pool.query(query, values);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Warehouse not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error in PUT /api/inventory/warehouses/:id:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/inventory/warehouses/:id', mockAuthenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Check if warehouse has associated items
+    const itemsCheck = await pool.query('SELECT COUNT(*) as count FROM inventory_items WHERE location_id = $1', [id]);
+    
+    if (parseInt(itemsCheck.rows[0].count) > 0) {
+      return res.status(400).json({ error: 'Cannot delete warehouse with associated inventory items' });
+    }
+    
+    const result = await pool.query('DELETE FROM warehouses WHERE id = $1 RETURNING *', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Warehouse not found' });
+    }
+    
+    res.json({ message: 'Warehouse deleted successfully' });
+  } catch (err) {
+    console.error('Error in DELETE /api/inventory/warehouses/:id:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get warehouse cities for filter dropdown
+app.get('/api/inventory/warehouse-cities', mockAuthenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT DISTINCT city FROM warehouses WHERE city IS NOT NULL ORDER BY city');
+    res.json(result.rows.map(row => row.city));
+  } catch (err) {
+    console.error('Error in /api/inventory/warehouse-cities:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get warehouse countries for filter dropdown
+app.get('/api/inventory/warehouse-countries', mockAuthenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT DISTINCT country FROM warehouses WHERE country IS NOT NULL ORDER BY country');
+    res.json(result.rows.map(row => row.country));
+  } catch (err) {
+    console.error('Error in /api/inventory/warehouse-countries:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get employees for manager dropdown
+app.get('/api/inventory/employees', mockAuthenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, name, email, phone FROM employees WHERE status = \'active\' ORDER BY name');
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error in /api/inventory/employees:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// LOW STOCK ALERTS
+app.get('/api/inventory/low-stock-alerts', mockAuthenticateToken, async (req, res) => {
+  try {
+    res.json([]);
+  } catch (err) {
+    console.error('Error in /api/inventory/low-stock-alerts:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// =====================================================
+// OPERATIONS API ENDPOINTS
+// =====================================================
+
+// OPERATIONS DASHBOARD STATS
+app.get('/api/operations/stats', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        COUNT(DISTINCT e.id) as total_employees,
+        COUNT(DISTINCT CASE WHEN e.department = 'Operations' THEN e.id END) as operations_staff,
+        COUNT(DISTINCT CASE WHEN s.status = 'in_progress' THEN s.id END) as active_shifts,
+        COUNT(DISTINCT CASE WHEN i.status = 'open' THEN i.id END) as open_incidents,
+        COUNT(DISTINCT CASE WHEN i.status = 'investigating' THEN i.id END) as investigating_incidents,
+        COUNT(DISTINCT CASE WHEN i.severity = 'high' OR i.severity = 'critical' THEN i.id END) as high_priority_incidents
+      FROM employees e
+      FULL OUTER JOIN shifts s ON s.status = 'in_progress'
+      FULL OUTER JOIN incidents i ON i.status IN ('open', 'investigating')
+    `);
+    
+    const stats = result.rows[0] || {
+      total_employees: 0,
+      operations_staff: 0,
+      active_shifts: 0,
+      open_incidents: 0,
+      investigating_incidents: 0,
+      high_priority_incidents: 0
+    };
+    
+    res.json(stats);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// OPERATIONS RECENT ACTIVITIES
+app.get('/api/operations/recent-activities', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        'incident' as type,
+        i.title as title,
+        i.description as description,
+        i.reported_at as timestamp,
+        i.severity as priority,
+        i.status as status,
+        i.reported_by as user
+      FROM incidents i
+      WHERE i.reported_at >= CURRENT_DATE - INTERVAL '7 days'
+      UNION ALL
+      SELECT 
+        'shift' as type,
+        CONCAT(e.name, ' - ', s.location) as title,
+        CONCAT(s.start_time, ' to ', s.end_time) as description,
+        s.date as timestamp,
+        'normal' as priority,
+        s.status as status,
+        e.name as user
+      FROM shifts s
+      JOIN employees e ON s.employee_id = e.id
+      WHERE s.date >= CURRENT_DATE - INTERVAL '7 days'
+      ORDER BY timestamp DESC
+      LIMIT 10
+    `);
+    
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}); 
+
+// SUPPLIERS CRUD ENDPOINTS
+app.get('/api/inventory/suppliers', mockAuthenticateToken, async (req, res) => {
+  try {
+    const { search, status, country, city } = req.query;
+    
+    let query = `
+      SELECT 
+        s.*,
+        COUNT(i.id) as item_count,
+        SUM(i.current_stock * i.cost_price) as total_inventory_value
+      FROM suppliers s
+      LEFT JOIN inventory_items i ON s.id = i.supplier_id
+      WHERE 1=1
+    `;
+    
+    const params = [];
+    let paramCount = 0;
+    
+    if (search) {
+      paramCount++;
+      query += ` AND (s.name ILIKE $${paramCount} OR s.contact_person ILIKE $${paramCount} OR s.email ILIKE $${paramCount})`;
+      params.push(`%${search}%`);
+    }
+    
+    if (status) {
+      paramCount++;
+      query += ` AND s.status = $${paramCount}`;
+      params.push(status);
+    }
+    
+    if (country) {
+      paramCount++;
+      query += ` AND s.country ILIKE $${paramCount}`;
+      params.push(`%${country}%`);
+    }
+    
+    if (city) {
+      paramCount++;
+      query += ` AND s.city ILIKE $${paramCount}`;
+      params.push(`%${city}%`);
+    }
+    
+    query += ` GROUP BY s.id ORDER BY s.created_at DESC`;
+    
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error in /api/inventory/suppliers:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/inventory/suppliers', mockAuthenticateToken, async (req, res) => {
+  try {
+    const {
+      name, contact_person, email, phone, address, city, state, country,
+      postal_code, website, tax_id, payment_terms, credit_limit, notes
+    } = req.body;
+    
+    const query = `
+      INSERT INTO suppliers (
+        name, contact_person, email, phone, address, city, state, country,
+        postal_code, website, tax_id, payment_terms, credit_limit, notes
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      RETURNING *
+    `;
+    
+    const values = [
+      name, contact_person, email, phone, address, city, state, country,
+      postal_code, website, tax_id, payment_terms, credit_limit, notes
+    ];
+    
+    const result = await pool.query(query, values);
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error('Error in POST /api/inventory/suppliers:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/inventory/suppliers/:id', mockAuthenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const query = `
+      SELECT 
+        s.*,
+        COUNT(i.id) as item_count,
+        SUM(i.current_stock * i.cost_price) as total_inventory_value,
+        AVG(i.cost_price) as avg_item_cost
+      FROM suppliers s
+      LEFT JOIN inventory_items i ON s.id = i.supplier_id
+      WHERE s.id = $1
+      GROUP BY s.id
+    `;
+    
+    const result = await pool.query(query, [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Supplier not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error in GET /api/inventory/suppliers/:id:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/inventory/suppliers/:id', mockAuthenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      name, contact_person, email, phone, address, city, state, country,
+      postal_code, website, tax_id, payment_terms, credit_limit, current_balance, status, notes
+    } = req.body;
+    
+    const query = `
+      UPDATE suppliers SET
+        name = $1, contact_person = $2, email = $3, phone = $4, address = $5,
+        city = $6, state = $7, country = $8, postal_code = $9, website = $10,
+        tax_id = $11, payment_terms = $12, credit_limit = $13, current_balance = $14,
+        status = $15, notes = $16, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $17
+      RETURNING *
+    `;
+    
+    const values = [
+      name, contact_person, email, phone, address, city, state, country,
+      postal_code, website, tax_id, payment_terms, credit_limit, current_balance, status, notes, id
+    ];
+    
+    const result = await pool.query(query, values);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Supplier not found' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error in PUT /api/inventory/suppliers/:id:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/inventory/suppliers/:id', mockAuthenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Check if supplier has associated items
+    const itemsCheck = await pool.query('SELECT COUNT(*) as count FROM inventory_items WHERE supplier_id = $1', [id]);
+    
+    if (parseInt(itemsCheck.rows[0].count) > 0) {
+      return res.status(400).json({ error: 'Cannot delete supplier with associated inventory items' });
+    }
+    
+    const result = await pool.query('DELETE FROM suppliers WHERE id = $1 RETURNING *', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Supplier not found' });
+    }
+    
+    res.json({ message: 'Supplier deleted successfully' });
+  } catch (err) {
+    console.error('Error in DELETE /api/inventory/suppliers/:id:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get countries for filter dropdown
+app.get('/api/inventory/countries', mockAuthenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT DISTINCT country FROM suppliers WHERE country IS NOT NULL ORDER BY country');
+    res.json(result.rows.map(row => row.country));
+  } catch (err) {
+    console.error('Error in /api/inventory/countries:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get cities for filter dropdown
+app.get('/api/inventory/cities', mockAuthenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT DISTINCT city FROM suppliers WHERE city IS NOT NULL ORDER BY city');
+    res.json(result.rows.map(row => row.city));
+  } catch (err) {
+    console.error('Error in /api/inventory/cities:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
