@@ -39,7 +39,6 @@ import {
   Wrench,
   Cog,
   Building,
-  Location,
   PackageCheck
 } from 'lucide-react';
 
@@ -62,7 +61,7 @@ const WarehouseManagement: React.FC = () => {
       manager: 'Jean Pierre Uwimana',
       capacity: '5,000 sqm',
       utilization: '85%',
-      totalItems: 1,247,
+      totalItems: 1247,
       totalValue: 'RWF 18.5M',
       status: 'Active',
       lastUpdated: '2024-01-15'
