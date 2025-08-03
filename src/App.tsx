@@ -87,6 +87,10 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         return <Navigate to="/it" replace />;
       case 'security':
         return <Navigate to="/security-guard-management" replace />;
+      case 'compliance':
+        return <Navigate to="/compliance" replace />;
+      case 'inventory':
+        return <Navigate to="/inventory" replace />;
       default:
         return <Navigate to="/admin" replace />;
     }

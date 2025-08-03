@@ -13,11 +13,10 @@ const InventoryDashboard: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<InventoryOverview />} />
-      <Route path="/stockmanagement" element={<StockManagement />} />
-      <Route path="/assettracking" element={<AssetTracking />} />
+      <Route path="/stock" element={<StockManagement />} />
+      <Route path="/assets" element={<AssetTracking />} />
       <Route path="/procurement" element={<Procurement />} />
       <Route path="/maintenance" element={<Maintenance />} />
-      <Route path="/reports" element={<Reports />} />
     </Routes>
   );
 };
