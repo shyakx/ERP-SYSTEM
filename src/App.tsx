@@ -93,6 +93,8 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         return <Navigate to="/inventory" replace />;
       case 'client':
         return <Navigate to="/client-management" replace />;
+      case 'sales':
+        return <Navigate to="/sales-marketing" replace />;
       default:
         return <Navigate to="/admin" replace />;
     }
