@@ -100,6 +100,17 @@ const mockUsers: User[] = [
     isActive: true,
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z'
+  },
+  {
+    id: '10',
+    email: 'cx@dicel.co.rw',
+    firstName: 'Customer',
+    lastName: 'Experience',
+    role: 'cx',
+    department: 'customer-experience',
+    isActive: true,
+    createdAt: '2024-01-01T00:00:00Z',
+    updatedAt: '2024-01-01T00:00:00Z'
   }
 ];
 
