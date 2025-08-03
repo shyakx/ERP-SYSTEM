@@ -8,6 +8,9 @@ import AssetTracking from './pages/AssetTracking';
 import Procurement from './pages/Procurement';
 import Maintenance from './pages/Maintenance';
 import Reports from './pages/Reports';
+import WarehouseManagement from './pages/WarehouseManagement';
+import QualityControl from './pages/QualityControl';
+import InventoryAnalytics from './pages/InventoryAnalytics';
 
 const InventoryDashboard: React.FC = () => {
   return (
@@ -17,6 +20,10 @@ const InventoryDashboard: React.FC = () => {
       <Route path="/assets" element={<AssetTracking />} />
       <Route path="/procurement" element={<Procurement />} />
       <Route path="/maintenance" element={<Maintenance />} />
+      <Route path="/reports" element={<Reports />} />
+      <Route path="/warehouse" element={<WarehouseManagement />} />
+      <Route path="/quality" element={<QualityControl />} />
+      <Route path="/analytics" element={<InventoryAnalytics />} />
     </Routes>
   );
 };

@@ -334,7 +334,11 @@ function AppContent() {
                 { name: 'Stock Management', path: '/inventory/stock', icon: '🏪' },
                 { name: 'Asset Tracking', path: '/inventory/assets', icon: '📍' },
                 { name: 'Procurement', path: '/inventory/procurement', icon: '🛒' },
-                { name: 'Maintenance', path: '/inventory/maintenance', icon: '🔧' }
+                { name: 'Maintenance', path: '/inventory/maintenance', icon: '🔧' },
+                { name: 'Reports', path: '/inventory/reports', icon: '📊' },
+                { name: 'Warehouse Management', path: '/inventory/warehouse', icon: '🏢' },
+                { name: 'Quality Control', path: '/inventory/quality', icon: '🔍' },
+                { name: 'Inventory Analytics', path: '/inventory/analytics', icon: '📈' }
               ]}
             >
               <InventoryDashboard />

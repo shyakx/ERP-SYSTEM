@@ -37,7 +37,6 @@ import {
   DollarSign,
   FileText,
   Wrench,
-  Tool,
   Cog
 } from 'lucide-react';
 
