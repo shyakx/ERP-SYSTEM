@@ -91,6 +91,8 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         return <Navigate to="/compliance" replace />;
       case 'inventory':
         return <Navigate to="/inventory" replace />;
+      case 'client':
+        return <Navigate to="/client-management" replace />;
       default:
         return <Navigate to="/admin" replace />;
     }
@@ -346,14 +348,12 @@ function AppContent() {
           </ProtectedRoute>
         } 
       />
-
-      {/* Client Management Routes */}
-      <Route 
-        path="/client-management/*" 
+      <Route
+        path="/client-management/*"
         element={
           <ProtectedRoute>
             <DepartmentLayout
-              title="Client Dashboard"
+              title="Client Management Dashboard"
               colorScheme={{
                 primary: 'bg-indigo-500',
                 secondary: 'bg-indigo-600',
@@ -363,17 +363,18 @@ function AppContent() {
                 dark: 'bg-indigo-900'
               }}
               sidebarItems={[
-                { name: 'Client Dashboard', path: '/client-management', icon: '👥' },
-                { name: 'Client Directory', path: '/client-management/directory', icon: '📇' },
+                { name: 'Client Overview', path: '/client-management', icon: '👥' },
+                { name: 'Client Database', path: '/client-management/database', icon: '📊' },
                 { name: 'Contract Management', path: '/client-management/contracts', icon: '📄' },
-                { name: 'Client Communications', path: '/client-management/communications', icon: '💬' },
-                { name: 'Service Requests', path: '/client-management/requests', icon: '🎫' }
+                { name: 'Support', path: '/client-management/support', icon: '🎧' },
+                { name: 'Billing', path: '/client-management/billing', icon: '💳' },
+                { name: 'Analytics', path: '/client-management/analytics', icon: '📈' }
               ]}
             >
               <ClientManagementDashboard />
             </DepartmentLayout>
           </ProtectedRoute>
-        } 
+        }
       />
 
       {/* Sales & Marketing Routes */}
