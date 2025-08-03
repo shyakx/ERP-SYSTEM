@@ -13,8 +13,8 @@ const ClientmanagementDashboard: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<ClientOverview />} />
-      <Route path="/clientdatabase" element={<ClientDatabase />} />
-      <Route path="/contractmanagement" element={<ContractManagement />} />
+      <Route path="/database" element={<ClientDatabase />} />
+      <Route path="/contracts" element={<ContractManagement />} />
       <Route path="/billing" element={<Billing />} />
       <Route path="/support" element={<Support />} />
       <Route path="/analytics" element={<Analytics />} />
