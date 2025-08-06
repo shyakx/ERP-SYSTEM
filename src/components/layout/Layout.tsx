@@ -146,7 +146,10 @@ const getSidebarItems = (userRole: string): SidebarItem[] => {
         { name: 'Threat Analysis', icon: Eye, path: '/risk/threats', color: 'text-green-600' },
         { name: 'Risk Reports', icon: BarChart3, path: '/risk/reports', color: 'text-purple-600' },
         { name: 'Mitigation Plans', icon: Shield, path: '/risk/mitigation', color: 'text-orange-600' },
-        { name: 'Risk Analytics', icon: Activity, path: '/risk/analytics', color: 'text-indigo-600' },
+        { name: 'Alerts', icon: AlertTriangle, path: '/risk/alerts', color: 'text-red-600' },
+        { name: 'Reporting', icon: FileText, path: '/risk/reporting', color: 'text-indigo-600' },
+        { name: 'Mitigation', icon: Shield, path: '/risk/mitigation-plans', color: 'text-yellow-600' },
+        { name: 'Monitoring', icon: Eye, path: '/risk/monitoring', color: 'text-cyan-600' },
       ];
     
     case 'recovery':

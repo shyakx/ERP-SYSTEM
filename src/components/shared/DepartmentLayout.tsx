@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import AIChatbot from './AIChatbot';
 
 interface DepartmentLayoutProps {
   children: React.ReactNode;
@@ -193,6 +194,55 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
                   );
                 })}
               </div>
+
+              {/* Internal Messaging Link - Global Feature */}
+              <div className="mt-6 pt-4 border-t border-blue-400/30">
+                <button
+                  onClick={() => handleNavigation('/messages')}
+                  onMouseEnter={() => setHoveredItem('/messages')}
+                  onMouseLeave={() => setHoveredItem(null)}
+                  className={`w-full text-left px-3 py-2.5 rounded-lg transition-all duration-300 transform hover:scale-105 relative overflow-hidden group text-sm ${
+                    activeItem === '/messages'
+                      ? 'bg-green-400/20 text-white shadow-lg border border-green-400/50'
+                      : 'text-blue-200 hover:bg-green-400/10 hover:shadow-md'
+                  }`}
+                >
+                  {/* Animated Background */}
+                  <div className={`absolute inset-0 transition-all duration-300 ${
+                    activeItem === '/messages'
+                      ? 'bg-gradient-to-r from-green-400/30 to-green-500/30 opacity-100' 
+                      : hoveredItem === '/messages'
+                        ? 'bg-green-400/10 opacity-50' 
+                        : 'opacity-0'
+                  }`}></div>
+                  
+                  {/* Content */}
+                  <div className="relative z-10 flex items-center space-x-3">
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                      activeItem === '/messages'
+                        ? 'bg-green-400/20 text-white' 
+                        : 'bg-green-400/10 text-green-200 group-hover:bg-green-400/20'
+                    }`}>
+                      <span className="text-sm transform transition-transform duration-300 group-hover:scale-110">
+                        💬
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <span className="font-medium text-sm">Internal Messaging</span>
+                    </div>
+                    
+                    {/* Active Indicator */}
+                    {activeItem === '/messages' && (
+                      <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></div>
+                    )}
+                  </div>
+                  
+                  {/* Hover Effect */}
+                  <div className={`absolute inset-0 rounded-lg transition-all duration-300 ${
+                    hoveredItem === '/messages' && activeItem !== '/messages' ? 'bg-gradient-to-r from-green-400/10 to-green-500/10 opacity-50' : ''
+                  }`}></div>
+                </button>
+              </div>
             </nav>
 
             {/* User Profile and Logout - Professional Theme */}
@@ -232,33 +282,55 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
           </svg>
         </button>
 
-        {/* Desktop Sidebar Toggle - Professional */}
-        <button
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="fixed top-4 right-4 z-50 hidden lg:block p-2 rounded-lg bg-[#002050] backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
-          style={{ zIndex: 10000 }}
-        >
-          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-
         {/* Main Content - Adjusted Margin */}
         <div className={`flex-1 transition-all duration-500 ${isSidebarOpen ? 'lg:ml-64' : 'lg:ml-0'} min-w-0`}>
           <div className="p-3 sm:p-4">
             {/* Enhanced Page Header - Reduced Size */}
             <div className="mb-6">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className={`w-10 h-10 ${colorScheme.gradient} rounded-xl flex items-center justify-center shadow-lg animate-bounce-in`}>
-                  <span className="text-white font-bold text-lg">
-                    {title.split(' ')[0].charAt(0)}
-                  </span>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-10 h-10 ${colorScheme.gradient} rounded-xl flex items-center justify-center shadow-lg animate-bounce-in`}>
+                    <span className="text-white font-bold text-lg">
+                      {title.split(' ')[0].charAt(0)}
+                    </span>
+                  </div>
+                  <div>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 animate-fade-in">
+                      {title}
+                    </h1>
+                    <p className="text-sm text-gray-600 mt-1">Welcome back to your dashboard</p>
+                  </div>
                 </div>
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 animate-fade-in">
-                    {title}
-                  </h1>
-                  <p className="text-sm text-gray-600 mt-1">Welcome back to your dashboard</p>
+                
+                {/* Upper Bar with Notifications and Internal Messaging */}
+                <div className="flex items-center space-x-3">
+                  {/* Internal Messaging */}
+                  <button
+                    onClick={() => handleNavigation('/messages')}
+                    className="relative p-2.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition-all duration-300 group border border-blue-200/50 hover:border-blue-300"
+                    title="Internal Messaging"
+                  >
+                    <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse border border-white"></div>
+                  </button>
+                  
+                  {/* Notifications */}
+                  <button className="relative p-2.5 text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-xl transition-all duration-300 group border border-orange-200/50 hover:border-orange-300">
+                    <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.19 4H20c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4.19C3.45 20 2.8 19.55 2.61 18.85L1.39 13.15C1.2 12.45 1.85 12 2.61 12H4v-2c0-1.1.9-2 2-2h2c1.1 0 2 .9 2 2v2h2c1.1 0 2 .9 2 2v2h2c1.1 0 2 .9 2 2v2h2c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2H4.19z" />
+                    </svg>
+                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse border border-white"></div>
+                  </button>
+                  
+                  {/* Settings */}
+                  <button className="p-2.5 text-gray-600 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all duration-300 group border border-gray-200/50 hover:border-gray-300">
+                    <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </button>
                 </div>
               </div>
               <div className={`w-16 h-0.5 ${colorScheme.primary} rounded-full animate-slide-in`}></div>
@@ -268,6 +340,11 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
             <div className="animate-fade-in-up">
               {children}
             </div>
+          </div>
+
+          {/* Floating Action Button for Internal Messaging */}
+          <div className="fixed bottom-6 right-6 z-50">
+            <AIChatbot />
           </div>
         </div>
       </div>

@@ -6,7 +6,7 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'admin' | 'hr' | 'finance' | 'it' | 'security' | 'compliance' | 'inventory' | 'client' | 'sales' | 'cx' | 'employee';
+  role: 'admin' | 'hr' | 'finance' | 'it' | 'security' | 'compliance' | 'inventory' | 'client' | 'sales' | 'cx' | 'risk' | 'recovery' | 'employee';
   department?: string;
   phone?: string;
   isActive: boolean;

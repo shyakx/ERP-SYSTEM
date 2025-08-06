@@ -48,6 +48,9 @@ import RiskDashboard from './components/departments/risk/RiskDashboard';
 import RecoveryDashboard from './components/departments/recovery/RecoveryDashboard';
 import ITDashboard from './components/departments/it/ItDashboard';
 
+// Import Internal Messaging
+import InternalMessaging from './components/shared/InternalMessaging';
+
 import DepartmentLayout from './components/shared/DepartmentLayout';
 import LoaderSpinner from './components/common/LoaderSpinner';
 
@@ -97,6 +100,10 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         return <Navigate to="/sales-marketing" replace />;
       case 'cx':
         return <Navigate to="/customer-experience" replace />;
+      case 'risk':
+        return <Navigate to="/risk" replace />;
+      case 'recovery':
+        return <Navigate to="/recovery" replace />;
       default:
         return <Navigate to="/admin" replace />;
     }
@@ -489,7 +496,11 @@ function AppContent() {
                 { name: 'Risk Assessment', path: '/risk/assessment', icon: '🔍' },
                 { name: 'Threat Analysis', path: '/risk/threats', icon: '🔍' },
                 { name: 'Risk Reports', path: '/risk/reports', icon: '📊' },
-                { name: 'Mitigation Plans', path: '/risk/mitigation', icon: '🛠️' }
+                { name: 'Mitigation Plans', path: '/risk/mitigation', icon: '🛠️' },
+                { name: 'Alerts', path: '/risk/alerts', icon: '🚨' },
+                { name: 'Reporting', path: '/risk/reporting', icon: '📋' },
+                { name: 'Mitigation', path: '/risk/mitigation-plans', icon: '🛡️' },
+                { name: 'Monitoring', path: '/risk/monitoring', icon: '👁️' }
               ]}
             >
               <RiskDashboard />
@@ -552,6 +563,16 @@ function AppContent() {
             >
               <ITDashboard />
             </DepartmentLayout>
+          </ProtectedRoute>
+        } 
+      />
+
+      {/* Internal Messaging Route */}
+      <Route 
+        path="/messages" 
+        element={
+          <ProtectedRoute>
+            <InternalMessaging />
           </ProtectedRoute>
         } 
       />
