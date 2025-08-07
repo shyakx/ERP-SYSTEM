@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import AIChatbot from './AIChatbot';
+import TimeClock from './TimeClock';
+import PersonalLeave from './PersonalLeave';
+import InternalMessaging from './InternalMessaging';
+import { MessageSquare, Minimize2, Maximize2, X, Plus } from 'lucide-react';
 
 interface DepartmentLayoutProps {
   children: React.ReactNode;
@@ -30,6 +34,12 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
   const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Changed to true for desktop
   const [activeItem, setActiveItem] = useState('/');
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  const [isMessagingOpen, setIsMessagingOpen] = useState(false);
+  const [isTimeClockOpen, setIsTimeClockOpen] = useState(false);
+  const [isPersonalLeaveOpen, setIsPersonalLeaveOpen] = useState(false);
+  const [messagingTabs, setMessagingTabs] = useState<Array<{id: string, title: string, isActive: boolean}>>([]);
+  const [activeMessagingTab, setActiveMessagingTab] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
@@ -46,6 +56,59 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
   const handleNavigation = (path: string) => {
     navigate(path);
     setActiveItem(path);
+  };
+
+  const openMessagingTab = () => {
+    const newTabId = `messaging-${Date.now()}`;
+    const newTab = {
+      id: newTabId,
+      title: 'Team Chat',
+      isActive: true
+    };
+    
+    setMessagingTabs(prev => prev.map(tab => ({ ...tab, isActive: false })).concat(newTab));
+    setActiveMessagingTab(newTabId);
+    setIsMessagingOpen(true);
+  };
+
+  const closeMessagingTab = (tabId: string) => {
+    setMessagingTabs(prev => {
+      const filtered = prev.filter(tab => tab.id !== tabId);
+      if (filtered.length === 0) {
+        setIsMessagingOpen(false);
+        setActiveMessagingTab(null);
+      } else {
+        const lastTab = filtered[filtered.length - 1];
+        setActiveMessagingTab(lastTab.id);
+        setMessagingTabs(filtered.map(tab => ({ ...tab, isActive: tab.id === lastTab.id })));
+      }
+      return filtered;
+    });
+  };
+
+  const closeAllMessagingTabs = () => {
+    setMessagingTabs([]);
+    setActiveMessagingTab(null);
+    setIsMessagingOpen(false);
+  };
+
+  const switchMessagingTab = (tabId: string) => {
+    setMessagingTabs(prev => prev.map(tab => ({ ...tab, isActive: tab.id === tabId })));
+    setActiveMessagingTab(tabId);
+  };
+
+  const openMessagingInNewWindow = () => {
+    // Create a new window-like experience
+    const newTabId = `messaging-${Date.now()}`;
+    const newTab = {
+      id: newTabId,
+      title: 'Team Chat',
+      isActive: true
+    };
+    
+    setMessagingTabs(prev => prev.map(tab => ({ ...tab, isActive: false })).concat(newTab));
+    setActiveMessagingTab(newTabId);
+    setIsMessagingOpen(true);
   };
 
   const getDefaultIcon = (name: string) => {
@@ -353,11 +416,19 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className="fixed top-4 left-4 z-50 lg:hidden p-2 rounded-lg bg-[#002050] backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110"
           style={{ zIndex: 10000 }}
+          title={isSidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
         >
           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
+
+        {/* Desktop Sidebar Toggle Indicator */}
+        <div className="hidden lg:block fixed top-4 left-4 z-40">
+          <div className={`w-2 h-2 rounded-full transition-all duration-300 ${
+            isSidebarOpen ? 'bg-blue-500' : 'bg-gray-400'
+          }`}></div>
+        </div>
 
         {/* Main Content - Adjusted Margin */}
         <div className={`flex-1 transition-all duration-500 ${isSidebarOpen ? 'lg:ml-64' : 'lg:ml-0'} min-w-0`}>
@@ -380,17 +451,59 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
                 </div>
                 
                 {/* Upper Bar with Notifications and Internal Messaging */}
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-3 relative" style={{ zIndex: 20 }}>
+                  {/* Sidebar Toggle for Desktop */}
+                  <button
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    className="hidden lg:flex p-2.5 text-gray-600 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all duration-300 group border border-gray-200/50 hover:border-gray-300"
+                    title={isSidebarOpen ? "Minimize Sidebar" : "Maximize Sidebar"}
+                  >
+                    <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                  </button>
+
+                  {/* Time Clock */}
+                  <button
+                    onClick={() => setIsTimeClockOpen(!isTimeClockOpen)}
+                    className="relative p-2.5 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-xl transition-all duration-300 group border border-green-200/50 hover:border-green-300"
+                    title="Time Clock"
+                  >
+                    <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse border border-white"></div>
+                  </button>
+
+                  {/* Personal Leave */}
+                  <button
+                    onClick={() => setIsPersonalLeaveOpen(!isPersonalLeaveOpen)}
+                    className="relative p-2.5 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-xl transition-all duration-300 group border border-purple-200/50 hover:border-purple-300"
+                    title="My Leave"
+                  >
+                    <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-purple-500 rounded-full animate-pulse border border-white"></div>
+                  </button>
+
                   {/* Internal Messaging */}
                   <button
-                    onClick={() => handleNavigation('/messages')}
-                    className="relative p-2.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition-all duration-300 group border border-blue-200/50 hover:border-blue-300"
-                    title="Internal Messaging"
+                    onClick={openMessagingInNewWindow}
+                    className={`relative p-2.5 rounded-xl transition-all duration-300 group border z-10 ${
+                      isMessagingOpen 
+                        ? 'text-blue-700 bg-blue-100 border-blue-300 hover:bg-blue-200' 
+                        : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200/50 hover:border-blue-300'
+                    }`}
+                    title={`Internal Messaging ${isMessagingOpen ? '(Open)' : '(Closed)'}`}
+                    style={{ zIndex: 10 }}
                   >
                     <svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
-                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse border border-white"></div>
+                    <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full animate-pulse border border-white ${
+                      isMessagingOpen ? 'bg-blue-500' : 'bg-green-500'
+                    }`}></div>
                   </button>
                   
                   {/* Notifications */}
@@ -423,6 +536,109 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
           <div className="fixed bottom-6 right-6 z-50">
             <AIChatbot />
           </div>
+
+          {/* Floating Time Clock Panel */}
+          {isTimeClockOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+              <div className="w-full mx-4 max-h-[90vh] overflow-y-auto transition-all duration-300" style={{
+                maxWidth: isSidebarOpen ? 'calc(100vw - 20rem)' : 'calc(100vw - 2rem)',
+                marginLeft: isSidebarOpen ? '1rem' : '1rem',
+                marginRight: '1rem',
+                transform: isSidebarOpen ? 'translateX(8rem)' : 'translateX(0)'
+              }}>
+                <div className="relative">
+                  {/* Close button positioned absolutely */}
+                  <button
+                    onClick={() => setIsTimeClockOpen(false)}
+                    className="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-600 transition-colors duration-200 bg-white rounded-full p-2 shadow-lg hover:shadow-xl"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                  
+                  {/* Let TimeClock render with its own styling */}
+                  <TimeClock />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Floating Personal Leave Panel */}
+          {isPersonalLeaveOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+              <div className="bg-white rounded-xl shadow-2xl w-full mx-4 max-h-[90vh] overflow-y-auto transition-all duration-300" style={{
+                maxWidth: isSidebarOpen ? 'calc(100vw - 20rem)' : 'calc(100vw - 2rem)',
+                marginLeft: isSidebarOpen ? '1rem' : '1rem',
+                marginRight: '1rem',
+                transform: isSidebarOpen ? 'translateX(8rem)' : 'translateX(0)'
+              }}>
+                <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-gray-900">My Leave</h2>
+                  <button
+                    onClick={() => setIsPersonalLeaveOpen(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="p-4">
+                  <PersonalLeave />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Floating Internal Messaging Panel */}
+          {isMessagingOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+              <div className="w-full h-full mx-4 transition-all duration-300" style={{
+                maxWidth: isSidebarOpen ? 'calc(100vw - 20rem)' : 'calc(100vw - 2rem)',
+                marginLeft: isSidebarOpen ? '1rem' : '1rem',
+                marginRight: '1rem',
+                transform: isSidebarOpen ? 'translateX(8rem)' : 'translateX(0)'
+              }}>
+                <div className="relative h-full bg-white rounded-2xl shadow-2xl overflow-hidden">
+                  {/* Standalone Window Header - Always Visible */}
+                  <div className="absolute top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 p-4 shadow-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                          <MessageSquare className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                          <h2 className="text-lg font-bold text-white">Team Chat</h2>
+                          <p className="text-blue-100 text-sm">New Window</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300" title="Minimize">
+                          <Minimize2 className="w-4 h-4" />
+                        </button>
+                        <button className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300" title="Maximize">
+                          <Maximize2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={closeAllMessagingTabs}
+                          className="p-2 text-white/80 hover:text-red-300 hover:bg-red-500/20 rounded-lg transition-all duration-300"
+                          title="Close Window"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Content Area with Top Padding for Header */}
+                  <div className="h-full pt-20">
+                    <InternalMessaging />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

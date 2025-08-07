@@ -16,6 +16,8 @@ const SalesMarketingDashboard = lazy(() => import("./components/departments/sale
 const RiskDashboard = lazy(() => import("./components/departments/risk/RiskDashboard"));
 const RecoveryDashboard = lazy(() => import("./components/departments/recovery/RecoveryDashboard"));
 const InternalMessaging = lazy(() => import("./components/shared/InternalMessaging"));
+const TimeClock = lazy(() => import("./components/shared/TimeClock"));
+const PersonalLeave = lazy(() => import("./components/shared/PersonalLeave"));
 
 // Loading component
 const PageLoader = () => (
@@ -185,6 +187,10 @@ const App: React.FC = () => {
 
             {/* Internal Messaging */}
             <Route path="/messages" element={<ProtectedRoute><InternalMessaging /></ProtectedRoute>} />
+
+            {/* Global User Features */}
+            <Route path="/timeclock" element={<ProtectedRoute><TimeClock /></ProtectedRoute>} />
+            <Route path="/myleave" element={<ProtectedRoute><PersonalLeave /></ProtectedRoute>} />
             
             {/* Default redirect */}
             <Route path="/" element={<Navigate to="/login" replace />} />
