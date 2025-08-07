@@ -50,22 +50,99 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
 
   const getDefaultIcon = (name: string) => {
     const iconMap: { [key: string]: string } = {
-      'Dashboard': '📊',
-      'Reports': '📈',
-      'Management': '⚙️',
+      // Dashboard and Overview
+      'Dashboard': '🏠',
+      'Overview': '📊',
+      
+      // HR Icons
+      'Employee': '👥',
+      'Recruitment': '🎯',
+      'Training': '📚',
+      'Payroll': '💰',
+      'Performance': '📊',
+      'Leave': '📅',
+      'Attendance': '⏰',
+      'Benefits': '🎁',
+      'Compliance': '✅',
+      
+      // Finance Icons
       'Payable': '💸',
       'Receivable': '💵',
+      'Tax': '🧾',
+      'Budget': '📋',
       'Cash': '💰',
       'Expenses': '📊',
-      'Tax': '🧾',
       'Planning': '📋',
-      'Audit': '🔍',
-      'Budget': '📋',
-      'Financial': '📊'
+      'Financial': '📊',
+      
+      // IT Icons
+      'Systems': '💻',
+      'IT Support': '🛠️',
+      'Network': '🌐',
+      'IT Security': '🔒',
+      'Maintenance': '🔧',
+      'Backup': '💾',
+      'Software': '📱',
+      
+      // Security Icons
+      'Guard': '👥',
+      'Assignment': '👥',
+      'Patrols': '🚶',
+      'Security Incidents': '🚨',
+      'Security Equipment': '🛡️',
+      
+      // Operations Icons
+      'Stock': '📦',
+      'Asset Management': '🏢',
+      'Procurement': '🛒',
+      'Warehouse': '🏭',
+      'Quality Control': '✅',
+      'Inventory': '📦',
+      
+      // Sales & Marketing Icons
+      'Leads': '🎯',
+      'Pipeline': '📈',
+      'Campaigns': '📢',
+      'Opportunities': '💼',
+      'Quotes': '📋',
+      'Sales Analytics': '📊',
+      
+      // Customer Experience Icons
+      'Customer Support': '🛠️',
+      'Feedback': '💬',
+      'Surveys': '📝',
+      'Tickets': '🎫',
+      'Satisfaction': '😊',
+      'Communication': '📞',
+      'Customer': '👤',
+      
+      // Risk Management Icons
+      'Assessment': '🔍',
+      'Threats': '⚠️',
+      'Mitigation': '🛡️',
+      'Alerts': '🚨',
+      'Monitoring': '👁️',
+      'Risk Incidents': '🚨',
+      'Risk': '⚠️',
+      
+      // Recovery Icons
+      'Investigation': '🔍',
+      'Case Management': '📁',
+      'Documentation': '📄',
+      'Legal': '⚖️',
+      'Asset Recovery': '💰',
+      'Forensics': '🔬',
+      'Recovery': '🔄',
+      
+      // Common Icons
+      'Reports': '📈',
+      'Settings': '⚙️',
+      'Management': '⚙️',
+      'Analytics': '📊'
     };
 
     for (const [key, icon] of Object.entries(iconMap)) {
-      if (name.includes(key)) {
+      if (name.toLowerCase().includes(key.toLowerCase())) {
         return icon;
       }
     }

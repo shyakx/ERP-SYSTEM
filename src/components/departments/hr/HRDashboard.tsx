@@ -1,11 +1,24 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
+import DepartmentLayout from '../../shared/DepartmentLayout';
 import AnimatedStatsCard from '../../shared/AnimatedStatsCard';
 import AnimatedCard from '../../shared/AnimatedCard';
 import { AnimatedButton } from '../../shared/AnimatedCard';
 import { getColorScheme } from '../../../utils/colorSchemes';
 
+// HR Department Pages
+import EmployeeManagement from './pages/EmployeeManagement';
+import Recruitment from './pages/Recruitment';
+import Training from './pages/Training';
+import Payroll from './pages/Payroll';
+import Performance from './pages/Performance';
+import LeaveManagement from './pages/LeaveManagement';
+import Attendance from './pages/Attendance';
+import HROverview from './pages/HROverview';
+
 const HRDashboard: React.FC = () => {
   const colorScheme = getColorScheme('hr');
+  const location = useLocation();
 
   const statsData = [
     {
@@ -91,7 +104,23 @@ const HRDashboard: React.FC = () => {
     }
   ];
 
-  return (
+  const sidebarItems = [
+    { name: 'Dashboard', path: '/hr', icon: '🏠' },
+    { name: 'Employee Management', path: '/hr/employees', icon: '👥' },
+    { name: 'Recruitment', path: '/hr/recruitment', icon: '🎯' },
+    { name: 'Training', path: '/hr/training', icon: '📚' },
+    { name: 'Payroll', path: '/hr/payroll', icon: '💰' },
+    { name: 'Performance', path: '/hr/performance', icon: '📊' },
+    { name: 'Leave Management', path: '/hr/leave', icon: '📅' },
+    { name: 'Attendance', path: '/hr/attendance', icon: '⏰' },
+    { name: 'Benefits', path: '/hr/benefits', icon: '🎁' },
+    { name: 'Compliance', path: '/hr/compliance', icon: '✅' },
+    { name: 'Reports', path: '/hr/reports', icon: '📈' },
+    { name: 'Settings', path: '/hr/settings', icon: '⚙️' }
+  ];
+
+  // Main Dashboard Content
+  const DashboardContent = () => (
     <div className="space-y-4">
       {/* Animated Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -101,15 +130,22 @@ const HRDashboard: React.FC = () => {
             className="bg-white rounded-xl p-4 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300"
             style={{ animationDelay: `${stat.delay}ms` }}
           >
-            <AnimatedStatsCard
-              title={stat.title}
-              value={stat.value}
-              subtitle={stat.subtitle}
-              color={stat.color}
-              icon={stat.icon}
-              trend={stat.trend}
-              delay={stat.delay}
-            />
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                <p className="text-xs text-gray-500">{stat.subtitle}</p>
+              </div>
+              <div className="text-2xl">{stat.icon}</div>
+            </div>
+            {stat.trend && (
+              <div className={`flex items-center mt-2 text-xs ${
+                stat.trend.isPositive ? 'text-green-600' : 'text-red-600'
+              }`}>
+                <span>{stat.trend.isPositive ? '↗' : '↘'}</span>
+                <span className="ml-1">{stat.trend.value}</span>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -118,29 +154,24 @@ const HRDashboard: React.FC = () => {
       <AnimatedCard
         title="Recent Employees"
         subtitle="Latest team members"
-        color="blue"
-        icon="👥"
-        delay={400}
+        className="bg-white rounded-xl shadow-lg border border-gray-100"
       >
         <div className="space-y-3">
           {recentEmployees.map((employee, index) => (
             <div
               key={index}
-              className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg hover:shadow-md transition-all duration-300"
-              style={{ animationDelay: `${500 + index * 100}ms` }}
+              className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200"
             >
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
-                  <span className="text-white font-semibold text-sm">{employee.avatar}</span>
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <span className="text-blue-600 font-semibold text-sm">{employee.avatar}</span>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm text-gray-900">{employee.name}</h3>
-                  <p className="text-xs text-gray-600">{employee.position} - {employee.location}</p>
+                  <p className="font-medium text-gray-900">{employee.name}</p>
+                  <p className="text-sm text-gray-500">{employee.position} • {employee.location}</p>
                 </div>
               </div>
-              <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">
-                {employee.status}
-              </span>
+              <span className="text-green-600 text-sm font-medium">{employee.status}</span>
             </div>
           ))}
         </div>
@@ -153,55 +184,62 @@ const HRDashboard: React.FC = () => {
             key={index}
             title={action.title}
             subtitle={action.description}
-            color={action.color as any}
             icon={action.icon}
-            delay={600 + index * 100}
-            onClick={() => console.log(`Clicked: ${action.title}`)}
+            color={action.color}
+            className="bg-white rounded-xl shadow-lg border border-gray-100"
           >
-            <div className="text-center">
-              <AnimatedButton
-                color={action.color as any}
-                size="md"
-                onClick={() => console.log(`Action: ${action.title}`)}
-              >
-                {action.title}
-              </AnimatedButton>
-            </div>
+            <AnimatedButton
+              onClick={() => {}}
+              color={action.color}
+              className="w-full"
+            >
+              {action.title}
+            </AnimatedButton>
           </AnimatedCard>
         ))}
       </div>
-
-      {/* Department Overview */}
-      <AnimatedCard
-        title="Department Overview"
-        subtitle="HR Department Statistics"
-        color="indigo"
-        icon="📈"
-        delay={900}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-xs font-medium text-gray-600">Employee Satisfaction</span>
-              <span className="text-xs font-semibold text-gray-900">92%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-1.5">
-              <div className="bg-green-500 h-1.5 rounded-full transition-all duration-1000" style={{ width: '92%' }}></div>
-            </div>
-          </div>
-          
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-xs font-medium text-gray-600">Training Completion</span>
-              <span className="text-xs font-semibold text-gray-900">87%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-1.5">
-              <div className="bg-blue-500 h-1.5 rounded-full transition-all duration-1000" style={{ width: '87%' }}></div>
-            </div>
-          </div>
-        </div>
-      </AnimatedCard>
     </div>
+  );
+
+  // Function to render content based on current path
+  const renderContent = () => {
+    const path = location.pathname;
+    
+    switch (path) {
+      case '/hr':
+        return <DashboardContent />;
+      case '/hr/employees':
+        return <EmployeeManagement />;
+      case '/hr/recruitment':
+        return <Recruitment />;
+      case '/hr/training':
+        return <Training />;
+      case '/hr/payroll':
+        return <Payroll />;
+      case '/hr/performance':
+        return <Performance />;
+      case '/hr/leave':
+        return <LeaveManagement />;
+      case '/hr/attendance':
+        return <Attendance />;
+      case '/hr/benefits':
+      case '/hr/compliance':
+      case '/hr/reports':
+      case '/hr/settings':
+        return <HROverview />;
+      default:
+        return <DashboardContent />;
+    }
+  };
+
+  return (
+    <DepartmentLayout
+      title="HR Dashboard"
+      colorScheme={colorScheme}
+      sidebarItems={sidebarItems}
+    >
+      {renderContent()}
+    </DepartmentLayout>
   );
 };
 

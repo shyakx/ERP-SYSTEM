@@ -5,7 +5,7 @@ import { getColorScheme } from "../../../../utils/colorSchemes";
 import { 
   AlertTriangle, 
   Bell, 
-  CheckCircle,
+  CheckCircle, 
   XCircle,
   Search,
   Filter,
@@ -251,7 +251,7 @@ const Alerts: React.FC = () => {
             <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
               <Filter className="w-4 h-4 inline mr-2" />
               Filter
-            </button>
+          </button>
           </div>
         </div>
       </AnimatedCard>
@@ -421,4 +421,4 @@ const Alerts: React.FC = () => {
   );
 };
 
-export default Alerts; 
+export default Alerts;

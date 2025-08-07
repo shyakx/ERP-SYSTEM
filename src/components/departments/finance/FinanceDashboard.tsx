@@ -1,10 +1,24 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
+import DepartmentLayout from '../../shared/DepartmentLayout';
 import AnimatedCard from '../../shared/AnimatedCard';
 import { AnimatedButton, AnimatedProgressBar } from '../../shared/AnimatedCard';
 import { getColorScheme } from '../../../utils/colorSchemes';
 
+// Finance Department Pages
+import FinanceOverview from './pages/FinanceOverview';
+import AccountsPayable from './pages/AccountsPayable';
+import AccountsReceivable from './pages/AccountsReceivable';
+import TaxManagement from './pages/TaxManagement';
+import Budgeting from './pages/Budgeting';
+import FinancialReports from './pages/FinancialReports';
+import CashManagement from './pages/CashManagement';
+import Expenses from './pages/Expenses';
+import FinancialPlanning from './pages/FinancialPlanning';
+
 const FinanceDashboard: React.FC = () => {
   const colorScheme = getColorScheme('finance');
+  const location = useLocation();
 
   const financeStats = [
     { title: 'Total Revenue', value: '245.6M RWF', subtitle: 'This Year', color: 'blue', icon: '💰', trend: { value: '+12%', isPositive: true }, delay: 0 },
@@ -65,7 +79,21 @@ const FinanceDashboard: React.FC = () => {
     return type === 'Income' ? 'text-green-600' : 'text-red-600';
   };
 
-  return (
+  const sidebarItems = [
+    { name: 'Dashboard', path: '/finance', icon: '🏠' },
+    { name: 'Overview', path: '/finance/overview', icon: '📊' },
+    { name: 'Payable', path: '/finance/payable', icon: '💸' },
+    { name: 'Receivable', path: '/finance/receivable', icon: '💵' },
+    { name: 'Tax Management', path: '/finance/tax', icon: '🧾' },
+    { name: 'Budgeting', path: '/finance/budgeting', icon: '📋' },
+    { name: 'Reports', path: '/finance/reports', icon: '📈' },
+    { name: 'Cash Management', path: '/finance/cash', icon: '💰' },
+    { name: 'Expenses', path: '/finance/expenses', icon: '📊' },
+    { name: 'Financial Planning', path: '/finance/planning', icon: '📋' }
+  ];
+
+  // Main Dashboard Content
+  const DashboardContent = () => (
     <div className="space-y-4">
       {/* Finance Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -99,34 +127,33 @@ const FinanceDashboard: React.FC = () => {
       <AnimatedCard
         title="Recent Transactions"
         subtitle="Latest financial activities"
-        color="green"
-        icon="📊"
-        delay={400}
+        className="bg-white rounded-xl shadow-lg border border-gray-100"
       >
         <div className="space-y-3">
-          {recentTransactions.map((transaction, index) => (
+          {recentTransactions.map((transaction) => (
             <div
               key={transaction.id}
-              className="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200"
-              style={{ animationDelay: `${500 + index * 100}ms` }}
+              className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200"
             >
-              <div className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center shadow-sm ${
-                  transaction.type === 'Income' ? 'bg-green-500' : 'bg-red-500'
+              <div className="flex items-center space-x-3">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  transaction.type === 'Income' ? 'bg-green-100' : 'bg-red-100'
                 }`}>
-                  <span className="text-white font-semibold text-xs">
+                  <span className={`text-sm ${
+                    transaction.type === 'Income' ? 'text-green-600' : 'text-red-600'
+                  }`}>
                     {transaction.type === 'Income' ? '↗' : '↘'}
                   </span>
                 </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-900">{transaction.description}</p>
-                  <p className="text-xs text-gray-500">
+                <div>
+                  <p className="font-medium text-gray-900">{transaction.description}</p>
+                  <p className="text-sm text-gray-500">
                     {transaction.client || transaction.vendor || transaction.department}
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <p className={`text-sm font-semibold ${getTransactionColor(transaction.type)}`}>
+                <p className={`font-semibold ${getTransactionColor(transaction.type)}`}>
                   {formatCurrency(transaction.amount)}
                 </p>
                 <p className="text-xs text-gray-500">{transaction.date}</p>
@@ -136,76 +163,124 @@ const FinanceDashboard: React.FC = () => {
         </div>
       </AnimatedCard>
 
-      {/* Quick Actions and Financial Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <AnimatedCard
-          title="Quick Actions"
-          subtitle="Common finance tasks"
-          color="blue"
-          icon="⚡"
-          delay={600}
-        >
-          <div className="grid grid-cols-1 gap-3">
-            <AnimatedButton
-              color="green"
-              size="md"
-              onClick={() => console.log('Create new invoice')}
-            >
-              📄 Create Invoice
-            </AnimatedButton>
-            <AnimatedButton
-              color="blue"
-              size="md"
-              onClick={() => console.log('Record payment')}
-            >
-              💰 Record Payment
-            </AnimatedButton>
-            <AnimatedButton
-              color="purple"
-              size="md"
-              onClick={() => console.log('Generate report')}
-            >
-              📊 Generate Report
-            </AnimatedButton>
-            <AnimatedButton
-              color="orange"
-              size="md"
-              onClick={() => console.log('Review budget')}
-            >
-              📋 Review Budget
-            </AnimatedButton>
-          </div>
-        </AnimatedCard>
+      {/* Quick Actions */}
+      <AnimatedCard
+        title="Quick Actions"
+        subtitle="Common finance tasks"
+        className="bg-white rounded-xl shadow-lg border border-gray-100"
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <AnimatedButton
+            onClick={() => {}}
+            className="flex items-center space-x-2 p-3 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors duration-200"
+          >
+            <span className="text-blue-600">⚡</span>
+            <span className="text-sm font-medium text-gray-700">New Transaction</span>
+          </AnimatedButton>
+          <AnimatedButton
+            onClick={() => {}}
+            className="flex items-center space-x-2 p-3 rounded-lg bg-green-50 hover:bg-green-100 transition-colors duration-200"
+          >
+            <span className="text-green-600">📊</span>
+            <span className="text-sm font-medium text-gray-700">Generate Report</span>
+          </AnimatedButton>
+          <AnimatedButton
+            onClick={() => {}}
+            className="flex items-center space-x-2 p-3 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors duration-200"
+          >
+            <span className="text-purple-600">📋</span>
+            <span className="text-sm font-medium text-gray-700">Budget Review</span>
+          </AnimatedButton>
+          <AnimatedButton
+            onClick={() => {}}
+            className="flex items-center space-x-2 p-3 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors duration-200"
+          >
+            <span className="text-orange-600">🔍</span>
+            <span className="text-sm font-medium text-gray-700">Audit Trail</span>
+          </AnimatedButton>
+        </div>
+      </AnimatedCard>
 
-        <AnimatedCard
-          title="Financial Overview"
-          subtitle="Key performance indicators"
-          color="purple"
-          icon="📈"
-          delay={800}
-        >
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-xs font-medium text-gray-600">Revenue Growth</span>
-              <span className="text-xs font-semibold text-gray-900">+12%</span>
-            </div>
-            <AnimatedProgressBar progress={75} color="green" height={6} />
-            
-            <div className="flex justify-between items-center">
-              <span className="text-xs font-medium text-gray-600">Expense Control</span>
-              <span className="text-xs font-semibold text-gray-900">92%</span>
-            </div>
-            <AnimatedProgressBar progress={92} color="blue" height={6} />
-            
-            <div className="flex justify-between items-center">
-              <span className="text-xs font-medium text-gray-600">Profit Margin</span>
-              <span className="text-xs font-semibold text-gray-900">23%</span>
-            </div>
-            <AnimatedProgressBar progress={23} color="purple" height={6} />
+      {/* Financial Overview */}
+      <AnimatedCard
+        title="Financial Overview"
+        subtitle="Key performance indicators"
+        className="bg-white rounded-xl shadow-lg border border-gray-100"
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-3">Revenue Trends</h4>
+            <AnimatedProgressBar
+              progress={75}
+              color="blue"
+              height={8}
+              showLabel={true}
+            />
+            <AnimatedProgressBar
+              progress={68}
+              color="green"
+              height={8}
+              showLabel={true}
+            />
           </div>
-        </AnimatedCard>
-      </div>
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-3">Expense Breakdown</h4>
+            <AnimatedProgressBar
+              progress={45}
+              color="red"
+              height={8}
+              showLabel={true}
+            />
+            <AnimatedProgressBar
+              progress={30}
+              color="orange"
+              height={8}
+              showLabel={true}
+            />
+          </div>
+        </div>
+      </AnimatedCard>
     </div>
+  );
+
+  // Function to render content based on current path
+  const renderContent = () => {
+    const path = location.pathname;
+    
+    switch (path) {
+      case '/finance':
+        return <DashboardContent />;
+      case '/finance/overview':
+        return <FinanceOverview />;
+      case '/finance/payable':
+        return <AccountsPayable />;
+      case '/finance/receivable':
+        return <AccountsReceivable />;
+      case '/finance/tax':
+        return <TaxManagement />;
+      case '/finance/budgeting':
+        return <Budgeting />;
+      case '/finance/reports':
+        return <FinancialReports />;
+      case '/finance/cash':
+        return <CashManagement />;
+      case '/finance/expenses':
+        return <Expenses />;
+      case '/finance/planning':
+        return <FinancialPlanning />;
+      default:
+        return <DashboardContent />;
+    }
+  };
+
+  return (
+    <DepartmentLayout
+      title="Finance Dashboard"
+      colorScheme={colorScheme}
+      sidebarItems={sidebarItems}
+    >
+      {renderContent()}
+    </DepartmentLayout>
   );
 };
 
