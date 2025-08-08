@@ -6,6 +6,7 @@ import Register from "./components/auth/Register";
 import LoadingSpinner from "./components/shared/LoadingSpinner";
 
 // Lazy load components for better performance
+const AdminDashboard = lazy(() => import("./components/admin/AdminDashboard"));
 const HRDashboard = lazy(() => import("./components/departments/hr/HRDashboard"));
 const FinanceDashboard = lazy(() => import("./components/departments/finance/FinanceDashboard"));
 const ITDashboard = lazy(() => import("./components/departments/it/ItDashboard"));
@@ -44,7 +45,7 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   if (user) {
     // Redirect based on user role
     switch (user.role) {
-      case 'admin': return <Navigate to="/hr" replace />;
+      case 'admin': return <Navigate to="/admin" replace />;
       case 'hr': return <Navigate to="/hr" replace />;
       case 'finance': return <Navigate to="/finance" replace />;
       case 'it': return <Navigate to="/it" replace />;
@@ -73,6 +74,15 @@ const App: React.FC = () => {
             {/* Public Routes */}
             <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
             <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+            
+            {/* Admin Routes */}
+            <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/overview" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/departments" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/users" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/reports" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/analytics" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/settings" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
             
             {/* HR Routes */}
             <Route path="/hr" element={<ProtectedRoute><HRDashboard /></ProtectedRoute>} />

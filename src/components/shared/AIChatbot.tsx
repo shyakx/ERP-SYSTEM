@@ -49,6 +49,7 @@ const AIChatbot: React.FC = () => {
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [activeTab, setActiveTab] = useState<'chat' | 'data' | 'automation' | 'help'>('chat');
+  const [chatPosition, setChatPosition] = useState<'bottom-right' | 'bottom-left' | 'top-right' | 'top-left' | 'center-right' | 'center-left'>('bottom-right');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Simulated ERP Backend Data
@@ -104,17 +105,16 @@ const AIChatbot: React.FC = () => {
 ❓ **Help & Support** - Get assistance with any feature
 
 What would you like to do today?`,
-          timestamp: new Date(),
-          suggestions: ['Show me system overview', 'Generate a report', 'Navigate to HR', 'Check security status']
+          timestamp: new Date()
         });
       }, 500);
     }
-  }, [isOpen, messages.length]);
+  }, [isOpen]);
 
   const addMessage = (message: Omit<Message, 'id'>) => {
     const newMessage: Message = {
       ...message,
-      id: `msg-${Date.now()}-${Math.random()}`
+      id: Date.now().toString()
     };
     setMessages(prev => [...prev, newMessage]);
   };
@@ -123,112 +123,113 @@ What would you like to do today?`,
     setIsTyping(true);
     await new Promise(resolve => setTimeout(resolve, delay));
     setIsTyping(false);
-    return response;
   };
 
   const generateAIResponse = async (userInput: string): Promise<string> => {
-    const input = userInput.toLowerCase();
+    const lowerInput = userInput.toLowerCase();
     
-    if (input.includes('system') || input.includes('overview') || input.includes('status')) {
-      return `📊 **System Overview**
+    // System Navigation
+    if (lowerInput.includes('navigate') || lowerInput.includes('go to') || lowerInput.includes('find')) {
+      return `I can help you navigate to different departments:
 
-🏢 **Company Status:**
-• Total Employees: ${erpData.employees}
-• Departments: ${erpData.departments}
-• Active Projects: ${erpData.activeProjects}
-• Revenue: ${erpData.revenue}
+🏢 **HR Department** - Employee management, recruitment, payroll
+💰 **Finance Department** - Budget, expenses, financial reports
+🛡️ **Security Department** - Guard management, incident reports
+📊 **Analytics Department** - Reports, insights, performance metrics
+⚙️ **System Settings** - Configuration, security, backup
 
-🛡️ **Security Status:**
-• System Health: ${erpData.systemHealth}%
-• Security Incidents: ${erpData.securityIncidents}
-• Recent Alerts: ${erpData.alerts.length}
-
-Everything looks good! 🟢 System is running optimally.`;
+Which department would you like to access?`;
     }
+    
+    // Data Analysis
+    if (lowerInput.includes('report') || lowerInput.includes('generate') || lowerInput.includes('analysis')) {
+      return `Here are the available reports I can generate:
 
-    if (input.includes('navigate') || input.includes('go to') || input.includes('hr') || input.includes('finance')) {
-      if (input.includes('hr')) {
-        return `📍 **Navigating to HR Department**
+📈 **Employee Report** - Current headcount, performance metrics
+💰 **Financial Report** - Revenue, expenses, budget status
+🛡️ **Security Report** - Incidents, guard deployment, alerts
+📊 **System Report** - Performance, uptime, health status
+🎯 **Custom Report** - Tailored to your specific needs
 
-I'll help you access the HR Dashboard. You can:
-• View employee management
-• Access recruitment tools
-• Check payroll information
-• Review performance data
-
-Would you like me to show you specific HR features?`;
-      }
-      return `🗺️ **System Navigation**
-
-Available departments:
-• **HR** - Employee management, recruitment, payroll
-• **Finance** - Budgets, reports, accounting
-• **Security** - Monitoring, alerts, protocols
-• **IT** - System maintenance, support
-• **Operations** - Process management, workflows
-
-Which department would you like to navigate to?`;
+What type of report would you like?`;
     }
+    
+    // System Status
+    if (lowerInput.includes('status') || lowerInput.includes('health') || lowerInput.includes('system')) {
+      return `📊 **System Status Overview:**
 
-    if (input.includes('report') || input.includes('generate')) {
-      return `📈 **Report Generation**
+✅ **System Health**: ${erpData.systemHealth}% (Excellent)
+👥 **Active Users**: ${erpData.employees} employees
+🏢 **Departments**: ${erpData.departments} active
+💰 **Revenue**: ${erpData.revenue} (Q2 2024)
+🛡️ **Security**: ${erpData.securityIncidents} incidents this month
+⚡ **Performance**: All systems operational
 
-I can generate these reports:
-• **Employee Report** - Staff statistics and performance
-• **Financial Report** - Revenue, expenses, budget analysis
-• **Security Report** - Incidents, protocols, system health
-• **Operations Report** - Process efficiency and workflows
-• **Custom Report** - Specific data you need
-
-What type of report would you like me to generate?`;
+Everything looks good! Is there anything specific you'd like to check?`;
     }
+    
+    // Security
+    if (lowerInput.includes('security') || lowerInput.includes('alert') || lowerInput.includes('incident')) {
+      return `🛡️ **Security Status:**
 
-    if (input.includes('security') || input.includes('alert') || input.includes('incident')) {
-      return `🛡️ **Security Status Report**
+⚠️ **Active Alerts**: ${erpData.securityIncidents} incidents
+✅ **System Security**: All protocols active
+🔒 **Access Control**: Multi-factor authentication enabled
+📱 **Mobile Security**: All devices secured
+🌐 **Network Security**: Firewall and monitoring active
 
-🔴 **Current Alerts:**
-${erpData.alerts.map(alert => 
-  `• ${alert.type.toUpperCase()}: ${alert.message}`
-).join('\n')}
-
-📊 **Security Metrics:**
-• System Health: ${erpData.systemHealth}%
-• Active Incidents: ${erpData.securityIncidents}
-
-🟢 **Status:** All systems are secure and operational.`;
+Recent security activities are being monitored. Would you like detailed incident reports?`;
     }
+    
+    // Help
+    if (lowerInput.includes('help') || lowerInput.includes('support') || lowerInput.includes('assist')) {
+      return `❓ **How can I help you?**
 
-    return `I understand you're asking about "${userInput}". 
+🎯 **Navigation**: "Take me to HR department"
+📊 **Reports**: "Generate employee report"
+🛡️ **Security**: "Check security status"
+⚡ **Automation**: "Show automated processes"
+📱 **Mobile**: "Access mobile features"
+🔧 **Settings**: "Open system settings"
 
-I can help you with:
-• System navigation and overview
-• Data queries and reports
-• Process automation
-• Security monitoring
-• General assistance
+Just ask me anything about the ERP system!`;
+    }
+    
+    // Default response
+    return `I understand you're asking about "${userInput}". Let me help you with that.
 
-Could you be more specific about what you need help with?`;
+You can ask me to:
+• Navigate to different departments
+• Generate reports and analytics
+• Check system status and security
+• Automate processes
+• Get help with any feature
+
+What would you like to do?`;
   };
 
   const handleSendMessage = async () => {
-    if (!inputText.trim() || isTyping) return;
+    if (!inputText.trim()) return;
 
-    const userMessage = inputText.trim();
+    const userMessage = inputText;
     setInputText("");
-
+    
+    // Add user message
     addMessage({
       type: 'user',
       content: userMessage,
       timestamp: new Date()
     });
 
-    const response = await simulateTyping(await generateAIResponse(userMessage));
-    
+    // Simulate typing
+    await simulateTyping("", 800);
+
+    // Generate AI response
+    const response = await generateAIResponse(userMessage);
     addMessage({
       type: 'ai',
       content: response,
-      timestamp: new Date(),
-      suggestions: ['Show me system overview', 'Navigate to HR', 'Generate a report', 'Check security status']
+      timestamp: new Date()
     });
   };
 
@@ -240,39 +241,107 @@ Could you be more specific about what you need help with?`;
   };
 
   const handleQuickAction = async (action: string) => {
-    const actionMessages = {
-      navigate: 'Show me the system navigation options',
-      reports: 'Generate a comprehensive report',
-      data: 'Show me the latest data queries',
-      automation: 'What automation processes are available?',
-      security: 'Check the current security status',
-      help: 'I need help with the system'
-    };
+    let response = "";
+    
+    switch (action) {
+      case 'navigate':
+        response = "I can help you navigate to any department. Which one would you like to access?\n\n🏢 HR Department\n💰 Finance Department\n🛡️ Security Department\n📊 Analytics Department\n⚙️ System Settings";
+        break;
+      case 'reports':
+        response = "I can generate various reports for you:\n\n📈 Employee Reports\n💰 Financial Reports\n🛡️ Security Reports\n📊 System Reports\n🎯 Custom Reports\n\nWhat type of report do you need?";
+        break;
+      case 'data':
+        response = `Here's your current ERP data:\n\n👥 Employees: ${erpData.employees}\n🏢 Departments: ${erpData.departments}\n💰 Revenue: ${erpData.revenue}\n🛡️ Security Incidents: ${erpData.securityIncidents}\n⚡ System Health: ${erpData.systemHealth}%\n\nWhat specific data would you like to see?`;
+        break;
+      case 'automation':
+        response = "I can help you with process automation:\n\n⚡ Employee Onboarding\n📊 Financial Reporting\n🛡️ Security Monitoring\n💾 Data Backup\n📱 Mobile Sync\n\nWhich process would you like to automate?";
+        break;
+      case 'security':
+        response = `🛡️ Security Status:\n\n✅ System Security: Active\n🔒 Access Control: Enabled\n📱 Mobile Security: Secured\n🌐 Network Security: Protected\n⚠️ Active Alerts: ${erpData.securityIncidents}\n\nEverything looks secure!`;
+        break;
+      case 'help':
+        response = "I'm here to help! You can ask me about:\n\n🎯 Navigation and features\n📊 Reports and analytics\n🛡️ Security and monitoring\n⚡ Process automation\n📱 Mobile access\n🔧 System settings\n\nWhat do you need help with?";
+        break;
+      default:
+        response = "I can help you with navigation, reports, data queries, automation, security, and support. What would you like to do?";
+    }
 
-    setInputText(actionMessages[action as keyof typeof actionMessages]);
-    await handleSendMessage();
+    addMessage({
+      type: 'ai',
+      content: response,
+      timestamp: new Date()
+    });
   };
 
   const clearChat = () => {
     setMessages([]);
-    setActiveTab('chat');
   };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
 
+  // Position classes based on selected position
+  const getPositionClasses = () => {
+    switch (chatPosition) {
+      case 'bottom-right':
+        return 'bottom-4 right-4';
+      case 'bottom-left':
+        return 'bottom-4 left-4';
+      case 'top-right':
+        return 'top-4 right-4';
+      case 'top-left':
+        return 'top-4 left-4';
+      case 'center-right':
+        return 'top-1/2 right-4 transform -translate-y-1/2';
+      case 'center-left':
+        return 'top-1/2 left-4 transform -translate-y-1/2';
+      default:
+        return 'bottom-4 right-4';
+    }
+  };
+
   return (
     <>
-      <div className="relative">
+      <div className="fixed z-50">
+        {/* Floating Action Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 flex items-center justify-center group"
+          className={`fixed ${getPositionClasses()} w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 flex items-center justify-center group z-50`}
           title="AI Assistant"
         >
           <Bot className="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-300" />
           <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
         </button>
+
+        {/* Position Selector (when open) */}
+        {isOpen && (
+          <div className={`fixed ${getPositionClasses()} top-20 bg-white rounded-lg shadow-lg border border-gray-200 p-2 z-40`}>
+            <div className="text-xs font-medium text-gray-700 mb-2">Position:</div>
+            <div className="grid grid-cols-2 gap-1">
+              {[
+                { key: 'bottom-right', label: 'BR' },
+                { key: 'bottom-left', label: 'BL' },
+                { key: 'top-right', label: 'TR' },
+                { key: 'top-left', label: 'TL' },
+                { key: 'center-right', label: 'CR' },
+                { key: 'center-left', label: 'CL' }
+              ].map((pos) => (
+                <button
+                  key={pos.key}
+                  onClick={() => setChatPosition(pos.key as any)}
+                  className={`px-2 py-1 text-xs rounded ${
+                    chatPosition === pos.key
+                      ? 'bg-purple-500 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {pos.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Backdrop Blur */}
         {isOpen && (
@@ -283,7 +352,7 @@ Could you be more specific about what you need help with?`;
         )}
 
         {isOpen && (
-          <div className="fixed top-16 right-4 w-[420px] h-[520px] bg-white rounded-xl shadow-2xl border border-gray-200 z-50 flex flex-col overflow-hidden">
+          <div className={`fixed ${getPositionClasses()} w-[420px] h-[520px] bg-white rounded-xl shadow-2xl border border-gray-200 z-50 flex flex-col overflow-hidden`}>
             {/* Modern Header - Fixed */}
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-t-xl flex-shrink-0">
               <div className="flex items-center justify-between">
@@ -398,52 +467,39 @@ Could you be more specific about what you need help with?`;
                                 <button
                                   onClick={() => copyToClipboard(message.content)}
                                   className="p-1 hover:bg-gray-200 rounded transition-colors"
-                                  title="Copy"
+                                  title="Copy message"
                                 >
-                                  <Copy className="w-2.5 h-2.5" />
+                                  <Copy className="w-3 h-3" />
                                 </button>
-                                <button className="p-1 hover:bg-gray-200 rounded transition-colors" title="Helpful">
-                                  <ThumbsUp className="w-2.5 h-2.5" />
+                                <button
+                                  className="p-1 hover:bg-gray-200 rounded transition-colors"
+                                  title="Helpful"
+                                >
+                                  <ThumbsUp className="w-3 h-3" />
                                 </button>
-                                <button className="p-1 hover:bg-gray-200 rounded transition-colors" title="Not helpful">
-                                  <ThumbsDown className="w-2.5 h-2.5" />
+                                <button
+                                  className="p-1 hover:bg-gray-200 rounded transition-colors"
+                                  title="Not helpful"
+                                >
+                                  <ThumbsDown className="w-3 h-3" />
                                 </button>
                               </div>
                             )}
                           </div>
-
-                          {/* Suggestions */}
-                          {message.suggestions && message.type === 'ai' && (
-                            <div className="mt-2 flex flex-wrap gap-1">
-                              {message.suggestions.map((suggestion, index) => (
-                                <button
-                                  key={index}
-                                  onClick={() => {
-                                    setInputText(suggestion);
-                                    handleSendMessage();
-                                  }}
-                                  className="px-2 py-1 bg-blue-50 text-blue-700 rounded-full text-xs hover:bg-blue-100 transition-colors"
-                                >
-                                  {suggestion}
-                                </button>
-                              ))}
-                            </div>
-                          )}
                         </div>
                       </div>
                     ))}
 
+                    {/* Typing Indicator */}
                     {isTyping && (
                       <div className="flex justify-start">
-                        <div className="max-w-[90%]">
-                          <div className="bg-gray-100 rounded-xl px-3 py-2">
-                            <div className="flex items-center space-x-2">
-                              <Bot className="w-3 h-3 text-blue-500" />
-                              <div className="flex space-x-1">
-                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></div>
-                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                              </div>
+                        <div className="bg-gray-100 rounded-xl px-3 py-2">
+                          <div className="flex items-center space-x-2">
+                            <Bot className="w-3 h-3 text-blue-500" />
+                            <div className="flex space-x-1">
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                             </div>
                           </div>
                         </div>
@@ -453,25 +509,23 @@ Could you be more specific about what you need help with?`;
                     <div ref={messagesEndRef} />
                   </div>
 
-                  {/* Input Area - Fixed at Bottom */}
+                  {/* Input Area */}
                   <div className="p-3 border-t border-gray-200 bg-white flex-shrink-0">
-                    <div className="flex items-end space-x-2">
-                      <div className="flex-1">
-                        <textarea
-                          value={inputText}
-                          onChange={(e) => setInputText(e.target.value)}
-                          onKeyPress={handleKeyPress}
-                          placeholder="Ask me anything about the ERP system..."
-                          className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-xs"
-                          rows={1}
-                        />
-                      </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="text"
+                        value={inputText}
+                        onChange={(e) => setInputText(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        placeholder="Ask me anything about the ERP system..."
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                      />
                       <button
                         onClick={handleSendMessage}
-                        disabled={!inputText.trim() || isTyping}
-                        className="px-3 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                        disabled={!inputText.trim()}
+                        className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
                       >
-                        <Send className="w-3 h-3" />
+                        <Send className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -483,79 +537,65 @@ Could you be more specific about what you need help with?`;
                   <div className="space-y-3">
                     <h3 className="text-sm font-semibold text-gray-900">📊 ERP Data Overview</h3>
                     
-                    {/* Key Metrics */}
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-blue-50 p-3 rounded-xl">
+                      <div className="bg-white border border-gray-200 rounded-xl p-3">
                         <div className="flex items-center space-x-2">
                           <Users className="w-4 h-4 text-blue-600" />
-                          <span className="font-semibold text-blue-900 text-sm">Employees</span>
+                          <span className="text-xs font-medium text-gray-600">Employees</span>
                         </div>
-                        <p className="text-lg font-bold text-blue-900">{erpData.employees}</p>
-                        <p className="text-xs text-blue-600">+12% from last month</p>
+                        <p className="text-lg font-bold text-gray-900">{erpData.employees}</p>
                       </div>
                       
-                      <div className="bg-green-50 p-3 rounded-xl">
+                      <div className="bg-white border border-gray-200 rounded-xl p-3">
                         <div className="flex items-center space-x-2">
-                          <DollarSign className="w-4 h-4 text-green-600" />
-                          <span className="font-semibold text-green-900 text-sm">Revenue</span>
+                          <Shield className="w-4 h-4 text-green-600" />
+                          <span className="text-xs font-medium text-gray-600">Departments</span>
                         </div>
-                        <p className="text-lg font-bold text-green-900">{erpData.revenue}</p>
-                        <p className="text-xs text-green-600">Q2 2024</p>
+                        <p className="text-lg font-bold text-gray-900">{erpData.departments}</p>
                       </div>
                       
-                      <div className="bg-purple-50 p-3 rounded-xl">
+                      <div className="bg-white border border-gray-200 rounded-xl p-3">
                         <div className="flex items-center space-x-2">
-                          <Shield className="w-4 h-4 text-purple-600" />
-                          <span className="font-semibold text-purple-900 text-sm">System Health</span>
+                          <DollarSign className="w-4 h-4 text-purple-600" />
+                          <span className="text-xs font-medium text-gray-600">Revenue</span>
                         </div>
-                        <p className="text-lg font-bold text-purple-900">{erpData.systemHealth}%</p>
-                        <p className="text-xs text-purple-600">Optimal performance</p>
+                        <p className="text-lg font-bold text-gray-900">{erpData.revenue}</p>
                       </div>
                       
-                      <div className="bg-orange-50 p-3 rounded-xl">
+                      <div className="bg-white border border-gray-200 rounded-xl p-3">
                         <div className="flex items-center space-x-2">
-                          <BarChart3 className="w-4 h-4 text-orange-600" />
-                          <span className="font-semibold text-orange-900 text-sm">Projects</span>
+                          <AlertCircle className="w-4 h-4 text-red-600" />
+                          <span className="text-xs font-medium text-gray-600">Incidents</span>
                         </div>
-                        <p className="text-lg font-bold text-orange-900">{erpData.activeProjects}</p>
-                        <p className="text-xs text-orange-600">Active</p>
+                        <p className="text-lg font-bold text-gray-900">{erpData.securityIncidents}</p>
                       </div>
                     </div>
 
-                    {/* Recent Activities */}
-                    <div className="bg-white border border-gray-200 rounded-xl p-3">
-                      <h4 className="font-semibold text-gray-900 mb-2 text-sm">Recent Activities</h4>
-                      <div className="space-y-1">
-                        {erpData.recentActivities.slice(0, 2).map((activity) => (
-                          <div key={activity.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                            <div className="flex items-center space-x-2">
-                              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
-                              <span className="text-xs text-gray-700">{activity.user}</span>
-                              <span className="text-xs text-gray-500">- {activity.type}</span>
-                            </div>
-                            <span className="text-xs text-gray-500">{activity.time}</span>
-                          </div>
-                        ))}
-                      </div>
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-semibold text-gray-700">Recent Activities</h4>
+                      {erpData.recentActivities.map((activity) => (
+                        <div key={activity.id} className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <span className="text-xs text-gray-600">{activity.user} - {activity.department}</span>
+                          <span className="text-xs text-gray-400">{activity.time}</span>
+                        </div>
+                      ))}
                     </div>
 
-                    {/* Alerts */}
-                    <div className="bg-white border border-gray-200 rounded-xl p-3">
-                      <h4 className="font-semibold text-gray-900 mb-2 text-sm">System Alerts</h4>
-                      <div className="space-y-1">
-                        {erpData.alerts.slice(0, 2).map((alert) => (
-                          <div key={alert.id} className={`flex items-center space-x-2 p-2 rounded-lg ${
-                            alert.type === 'warning' ? 'bg-yellow-50 border border-yellow-200' :
-                            alert.type === 'info' ? 'bg-blue-50 border border-blue-200' :
-                            'bg-green-50 border border-green-200'
-                          }`}>
-                            {alert.type === 'warning' ? <AlertCircle className="w-3 h-3 text-yellow-600" /> :
-                             alert.type === 'info' ? <Info className="w-3 h-3 text-blue-600" /> :
-                             <CheckCircle className="w-3 h-3 text-green-600" />}
-                            <span className="text-xs text-gray-700">{alert.message}</span>
-                          </div>
-                        ))}
-                      </div>
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-semibold text-gray-700">Active Alerts</h4>
+                      {erpData.alerts.map((alert) => (
+                        <div key={alert.id} className={`flex items-center space-x-2 p-2 rounded-lg ${
+                          alert.type === 'warning' ? 'bg-yellow-50 border border-yellow-200' :
+                          alert.type === 'info' ? 'bg-blue-50 border border-blue-200' :
+                          'bg-green-50 border border-green-200'
+                        }`}>
+                          {alert.type === 'warning' ? <AlertCircle className="w-3 h-3 text-yellow-600" /> :
+                           alert.type === 'info' ? <Info className="w-3 h-3 text-blue-600" /> :
+                           <CheckCircle className="w-3 h-3 text-green-600" />}
+                          <span className="text-xs text-gray-700">{alert.message}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
