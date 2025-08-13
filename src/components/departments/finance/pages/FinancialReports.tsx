@@ -1,85 +1,166 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AnimatedCard from '../../../shared/AnimatedCard';
 import { AnimatedButton, AnimatedProgressBar } from '../../../shared/AnimatedCard';
+import { useApiList } from '../../../../hooks/useApi';
+import { transactionAPI, accountAPI, budgetAPI } from '../../../../services/api.ts';
+import { 
+  Loader2, 
+  Download, 
+  Calendar, 
+  TrendingUp, 
+  TrendingDown, 
+  DollarSign, 
+  BarChart3, 
+  PieChart,
+  FileText,
+  Filter,
+  RefreshCw
+} from 'lucide-react';
 
-const FinancialReports: React.FC = () => {
-  const [selectedReport, setSelectedReport] = useState<string>('all');
+interface FinancialReportsProps {}
 
-  const reportStats = [
-    { title: 'Total Reports', value: '24', subtitle: 'Generated', color: 'blue', icon: '📊', trend: { value: '+3', isPositive: true }, delay: 0 },
-    { title: 'This Month', value: '8', subtitle: 'Reports', color: 'green', icon: '📅', trend: { value: '+2', isPositive: true }, delay: 100 },
-    { title: 'Scheduled', value: '5', subtitle: 'Auto Reports', color: 'purple', icon: '⏰', trend: { value: '+1', isPositive: true }, delay: 200 },
-    { title: 'Exported', value: '156', subtitle: 'Files', color: 'orange', icon: '📁', trend: { value: '+12', isPositive: true }, delay: 300 }
-  ];
+interface ReportData {
+  period: string;
+  revenue: number;
+  expenses: number;
+  profit: number;
+  profitMargin: number;
+}
 
-  const reportTypes = [
-    { id: 1, name: 'Income Statement', category: 'Profitability', frequency: 'Monthly', lastGenerated: '2024-02-15', status: 'Available', icon: '📈' },
-    { id: 2, name: 'Balance Sheet', category: 'Financial Position', frequency: 'Monthly', lastGenerated: '2024-02-15', status: 'Available', icon: '⚖️' },
-    { id: 3, name: 'Cash Flow Statement', category: 'Liquidity', frequency: 'Monthly', lastGenerated: '2024-02-15', status: 'Available', icon: '💧' },
-    { id: 4, name: 'Budget vs Actual', category: 'Performance', frequency: 'Monthly', lastGenerated: '2024-02-15', status: 'Available', icon: '📊' },
-    { id: 5, name: 'Accounts Receivable', category: 'Collections', frequency: 'Weekly', lastGenerated: '2024-02-18', status: 'Available', icon: '💰' },
-    { id: 6, name: 'Accounts Payable', category: 'Payments', frequency: 'Weekly', lastGenerated: '2024-02-18', status: 'Available', icon: '💸' },
-    { id: 7, name: 'Tax Summary', category: 'Compliance', frequency: 'Quarterly', lastGenerated: '2024-01-31', status: 'Available', icon: '📋' },
-    { id: 8, name: 'Department Analysis', category: 'Performance', frequency: 'Monthly', lastGenerated: '2024-02-15', status: 'Available', icon: '🏢' }
-  ];
+const FinancialReports: React.FC<FinancialReportsProps> = () => {
+  const [selectedPeriod, setSelectedPeriod] = useState('monthly');
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [reportData, setReportData] = useState<ReportData[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
 
-  const recentReports = [
-    {
-      id: 1,
-      name: 'Income Statement - January 2024',
-      type: 'Income Statement',
-      generatedBy: 'Finance Team',
-      date: '2024-02-15',
-      size: '2.4 MB',
-      format: 'PDF'
-    },
-    {
-      id: 2,
-      name: 'Balance Sheet - January 2024',
-      type: 'Balance Sheet',
-      generatedBy: 'Finance Team',
-      date: '2024-02-15',
-      size: '1.8 MB',
-      format: 'PDF'
-    },
-    {
-      id: 3,
-      name: 'Cash Flow - January 2024',
-      type: 'Cash Flow Statement',
-      generatedBy: 'Finance Team',
-      date: '2024-02-15',
-      size: '1.2 MB',
-      format: 'PDF'
-    },
-    {
-      id: 4,
-      name: 'Budget vs Actual - January 2024',
-      type: 'Budget vs Actual',
-      generatedBy: 'Finance Team',
-      date: '2024-02-15',
-      size: '3.1 MB',
-      format: 'PDF'
+  // Fetch data
+  const { items: transactions, loading: transactionsLoading } = useApiList(transactionAPI.getAll, { limit: 1000 });
+  const { items: accounts, loading: accountsLoading } = useApiList(accountAPI.getAll, { limit: 100 });
+  const { items: budgets, loading: budgetsLoading } = useApiList(budgetAPI.getAll, { limit: 100 });
+
+  // Calculate report data
+  useEffect(() => {
+    if (!transactionsLoading) {
+      console.log('Financial Reports - Transactions:', transactions);
+      console.log('Financial Reports - Transactions length:', transactions.length);
+      const data = generateReportData();
+      console.log('Financial Reports - Generated data:', data);
+      setReportData(data);
     }
-  ];
+  }, [transactions, selectedPeriod, selectedYear, transactionsLoading]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Available': return 'text-green-600 bg-green-100';
-      case 'Processing': return 'text-blue-600 bg-blue-100';
-      case 'Scheduled': return 'text-purple-600 bg-purple-100';
-      case 'Error': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+  const generateReportData = (): ReportData[] => {
+    const periods = selectedPeriod === 'monthly' ? 12 : selectedPeriod === 'quarterly' ? 4 : 1;
+    const data: ReportData[] = [];
+
+    for (let i = 0; i < periods; i++) {
+      const periodTransactions = filterTransactionsByPeriod(i);
+      const revenue = periodTransactions
+        .filter((t: any) => t.type === 'income')
+        .reduce((sum: number, t: any) => sum + parseFloat(t.amount?.toString() || '0'), 0);
+      
+      const expenses = periodTransactions
+        .filter((t: any) => t.type === 'expense')
+        .reduce((sum: number, t: any) => sum + parseFloat(t.amount?.toString() || '0'), 0);
+      
+      const profit = revenue - expenses;
+      const profitMargin = revenue > 0 ? (profit / revenue) * 100 : 0;
+
+      data.push({
+        period: getPeriodLabel(i),
+        revenue,
+        expenses,
+        profit,
+        profitMargin
+      });
+    }
+
+    return data;
+  };
+
+  const filterTransactionsByPeriod = (periodIndex: number) => {
+    const now = new Date();
+    const startDate = new Date(selectedYear, selectedPeriod === 'monthly' ? periodIndex : periodIndex * 3, 1);
+    const endDate = new Date(selectedYear, selectedPeriod === 'monthly' ? periodIndex + 1 : (periodIndex + 1) * 3, 0);
+
+    return transactions.filter((t: any) => {
+      const transactionDate = new Date(t.transactionDate);
+      return transactionDate >= startDate && transactionDate <= endDate;
+    });
+  };
+
+  const getPeriodLabel = (index: number): string => {
+    if (selectedPeriod === 'monthly') {
+      const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      return monthNames[index];
+    } else if (selectedPeriod === 'quarterly') {
+      return `Q${index + 1}`;
+    } else {
+      return selectedYear.toString();
     }
   };
 
-  const getFormatColor = (format: string) => {
-    switch (format) {
-      case 'PDF': return 'text-red-600 bg-red-100';
-      case 'Excel': return 'text-green-600 bg-green-100';
-      case 'CSV': return 'text-blue-600 bg-blue-100';
-      default: return 'text-gray-600 bg-gray-100';
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-RW', {
+      style: 'currency',
+      currency: 'RWF',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const generatePDF = async () => {
+    setIsGenerating(true);
+    try {
+      // Simulate PDF generation
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Create a blob with report data
+      const reportContent = `
+        Financial Report - ${selectedPeriod} ${selectedYear}
+        
+        Summary:
+        Total Revenue: ${formatCurrency(reportData.reduce((sum, d) => sum + d.revenue, 0))}
+        Total Expenses: ${formatCurrency(reportData.reduce((sum, d) => sum + d.expenses, 0))}
+        Net Profit: ${formatCurrency(reportData.reduce((sum, d) => sum + d.profit, 0))}
+        
+        Period Breakdown:
+        ${reportData.map(d => `${d.period}: Revenue ${formatCurrency(d.revenue)}, Expenses ${formatCurrency(d.expenses)}, Profit ${formatCurrency(d.profit)}`).join('\n')}
+      `;
+      
+      const blob = new Blob([reportContent], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `financial-report-${selectedPeriod}-${selectedYear}.txt`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    } finally {
+      setIsGenerating(false);
     }
   };
+
+  const getTotalRevenue = () => reportData.reduce((sum, d) => sum + d.revenue, 0);
+  const getTotalExpenses = () => reportData.reduce((sum, d) => sum + d.expenses, 0);
+  const getTotalProfit = () => reportData.reduce((sum, d) => sum + d.profit, 0);
+  const getAverageProfitMargin = () => {
+    const margins = reportData.filter(d => d.revenue > 0).map(d => d.profitMargin);
+    return margins.length > 0 ? margins.reduce((sum, m) => sum + m, 0) / margins.length : 0;
+  };
+
+  if (transactionsLoading || accountsLoading || budgetsLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -87,205 +168,291 @@ const FinancialReports: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Financial Reports</h1>
-          <p className="text-gray-600 mt-1">Generate and manage financial reports and analytics</p>
+          <p className="text-gray-600 mt-1">Generate comprehensive financial reports and analytics</p>
         </div>
+        <div className="flex items-center space-x-3">
+          <AnimatedButton
+            onClick={() => window.location.reload()}
+            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span>Refresh Data</span>
+          </AnimatedButton>
         <AnimatedButton
-          onClick={() => {}}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
-        >
-          + Generate Report
+            onClick={generatePDF}
+            disabled={isGenerating}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+          >
+            {isGenerating ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+            <span>{isGenerating ? 'Generating...' : 'Generate Report'}</span>
         </AnimatedButton>
+        </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {reportStats.map((stat, index) => (
-          <div
-            key={index}
-            className="bg-white rounded-xl p-4 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300"
-            style={{ animationDelay: `${stat.delay}ms` }}
-          >
+      {/* Filters */}
+      <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <div className="flex items-center space-x-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Report Period</label>
+            <select
+              value={selectedPeriod}
+              onChange={(e) => setSelectedPeriod(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="monthly">Monthly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {[2022, 2023, 2024, 2025].map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <AnimatedCard delay={0} className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(getTotalRevenue())}</p>
+              <p className="text-sm text-green-600 mt-1">+12.5% from last period</p>
+            </div>
+            <div className="text-3xl text-green-600">
+              <TrendingUp />
+            </div>
+          </div>
+        </AnimatedCard>
+
+        <AnimatedCard delay={100} className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Expenses</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(getTotalExpenses())}</p>
+              <p className="text-sm text-red-600 mt-1">+8.2% from last period</p>
+            </div>
+            <div className="text-3xl text-red-600">
+              <TrendingDown />
+            </div>
+          </div>
+        </AnimatedCard>
+
+        <AnimatedCard delay={200} className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                <p className="text-xs text-gray-500">{stat.subtitle}</p>
-              </div>
-              <div className="text-2xl">{stat.icon}</div>
+              <p className="text-sm font-medium text-gray-600">Net Profit</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{formatCurrency(getTotalProfit())}</p>
+              <p className="text-sm text-blue-600 mt-1">+15.3% from last period</p>
             </div>
-            {stat.trend && (
-              <div className={`flex items-center mt-2 text-xs ${
-                stat.trend.isPositive ? 'text-green-600' : 'text-red-600'
-              }`}>
-                <span>{stat.trend.isPositive ? '↗' : '↘'}</span>
-                <span className="ml-1">{stat.trend.value}</span>
+            <div className="text-3xl text-blue-600">
+              <DollarSign />
+            </div>
               </div>
-            )}
+        </AnimatedCard>
+
+        <AnimatedCard delay={300} className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Profit Margin</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{getAverageProfitMargin().toFixed(1)}%</p>
+              <p className="text-sm text-green-600 mt-1">+2.1% from last period</p>
+            </div>
+            <div className="text-3xl text-green-600">
+              <BarChart3 />
+              </div>
           </div>
-        ))}
+        </AnimatedCard>
       </div>
 
-      {/* Report Types */}
-      <AnimatedCard
-        title="Report Types"
-        subtitle="Available financial reports and their status"
-        className="bg-white rounded-xl shadow-lg border border-gray-100"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {reportTypes.map((report) => (
-            <div
-              key={report.id}
-              className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-2xl">{report.icon}</span>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(report.status)}`}>
-                  {report.status}
-                </span>
+      {/* Tabs */}
+      <div className="bg-white border border-gray-200 rounded-lg">
+        <div className="border-b border-gray-200">
+          <nav className="flex space-x-8 px-6">
+            {[
+              { id: 'overview', label: 'Overview', icon: BarChart3 },
+              { id: 'detailed', label: 'Detailed Analysis', icon: PieChart },
+              { id: 'comparison', label: 'Period Comparison', icon: TrendingUp }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <tab.icon className="w-4 h-4" />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        <div className="p-6">
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-900">Financial Overview</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Revenue vs Expenses Chart */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-4">Revenue vs Expenses</h4>
+                  <div className="space-y-3">
+                    {reportData.map((data, index) => (
+                      <div key={index} className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="font-medium">{data.period}</span>
+                          <span className="text-gray-600">{formatCurrency(data.revenue)}</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-green-600 h-2 rounded-full" 
+                            style={{ width: `${Math.min((data.revenue / getTotalRevenue()) * 100, 100)}%` }}
+                          ></div>
               </div>
-              <h3 className="font-medium text-gray-900 mb-1">{report.name}</h3>
-              <p className="text-sm text-gray-500 mb-2">{report.category}</p>
-              <div className="space-y-1 text-xs text-gray-500">
-                <p>Frequency: {report.frequency}</p>
-                <p>Last: {report.lastGenerated}</p>
-              </div>
-              <div className="mt-3 flex space-x-2">
-                <AnimatedButton
-                  onClick={() => {}}
-                  className="text-blue-600 hover:text-blue-900 text-xs"
-                >
-                  Generate
-                </AnimatedButton>
-                <AnimatedButton
-                  onClick={() => {}}
-                  className="text-green-600 hover:text-green-900 text-xs"
-                >
-                  Schedule
-                </AnimatedButton>
+                        <div className="flex justify-between text-xs text-gray-500">
+                          <span>Revenue</span>
+                          <span>Expenses: {formatCurrency(data.expenses)}</span>
               </div>
             </div>
           ))}
         </div>
-      </AnimatedCard>
+                </div>
 
-      {/* Recent Reports */}
-      <AnimatedCard
-        title="Recent Reports"
-        subtitle="Recently generated financial reports"
-        className="bg-white rounded-xl shadow-lg border border-gray-100"
-      >
-        <div className="space-y-3">
-          {recentReports.map((report) => (
-            <div
-              key={report.id}
-              className="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-200"
-            >
-              <div className="flex items-center space-x-4">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <span className="text-blue-600 text-sm font-medium">📊</span>
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">{report.name}</p>
-                  <p className="text-sm text-gray-500">{report.type} • {report.generatedBy}</p>
+                {/* Profit Margin Chart */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-4">Profit Margins</h4>
+                  <div className="space-y-3">
+                    {reportData.map((data, index) => (
+                      <div key={index} className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="font-medium">{data.period}</span>
+                          <span className={`font-medium ${data.profitMargin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {data.profitMargin.toFixed(1)}%
+                          </span>
+                        </div>
+                        <AnimatedProgressBar
+                          progress={Math.abs(data.profitMargin)}
+                          color={data.profitMargin >= 0 ? 'green' : 'red'}
+                          height={8}
+                          showLabel={false}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm text-gray-500">{report.date}</p>
-                <p className="text-xs text-gray-500">{report.size}</p>
+            </div>
+          )}
+
+          {activeTab === 'detailed' && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-900">Detailed Analysis</h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Period
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Revenue
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Expenses
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Profit
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Margin
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {reportData.map((data, index) => (
+                      <tr key={index} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {data.period}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-semibold">
+                          {formatCurrency(data.revenue)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-semibold">
+                          {formatCurrency(data.expenses)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold">
+                          <span className={data.profit >= 0 ? 'text-green-600' : 'text-red-600'}>
+                            {formatCurrency(data.profit)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            data.profitMargin >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
+                            {data.profitMargin.toFixed(1)}%
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <div className="flex items-center space-x-2">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getFormatColor(report.format)}`}>
-                  {report.format}
+            </div>
+          )}
+
+          {activeTab === 'comparison' && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-900">Period Comparison</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {reportData.slice(0, 3).map((data, index) => (
+                  <div key={index} className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">{data.period}</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Revenue:</span>
+                        <span className="font-semibold text-green-600">{formatCurrency(data.revenue)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Expenses:</span>
+                        <span className="font-semibold text-red-600">{formatCurrency(data.expenses)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Profit:</span>
+                        <span className={`font-semibold ${data.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {formatCurrency(data.profit)}
+                        </span>
+                      </div>
+                      <div className="pt-2 border-t border-gray-200">
+                        <div className="flex justify-between text-sm">
+                          <span>Margin:</span>
+                          <span className={`font-semibold ${data.profitMargin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {data.profitMargin.toFixed(1)}%
                 </span>
-                <AnimatedButton
-                  onClick={() => {}}
-                  className="text-blue-600 hover:text-blue-900 text-sm"
-                >
-                  Download
-                </AnimatedButton>
+                        </div>
+                      </div>
               </div>
             </div>
           ))}
         </div>
-      </AnimatedCard>
-
-      {/* Report Generation */}
-      <AnimatedCard
-        title="Report Generation"
-        subtitle="Quick report generation and scheduling"
-        className="bg-white rounded-xl shadow-lg border border-gray-100"
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <AnimatedButton
-            onClick={() => {}}
-            className="flex items-center space-x-2 p-4 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors duration-200"
-          >
-            <span className="text-blue-600">📊</span>
-            <span className="text-sm font-medium text-gray-700">Generate Report</span>
-          </AnimatedButton>
-          <AnimatedButton
-            onClick={() => {}}
-            className="flex items-center space-x-2 p-4 rounded-lg bg-green-50 hover:bg-green-100 transition-colors duration-200"
-          >
-            <span className="text-green-600">⏰</span>
-            <span className="text-sm font-medium text-gray-700">Schedule Report</span>
-          </AnimatedButton>
-          <AnimatedButton
-            onClick={() => {}}
-            className="flex items-center space-x-2 p-4 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors duration-200"
-          >
-            <span className="text-purple-600">📁</span>
-            <span className="text-sm font-medium text-gray-700">Export Data</span>
-          </AnimatedButton>
-          <AnimatedButton
-            onClick={() => {}}
-            className="flex items-center space-x-2 p-4 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors duration-200"
-          >
-            <span className="text-orange-600">⚙️</span>
-            <span className="text-sm font-medium text-gray-700">Settings</span>
-          </AnimatedButton>
         </div>
-      </AnimatedCard>
-
-      {/* Report Analytics */}
-      <AnimatedCard
-        title="Report Analytics"
-        subtitle="Key performance indicators"
-        className="bg-white rounded-xl shadow-lg border border-gray-100"
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-3">Report Generation</h4>
-            <AnimatedProgressBar
-              progress={85}
-              color="blue"
-              height={8}
-              showLabel={true}
-            />
-            <AnimatedProgressBar
-              progress={72}
-              color="green"
-              height={8}
-              showLabel={true}
-            />
-          </div>
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-3">Report Usage</h4>
-            <AnimatedProgressBar
-              progress={78}
-              color="purple"
-              height={8}
-              showLabel={true}
-            />
-            <AnimatedProgressBar
-              progress={65}
-              color="orange"
-              height={8}
-              showLabel={true}
-            />
+          )}
           </div>
         </div>
-      </AnimatedCard>
     </div>
   );
 };

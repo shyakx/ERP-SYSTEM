@@ -16,83 +16,78 @@ import {
   Shield,
   UserPlus
 } from 'lucide-react';
+import { useApiList } from '../../../../hooks/useApi';
+import { employeeAPI } from '../../../../services/api';
+
+interface Employee {
+  id: string;
+  employeeId: string;
+  position: string;
+  department: string;
+  location: string;
+  phone: string;
+  email: string;
+  status: string;
+  hireDate: string;
+  salary: string;
+  performance: string;
+  userAccount?: {
+    firstName: string;
+    lastName: string;
+  };
+}
 
 const HROverview: React.FC = () => {
-  // Mock Rwandan employee data
-  const employees = [
-    {
-      id: 1,
-      name: 'Jean Pierre Uwimana',
-      position: 'Security Guard',
-      department: 'Field Operations',
-      location: 'Kigali, Rwanda',
-      phone: '+250 788 123 456',
-      email: 'jean.uwimana@dicel.co.rw',
-      status: 'Active',
-      hireDate: '2023-01-15',
-      salary: 'RWF 450,000',
-      performance: 'Excellent'
-    },
-    {
-      id: 2,
-      name: 'Marie Claire Niyonsaba',
-      position: 'HR Manager',
-      department: 'Human Resources',
-      location: 'Kigali, Rwanda',
-      phone: '+250 789 234 567',
-      email: 'marie.niyonsaba@dicel.co.rw',
-      status: 'Active',
-      hireDate: '2022-08-20',
-      salary: 'RWF 850,000',
-      performance: 'Outstanding'
-    },
-    {
-      id: 3,
-      name: 'Emmanuel Ndayisaba',
-      position: 'Security Supervisor',
-      department: 'Field Operations',
-      location: 'Huye, Rwanda',
-      phone: '+250 787 345 678',
-      email: 'emmanuel.ndayisaba@dicel.co.rw',
-      status: 'Active',
-      hireDate: '2022-11-10',
-      salary: 'RWF 600,000',
-      performance: 'Good'
-    },
-    {
-      id: 4,
-      name: 'Ange Uwineza',
-      position: 'Finance Officer',
-      department: 'Finance',
-      location: 'Kigali, Rwanda',
-      phone: '+250 786 456 789',
-      email: 'ange.uwineza@dicel.co.rw',
-      status: 'Active',
-      hireDate: '2023-03-05',
-      salary: 'RWF 700,000',
-      performance: 'Excellent'
-    },
-    {
-      id: 5,
-      name: 'Patrick Nshimiyimana',
-      position: 'Security Guard',
-      department: 'Field Operations',
-      location: 'Musanze, Rwanda',
-      phone: '+250 785 567 890',
-      email: 'patrick.nshimiyimana@dicel.co.rw',
-      status: 'On Leave',
-      hireDate: '2023-06-12',
-      salary: 'RWF 450,000',
-      performance: 'Good'
-    }
+  // Fetch employees with API
+  const { 
+    items: employees, 
+    loading, 
+    error, 
+    total
+  } = useApiList(employeeAPI.getAll, {
+    page: 1,
+    limit: 10,
+    search: "",
+    status: "all",
+    department: "all"
+  });
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="flex">
+          <AlertCircle className="h-5 w-5 text-red-400" />
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-red-800">Error loading HR data</h3>
+            <div className="mt-2 text-sm text-red-700">{error}</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const hrStats = [
+    { title: 'Total Employees', value: total?.toString() || '0', change: '+12%', icon: Users, color: 'text-blue-600' },
+    { title: 'Active Employees', value: employees?.filter((emp: Employee) => emp.status === 'Active').length?.toString() || '0', change: '+8%', icon: CheckCircle, color: 'text-green-600' },
+    { title: 'New Hires', value: '15', change: '+5', icon: UserPlus, color: 'text-purple-600' },
+    { title: 'Departments', value: '8', change: '+1', icon: Building, color: 'text-orange-600' }
   ];
 
-  const stats = [
-    { title: 'Total Employees', value: '127', change: '+12%', icon: Users, color: 'text-blue-600' },
-    { title: 'Active Guards', value: '89', change: '+8%', icon: Shield, color: 'text-green-600' },
-    { title: 'New Hires', value: '15', change: '+25%', icon: TrendingUp, color: 'text-purple-600' },
-    { title: 'Training Sessions', value: '8', change: '+3', icon: Award, color: 'text-orange-600' }
-  ];
+  const recentEmployees = employees?.slice(0, 5).map((employee: Employee) => ({
+    name: `${employee.userAccount?.firstName || ''} ${employee.userAccount?.lastName || ''}`,
+    position: employee.position,
+    location: employee.location,
+    status: employee.status,
+    avatar: `${employee.userAccount?.firstName?.charAt(0) || ''}${employee.userAccount?.lastName?.charAt(0) || ''}`
+  })) || [];
 
   const recentActivities = [
     {
@@ -161,7 +156,7 @@ const HROverview: React.FC = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
+        {hrStats.map((stat, index) => (
           <div key={index} className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow duration-200">
             <div className="flex items-center justify-between">
               <div>
@@ -187,34 +182,25 @@ const HROverview: React.FC = () => {
           </div>
           <div className="p-6">
             <div className="space-y-4">
-              {employees.slice(0, 4).map((employee) => (
-                <div key={employee.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+              {recentEmployees.map((employee: Employee, index: number) => (
+                <div key={index} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
                   <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center">
                     <span className="text-white font-semibold text-sm">
-                      {employee.name.split(' ').map(n => n[0]).join('')}
+                      {employee.userAccount?.firstName?.charAt(0)}{employee.userAccount?.lastName?.charAt(0)}
                     </span>
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">{employee.name}</h3>
-                    <p className="text-sm text-gray-600">{employee.position} • {employee.department}</p>
-                    <div className="flex items-center space-x-4 mt-1">
-                      <span className="flex items-center text-xs text-gray-500">
-                        <MapPin className="w-3 h-3 mr-1" />
-                        {employee.location}
-                      </span>
-                      <span className="flex items-center text-xs text-gray-500">
-                        <Phone className="w-3 h-3 mr-1" />
-                        {employee.phone}
-                      </span>
-                    </div>
+                    <h3 className="font-medium text-gray-900">
+                      {employee.userAccount?.firstName} {employee.userAccount?.lastName}
+                    </h3>
+                    <p className="text-sm text-gray-600">{employee.position}</p>
                   </div>
                   <div className="text-right">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      employee.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      employee.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                     }`}>
                       {employee.status}
                     </span>
-                    <p className="text-sm text-gray-600 mt-1">{employee.salary}</p>
                   </div>
                 </div>
               ))}

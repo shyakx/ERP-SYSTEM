@@ -55,16 +55,16 @@ const InventoryDashboard: React.FC = () => {
   ];
 
   const sidebarItems = [
-    { name: 'Dashboard', path: '/operations', icon: '🏠' },
-    { name: 'Overview', path: '/operations/overview', icon: '📊' },
-    { name: 'Stock Management', path: '/operations/stock', icon: '📦' },
-    { name: 'Asset Management', path: '/operations/assets', icon: '🏢' },
-    { name: 'Procurement', path: '/operations/procurement', icon: '🛒' },
-    { name: 'Maintenance', path: '/operations/maintenance', icon: '🔧' },
-    { name: 'Warehouse', path: '/operations/warehouse', icon: '🏭' },
-    { name: 'Quality Control', path: '/operations/quality', icon: '✅' },
-    { name: 'Reports', path: '/operations/reports', icon: '📈' },
-    { name: 'Analytics', path: '/operations/analytics', icon: '📊' }
+    { name: 'Dashboard', path: '/inventory', icon: '🏠' },
+    { name: 'Overview', path: '/inventory/overview', icon: '📊' },
+    { name: 'Stock Management', path: '/inventory/stock', icon: '📦' },
+    { name: 'Asset Management', path: '/inventory/assets', icon: '🏢' },
+    { name: 'Procurement', path: '/inventory/procurement', icon: '🛒' },
+    { name: 'Maintenance', path: '/inventory/maintenance', icon: '🔧' },
+    { name: 'Warehouse', path: '/inventory/warehouse', icon: '🏭' },
+    { name: 'Quality Control', path: '/inventory/quality', icon: '✅' },
+    { name: 'Reports', path: '/inventory/reports', icon: '📈' },
+    { name: 'Analytics', path: '/inventory/analytics', icon: '📊' }
   ];
 
   const getActivityColor = (type: string) => {
@@ -224,25 +224,25 @@ const InventoryDashboard: React.FC = () => {
     const path = location.pathname;
     
     switch (path) {
-      case '/operations':
+      case '/inventory':
         return <DashboardContent />;
-      case '/operations/overview':
+      case '/inventory/overview':
         return <InventoryOverview />;
-      case '/operations/stock':
+      case '/inventory/stock':
         return <StockManagement />;
-      case '/operations/assets':
+      case '/inventory/assets':
         return <AssetTracking />;
-      case '/operations/procurement':
+      case '/inventory/procurement':
         return <Procurement />;
-      case '/operations/maintenance':
+      case '/inventory/maintenance':
         return <Maintenance />;
-      case '/operations/warehouse':
+      case '/inventory/warehouse':
         return <WarehouseManagement />;
-      case '/operations/quality':
+      case '/inventory/quality':
         return <QualityControl />;
-      case '/operations/reports':
+      case '/inventory/reports':
         return <Reports />;
-      case '/operations/analytics':
+      case '/inventory/analytics':
         return <InventoryAnalytics />;
       default:
         return <DashboardContent />;
@@ -251,7 +251,7 @@ const InventoryDashboard: React.FC = () => {
 
   return (
     <DepartmentLayout
-      title="Operations Dashboard"
+      title="Inventory Dashboard"
       colorScheme={colorScheme}
       sidebarItems={sidebarItems}
     >

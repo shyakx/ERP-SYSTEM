@@ -1,63 +1,84 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AnimatedCard from '../../../shared/AnimatedCard';
 import { AnimatedButton, AnimatedProgressBar } from '../../../shared/AnimatedCard';
+import { useApiList } from '../../../../hooks/useApi';
+import { vendorAPI } from '../../../../services/api.ts';
+import { Loader2, Plus, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+
+interface Vendor {
+  id: string;
+  name: string;
+  companyName: string;
+  category: string;
+  currentBalance: number;
+  status: string;
+  paymentTerms: number;
+  contactPerson: string;
+  phone: string;
+  email: string;
+  vendorCode: string;
+}
 
 const AccountsPayable: React.FC = () => {
   const [selectedVendor, setSelectedVendor] = useState<string>('all');
+  const [payableStats, setPayableStats] = useState<any[]>([]);
 
-  const payableStats = [
-    { title: 'Total Payables', value: '45.2M RWF', subtitle: 'Outstanding', color: 'red', icon: '💸', trend: { value: '+8.5%', isPositive: false }, delay: 0 },
-    { title: 'Overdue Bills', value: '12.8M RWF', subtitle: 'Past Due', color: 'orange', icon: '⚠️', trend: { value: '-2.1%', isPositive: true }, delay: 100 },
-    { title: 'This Month', value: '8.3M RWF', subtitle: 'Due', color: 'blue', icon: '📅', trend: { value: '+15%', isPositive: false }, delay: 200 },
-    { title: 'Vendors', value: '24', subtitle: 'Active', color: 'green', icon: '🏢', trend: { value: '+2', isPositive: true }, delay: 300 }
-  ];
+  // Fetch vendors data
+  const { items: vendors, loading: vendorsLoading } = useApiList(vendorAPI.getAll, { limit: 50 });
 
-  const vendors = [
-    { id: 1, name: 'Tech Solutions Ltd', total: 8500000, overdue: 1200000, status: 'Active', category: 'IT Services' },
-    { id: 2, name: 'Office Supplies Co', total: 3200000, overdue: 450000, status: 'Active', category: 'Supplies' },
-    { id: 3, name: 'Security Equipment', total: 15600000, overdue: 0, status: 'Active', category: 'Equipment' },
-    { id: 4, name: 'Maintenance Services', total: 4200000, overdue: 800000, status: 'Active', category: 'Services' },
-    { id: 5, name: 'Marketing Agency', total: 6800000, overdue: 0, status: 'Active', category: 'Marketing' }
-  ];
+  // Calculate statistics from real data
+  useEffect(() => {
+    if (!vendorsLoading) {
+      const totalPayables = vendors.reduce((sum: number, v: Vendor) => sum + parseFloat(v.currentBalance?.toString() || '0'), 0);
+      const overdueVendors = vendors.filter((v: Vendor) => parseFloat(v.currentBalance?.toString() || '0') > 0);
+      const activeVendors = vendors.filter((v: Vendor) => v.status === 'active');
+      
+      // Calculate overdue amount (vendors with balances > 0)
+      const overdueAmount = overdueVendors.reduce((sum: number, v: Vendor) => sum + parseFloat(v.currentBalance?.toString() || '0'), 0);
+      
+      // This month's due (simplified calculation)
+      const thisMonthDue = totalPayables * 0.3; // 30% of total payables
 
-  const recentBills = [
-    {
-      id: 1,
-      vendor: 'Tech Solutions Ltd',
-      amount: 2500000,
-      dueDate: '2024-02-28',
-      status: 'Pending',
-      category: 'Software License',
-      invoice: 'INV-2024-001'
-    },
-    {
-      id: 2,
-      vendor: 'Office Supplies Co',
-      amount: 850000,
-      dueDate: '2024-02-25',
-      status: 'Overdue',
-      category: 'Office Supplies',
-      invoice: 'INV-2024-002'
-    },
-    {
-      id: 3,
-      vendor: 'Security Equipment',
-      amount: 4200000,
-      dueDate: '2024-03-05',
-      status: 'Pending',
-      category: 'Security Cameras',
-      invoice: 'INV-2024-003'
-    },
-    {
-      id: 4,
-      vendor: 'Maintenance Services',
-      amount: 1200000,
-      dueDate: '2024-02-20',
-      status: 'Overdue',
-      category: 'Building Maintenance',
-      invoice: 'INV-2024-004'
+      setPayableStats([
+        { 
+          title: 'Total Payables', 
+          value: formatCurrency(totalPayables), 
+          subtitle: 'Outstanding', 
+          color: 'red', 
+          icon: '💸', 
+          trend: { value: '+8.5%', isPositive: false }, 
+          delay: 0 
+        },
+        { 
+          title: 'Overdue Bills', 
+          value: formatCurrency(overdueAmount), 
+          subtitle: 'Past Due', 
+          color: 'orange', 
+          icon: '⚠️', 
+          trend: { value: '-2.1%', isPositive: true }, 
+          delay: 100 
+        },
+        { 
+          title: 'This Month', 
+          value: formatCurrency(thisMonthDue), 
+          subtitle: 'Due', 
+          color: 'blue', 
+          icon: '📅', 
+          trend: { value: '+15%', isPositive: false }, 
+          delay: 200 
+        },
+        { 
+          title: 'Vendors', 
+          value: activeVendors.length.toString(), 
+          subtitle: 'Active', 
+          color: 'green', 
+          icon: '🏢', 
+          trend: { value: '+2', isPositive: true }, 
+          delay: 300 
+        }
+      ]);
     }
-  ];
+  }, [vendors, vendorsLoading]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-RW', {
@@ -70,16 +91,35 @@ const AccountsPayable: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Pending': return 'text-blue-600 bg-blue-100';
-      case 'Overdue': return 'text-red-600 bg-red-100';
-      case 'Paid': return 'text-green-600 bg-green-100';
+      case 'active': return 'text-green-600 bg-green-100';
+      case 'inactive': return 'text-gray-600 bg-gray-100';
+      case 'suspended': return 'text-yellow-600 bg-yellow-100';
+      case 'blacklisted': return 'text-red-600 bg-red-100';
       default: return 'text-gray-600 bg-gray-100';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'active': return <CheckCircle className="w-4 h-4" />;
+      case 'inactive': return <Clock className="w-4 h-4" />;
+      case 'suspended': return <AlertCircle className="w-4 h-4" />;
+      case 'blacklisted': return <AlertCircle className="w-4 h-4" />;
+      default: return <Clock className="w-4 h-4" />;
     }
   };
 
   const filteredVendors = selectedVendor === 'all' 
     ? vendors 
-    : vendors.filter(vendor => vendor.status === selectedVendor);
+    : vendors.filter((vendor: Vendor) => vendor.status === selectedVendor);
+
+  if (vendorsLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -91,238 +131,157 @@ const AccountsPayable: React.FC = () => {
         </div>
         <AnimatedButton
           onClick={() => {}}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
         >
-          + Add New Bill
+          <Plus className="w-4 h-4" />
+          <span>+ Add New Bill</span>
         </AnimatedButton>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {payableStats.map((stat, index) => (
-          <div
-            key={index}
-            className="bg-white rounded-xl p-4 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300"
-            style={{ animationDelay: `${stat.delay}ms` }}
-          >
+          <AnimatedCard key={index} delay={stat.delay} className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                <p className="text-xs text-gray-500">{stat.subtitle}</p>
-              </div>
-              <div className="text-2xl">{stat.icon}</div>
-            </div>
-            {stat.trend && (
-              <div className={`flex items-center mt-2 text-xs ${
+                <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
+                <p className="text-sm text-gray-500">{stat.subtitle}</p>
+                <div className="flex items-center mt-2">
+                  <span className={`text-sm font-medium ${
                 stat.trend.isPositive ? 'text-green-600' : 'text-red-600'
               }`}>
-                <span>{stat.trend.isPositive ? '↗' : '↘'}</span>
-                <span className="ml-1">{stat.trend.value}</span>
+                    {stat.trend.value}
+                  </span>
+                  <span className="text-sm text-gray-500 ml-1">from last month</span>
+                </div>
               </div>
-            )}
+              <div className="text-3xl">{stat.icon}</div>
           </div>
+          </AnimatedCard>
         ))}
       </div>
 
-      {/* Vendor Management */}
-      <AnimatedCard
-        title="Vendor Overview"
-        subtitle="Manage vendor relationships and outstanding amounts"
-        className="bg-white rounded-xl shadow-lg border border-gray-100"
-      >
-        <div className="mb-4">
+      {/* Filter */}
           <div className="flex items-center space-x-4">
             <label className="text-sm font-medium text-gray-700">Filter by Status:</label>
             <select
               value={selectedVendor}
               onChange={(e) => setSelectedVendor(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-1 text-sm"
+          className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Vendors</option>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+          <option value="suspended">Suspended</option>
+          <option value="blacklisted">Blacklisted</option>
             </select>
           </div>
+
+      {/* Vendors Table */}
+      <div className="card">
+        <div className="card-header">
+          <h3 className="text-lg font-semibold text-gray-900">Vendor Payables</h3>
         </div>
-        
+        <div className="card-body">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Outstanding</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Overdue</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Vendor
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Category
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Outstanding Balance
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Payment Terms
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Contact
+                  </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredVendors.map((vendor) => (
+                {filteredVendors.map((vendor: Vendor) => (
                 <tr key={vendor.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
                     <div className="text-sm font-medium text-gray-900">{vendor.name}</div>
+                        <div className="text-sm text-gray-500">{vendor.vendorCode}</div>
+                      </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{vendor.category}</div>
+                      <div className="text-sm text-gray-900">{vendor.category}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{formatCurrency(vendor.total)}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className={`text-sm font-medium ${
-                      vendor.overdue > 0 ? 'text-red-600' : 'text-green-600'
-                    }`}>
-                      {formatCurrency(vendor.overdue)}
+                      <div className="text-sm font-semibold text-red-600">
+                        {formatCurrency(parseFloat(vendor.currentBalance.toString()))}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      vendor.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {vendor.status}
+                      <div className="text-sm text-gray-900">{vendor.paymentTerms} days</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(vendor.status)}`}>
+                        {getStatusIcon(vendor.status)}
+                        <span className="ml-1">{vendor.status}</span>
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <AnimatedButton
-                      onClick={() => {}}
-                      className="text-blue-600 hover:text-blue-900 mr-3"
-                    >
-                      View
-                    </AnimatedButton>
-                    <AnimatedButton
-                      onClick={() => {}}
-                      className="text-green-600 hover:text-green-900"
-                    >
-                      Pay
-                    </AnimatedButton>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm text-gray-900">{vendor.contactPerson}</div>
+                        <div className="text-sm text-gray-500">{vendor.email}</div>
+                      </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </AnimatedCard>
+        </div>
+      </div>
 
-      {/* Recent Bills */}
-      <AnimatedCard
-        title="Recent Bills"
-        subtitle="Latest outstanding invoices and payments"
-        className="bg-white rounded-xl shadow-lg border border-gray-100"
-      >
-        <div className="space-y-3">
-          {recentBills.map((bill) => (
-            <div
-              key={bill.id}
-              className="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-200"
-            >
-              <div className="flex items-center space-x-4">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <span className="text-blue-600 text-sm font-medium">💰</span>
+      {/* Recent Bills Section */}
+      <div className="card">
+        <div className="card-header">
+          <h3 className="text-lg font-semibold text-gray-900">Recent Bills</h3>
+        </div>
+        <div className="card-body">
+          <div className="space-y-4">
+            {vendors
+              .filter((v: Vendor) => parseFloat(v.currentBalance.toString()) > 0)
+              .slice(0, 5)
+              .map((vendor: Vendor) => (
+                <div key={vendor.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="text-blue-600 font-semibold">
+                        {vendor.name.charAt(0).toUpperCase()}
+                      </span>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">{bill.vendor}</p>
-                  <p className="text-sm text-gray-500">{bill.category} • {bill.invoice}</p>
+                      <p className="text-sm font-medium text-gray-900">{vendor.name}</p>
+                      <p className="text-xs text-gray-500">{vendor.category}</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="font-semibold text-gray-900">{formatCurrency(bill.amount)}</p>
-                <p className="text-sm text-gray-500">Due: {bill.dueDate}</p>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(bill.status)}`}>
-                  {bill.status}
-                </span>
-                <AnimatedButton
-                  onClick={() => {}}
-                  className="text-blue-600 hover:text-blue-900 text-sm"
-                >
-                  Process
-                </AnimatedButton>
+                    <p className="text-sm font-semibold text-red-600">
+                      {formatCurrency(parseFloat(vendor.currentBalance.toString()))}
+                    </p>
+                    <p className="text-xs text-gray-500">Outstanding</p>
               </div>
             </div>
           ))}
         </div>
-      </AnimatedCard>
-
-      {/* Payment Processing */}
-      <AnimatedCard
-        title="Payment Processing"
-        subtitle="Quick payment actions and approvals"
-        className="bg-white rounded-xl shadow-lg border border-gray-100"
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <AnimatedButton
-            onClick={() => {}}
-            className="flex items-center space-x-2 p-4 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors duration-200"
-          >
-            <span className="text-blue-600">💳</span>
-            <span className="text-sm font-medium text-gray-700">Process Payments</span>
-          </AnimatedButton>
-          <AnimatedButton
-            onClick={() => {}}
-            className="flex items-center space-x-2 p-4 rounded-lg bg-green-50 hover:bg-green-100 transition-colors duration-200"
-          >
-            <span className="text-green-600">✅</span>
-            <span className="text-sm font-medium text-gray-700">Approve Bills</span>
-          </AnimatedButton>
-          <AnimatedButton
-            onClick={() => {}}
-            className="flex items-center space-x-2 p-4 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors duration-200"
-          >
-            <span className="text-purple-600">📊</span>
-            <span className="text-sm font-medium text-gray-700">Generate Reports</span>
-          </AnimatedButton>
-          <AnimatedButton
-            onClick={() => {}}
-            className="flex items-center space-x-2 p-4 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors duration-200"
-          >
-            <span className="text-orange-600">⚙️</span>
-            <span className="text-sm font-medium text-gray-700">Settings</span>
-          </AnimatedButton>
-        </div>
-      </AnimatedCard>
-
-      {/* Payment Analytics */}
-      <AnimatedCard
-        title="Payment Analytics"
-        subtitle="Key performance indicators"
-        className="bg-white rounded-xl shadow-lg border border-gray-100"
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-3">Payment Trends</h4>
-            <AnimatedProgressBar
-              progress={75}
-              color="blue"
-              height={8}
-              showLabel={true}
-            />
-            <AnimatedProgressBar
-              progress={60}
-              color="green"
-              height={8}
-              showLabel={true}
-            />
-          </div>
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-3">Vendor Performance</h4>
-            <AnimatedProgressBar
-              progress={85}
-              color="purple"
-              height={8}
-              showLabel={true}
-            />
-            <AnimatedProgressBar
-              progress={92}
-              color="orange"
-              height={8}
-              showLabel={true}
-            />
           </div>
         </div>
-      </AnimatedCard>
     </div>
   );
 };

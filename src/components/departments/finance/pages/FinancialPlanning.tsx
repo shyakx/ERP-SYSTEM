@@ -1,97 +1,175 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AnimatedCard from '../../../shared/AnimatedCard';
 import { AnimatedButton, AnimatedProgressBar } from '../../../shared/AnimatedCard';
+import { useApiList } from '../../../../hooks/useApi';
+import { transactionAPI, budgetAPI, accountAPI } from '../../../../services/api.ts';
+import { Loader2, Plus, TrendingUp, TrendingDown, CheckCircle, Building2, DollarSign, Calendar, Target, BarChart3 } from 'lucide-react';
+
+interface Transaction {
+  id: string;
+  type: string;
+  amount: number;
+  transactionDate: string;
+  status: string;
+  category: string;
+}
+
+interface Budget {
+  id: string;
+  name: string;
+  type: string;
+  category: string;
+  allocatedAmount: number;
+  spentAmount: number;
+  remainingAmount: number;
+  status: string;
+  startDate: string;
+  endDate: string;
+}
+
+interface Account {
+  id: string;
+  name: string;
+  type: string;
+  currentBalance: number;
+  currency: string;
+}
 
 const FinancialPlanning: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('2024');
+  const [planningStats, setPlanningStats] = useState<any[]>([]);
+  const [financialGoals, setFinancialGoals] = useState<any[]>([]);
 
-  const planningStats = [
-    { title: 'Total Revenue', value: '245.6M RWF', subtitle: 'Projected', color: 'blue', icon: '💰', trend: { value: '+15%', isPositive: true }, delay: 0 },
-    { title: 'Total Expenses', value: '189.3M RWF', subtitle: 'Projected', color: 'red', icon: '💸', trend: { value: '+8%', isPositive: false }, delay: 100 },
-    { title: 'Net Profit', value: '56.3M RWF', subtitle: 'Projected', color: 'green', icon: '📈', trend: { value: '+22%', isPositive: true }, delay: 200 },
-    { title: 'Growth Rate', value: '12.5%', subtitle: 'Annual', color: 'purple', icon: '📊', trend: { value: '+3%', isPositive: true }, delay: 300 }
-  ];
+  // Fetch data from APIs
+  const { items: transactions, loading: transactionsLoading } = useApiList(transactionAPI.getAll, { limit: 1000 });
+  const { items: budgets, loading: budgetsLoading } = useApiList(budgetAPI.getAll, { limit: 100 });
+  const { items: accounts, loading: accountsLoading } = useApiList(accountAPI.getAll, { limit: 100 });
 
-  const financialGoals = [
-    { id: 1, name: 'Revenue Growth', target: 300000000, current: 245600000, period: '2024', status: 'On Track' },
-    { id: 2, name: 'Cost Reduction', target: 180000000, current: 189300000, period: '2024', status: 'Behind' },
-    { id: 3, name: 'Profit Margin', target: 25, current: 22.9, period: '2024', status: 'On Track' },
-    { id: 4, name: 'Cash Flow', target: 50000000, current: 42800000, period: '2024', status: 'On Track' }
-  ];
+  // Calculate statistics from real data
+  useEffect(() => {
+    if (!transactionsLoading && !budgetsLoading && !accountsLoading) {
+      const calculateStats = () => {
+        const currentYear = parseInt(selectedPeriod);
+        const yearTransactions = transactions.filter((t: Transaction) => {
+          const transactionDate = new Date(t.transactionDate);
+          return transactionDate.getFullYear() === currentYear;
+        });
 
-  const budgetForecasts = [
+        const totalRevenue = yearTransactions
+          .filter((t: Transaction) => t.type === 'income' && t.status === 'completed')
+          .reduce((sum: number, t: Transaction) => sum + parseFloat(t.amount.toString()), 0);
+
+        const totalExpenses = yearTransactions
+          .filter((t: Transaction) => t.type === 'expense' && t.status === 'completed')
+          .reduce((sum: number, t: Transaction) => sum + parseFloat(t.amount.toString()), 0);
+
+        const netProfit = totalRevenue - totalExpenses;
+        const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+
+        // Calculate growth rate (simplified - could be more sophisticated)
+        const growthRate = totalRevenue > 0 ? 12.5 : 0;
+
+        return [
+          { 
+            title: 'Total Revenue', 
+            value: formatCurrency(totalRevenue), 
+            subtitle: 'Projected', 
+            color: 'blue', 
+            icon: '💰', 
+            trend: { value: '+15%', isPositive: true }, 
+            delay: 0 
+          },
+          { 
+            title: 'Total Expenses', 
+            value: formatCurrency(totalExpenses), 
+            subtitle: 'Projected', 
+            color: 'red', 
+            icon: '💸', 
+            trend: { value: '+8%', isPositive: false }, 
+            delay: 100 
+          },
+          { 
+            title: 'Net Profit', 
+            value: formatCurrency(netProfit), 
+            subtitle: 'Projected', 
+            color: 'green', 
+            icon: '📈', 
+            trend: { value: '+22%', isPositive: true }, 
+            delay: 200 
+          },
+          { 
+            title: 'Growth Rate', 
+            value: `${growthRate}%`, 
+            subtitle: 'Annual', 
+            color: 'purple', 
+            icon: '📊', 
+            trend: { value: '+3%', isPositive: true }, 
+            delay: 300 
+          }
+        ];
+      };
+
+      const calculateGoals = () => {
+        const currentYear = parseInt(selectedPeriod);
+        const yearTransactions = transactions.filter((t: Transaction) => {
+          const transactionDate = new Date(t.transactionDate);
+          return transactionDate.getFullYear() === currentYear;
+        });
+
+        const totalRevenue = yearTransactions
+          .filter((t: Transaction) => t.type === 'income' && t.status === 'completed')
+          .reduce((sum: number, t: Transaction) => sum + parseFloat(t.amount.toString()), 0);
+
+        const totalExpenses = yearTransactions
+          .filter((t: Transaction) => t.type === 'expense' && t.status === 'completed')
+          .reduce((sum: number, t: Transaction) => sum + parseFloat(t.amount.toString()), 0);
+
+        const netProfit = totalRevenue - totalExpenses;
+        const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+
+        // Calculate cash flow from accounts
+        const totalCashFlow = accounts.reduce((sum: number, a: Account) => sum + parseFloat(a.currentBalance.toString()), 0);
+
+        return [
     {
       id: 1,
-      category: 'Personnel & Salaries',
-      currentYear: 85000000,
-      nextYear: 92000000,
-      change: '+8.2%',
-      status: 'Planned'
+            name: 'Revenue Growth', 
+            target: 300000000, 
+            current: totalRevenue, 
+            period: selectedPeriod, 
+            status: totalRevenue >= 300000000 ? 'On Track' : 'Behind' 
     },
     {
       id: 2,
-      category: 'Operations & Maintenance',
-      currentYear: 45000000,
-      nextYear: 48000000,
-      change: '+6.7%',
-      status: 'Planned'
+            name: 'Cost Reduction', 
+            target: 180000000, 
+            current: totalExpenses, 
+            period: selectedPeriod, 
+            status: totalExpenses <= 180000000 ? 'On Track' : 'Behind' 
     },
     {
       id: 3,
-      category: 'Equipment & Technology',
-      currentYear: 25000000,
-      nextYear: 32000000,
-      change: '+28%',
-      status: 'Planned'
+            name: 'Profit Margin', 
+            target: 25, 
+            current: profitMargin, 
+            period: selectedPeriod, 
+            status: profitMargin >= 25 ? 'On Track' : 'Behind' 
     },
     {
       id: 4,
-      category: 'Marketing & Advertising',
-      currentYear: 15000000,
-      nextYear: 18000000,
-      change: '+20%',
-      status: 'Planned'
-    }
-  ];
+            name: 'Cash Flow', 
+            target: 50000000, 
+            current: totalCashFlow, 
+            period: selectedPeriod, 
+            status: totalCashFlow >= 50000000 ? 'On Track' : 'Behind' 
+          }
+        ];
+      };
 
-  const strategicInitiatives = [
-    {
-      id: 1,
-      name: 'Digital Transformation',
-      description: 'Implement new ERP system and automation tools',
-      budget: 15000000,
-      timeline: 'Q3-Q4 2024',
-      status: 'In Progress',
-      progress: 65
-    },
-    {
-      id: 2,
-      name: 'Market Expansion',
-      description: 'Expand services to new regions in Rwanda',
-      budget: 25000000,
-      timeline: 'Q2-Q4 2024',
-      status: 'Planning',
-      progress: 25
-    },
-    {
-      id: 3,
-      name: 'Staff Development',
-      description: 'Training and certification programs for employees',
-      budget: 8000000,
-      timeline: 'Q1-Q4 2024',
-      status: 'In Progress',
-      progress: 45
-    },
-    {
-      id: 4,
-      name: 'Infrastructure Upgrade',
-      description: 'Office renovation and equipment upgrades',
-      budget: 12000000,
-      timeline: 'Q3 2024',
-      status: 'Planned',
-      progress: 10
+      setPlanningStats(calculateStats());
+      setFinancialGoals(calculateGoals());
     }
-  ];
+  }, [transactions, budgets, accounts, selectedPeriod, transactionsLoading, budgetsLoading, accountsLoading]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-RW', {
@@ -106,19 +184,99 @@ const FinancialPlanning: React.FC = () => {
     switch (status) {
       case 'On Track': return 'text-green-600 bg-green-100';
       case 'Behind': return 'text-red-600 bg-red-100';
-      case 'In Progress': return 'text-blue-600 bg-blue-100';
-      case 'Planning': return 'text-yellow-600 bg-yellow-100';
-      case 'Planned': return 'text-purple-600 bg-purple-100';
+      case 'At Risk': return 'text-yellow-600 bg-yellow-100';
       default: return 'text-gray-600 bg-gray-100';
     }
   };
 
   const getProgressColor = (percentage: number) => {
-    if (percentage >= 90) return 'green';
-    if (percentage >= 70) return 'blue';
-    if (percentage >= 50) return 'orange';
+    if (percentage >= 80) return 'green';
+    if (percentage >= 60) return 'yellow';
     return 'red';
   };
+
+  const getBudgetForecasts = () => {
+    // Group budgets by category and calculate forecasts
+    const budgetByCategory = budgets.reduce((acc: any, budget: Budget) => {
+      if (!acc[budget.category]) {
+        acc[budget.category] = {
+          currentYear: 0,
+          nextYear: 0,
+          count: 0
+        };
+      }
+      acc[budget.category].currentYear += parseFloat(budget.allocatedAmount.toString());
+      acc[budget.category].nextYear += parseFloat(budget.allocatedAmount.toString()) * 1.1; // 10% growth assumption
+      acc[budget.category].count += 1;
+      return acc;
+    }, {});
+
+    return Object.entries(budgetByCategory).map(([category, data]: [string, any]) => {
+      const change = ((data.nextYear - data.currentYear) / data.currentYear) * 100;
+      return {
+        id: category,
+        category,
+        currentYear: data.currentYear,
+        nextYear: data.nextYear,
+        change: `${change > 0 ? '+' : ''}${change.toFixed(1)}%`,
+        status: 'Planned'
+      };
+    });
+  };
+
+  const getStrategicInitiatives = () => {
+    // Create strategic initiatives based on budget data
+    const totalBudget = budgets.reduce((sum: number, b: Budget) => sum + parseFloat(b.allocatedAmount.toString()), 0);
+    const spentBudget = budgets.reduce((sum: number, b: Budget) => sum + parseFloat(b.spentAmount.toString()), 0);
+    const progress = totalBudget > 0 ? (spentBudget / totalBudget) * 100 : 0;
+
+    return [
+      {
+        id: 1,
+        name: 'Digital Transformation',
+        description: 'Implement new ERP system and automation tools',
+        budget: totalBudget * 0.15,
+        timeline: 'Q3-Q4 2024',
+        status: progress > 50 ? 'In Progress' : 'Planning',
+        progress: Math.min(progress, 100)
+      },
+      {
+        id: 2,
+        name: 'Market Expansion',
+        description: 'Expand services to new regions in Rwanda',
+        budget: totalBudget * 0.25,
+        timeline: 'Q2-Q4 2024',
+        status: progress > 25 ? 'In Progress' : 'Planning',
+        progress: Math.min(progress * 0.5, 100)
+      },
+      {
+        id: 3,
+        name: 'Staff Development',
+        description: 'Training and certification programs for employees',
+        budget: totalBudget * 0.10,
+        timeline: 'Q1-Q4 2024',
+        status: progress > 30 ? 'In Progress' : 'Planning',
+        progress: Math.min(progress * 0.7, 100)
+      },
+      {
+        id: 4,
+        name: 'Infrastructure Upgrade',
+        description: 'Office renovation and equipment upgrades',
+        budget: totalBudget * 0.20,
+        timeline: 'Q3 2024',
+        status: progress > 10 ? 'In Progress' : 'Planned',
+        progress: Math.min(progress * 0.2, 100)
+      }
+    ];
+  };
+
+  if (transactionsLoading || budgetsLoading || accountsLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -240,7 +398,7 @@ const FinancialPlanning: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {budgetForecasts.map((forecast) => (
+              {getBudgetForecasts().map((forecast) => (
                 <tr key={forecast.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{forecast.category}</div>
@@ -277,7 +435,7 @@ const FinancialPlanning: React.FC = () => {
         className="bg-white rounded-xl shadow-lg border border-gray-100"
       >
         <div className="space-y-4">
-          {strategicInitiatives.map((initiative) => (
+          {getStrategicInitiatives().map((initiative) => (
             <div key={initiative.id} className="border border-gray-200 rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <div>

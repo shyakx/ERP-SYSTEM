@@ -4,346 +4,65 @@ import {
   Send, 
   Paperclip,
   Search,
-  Filter,
-  Eye,
-  Edit,
-  Plus,
-  Calendar,
-  User,
-  Target,
-  TrendingUp,
-  Activity,
-  BarChart3,
-  PieChart,
-  Download,
-  Phone,
-  Mail,
   Star,
   CheckCircle,
   MoreHorizontal,
   Smile,
-  Image,
   FileText,
   Video,
-  Mic,
+  Phone,
   Users,
   Lock,
   Globe,
   Hash,
-  AtSign,
-  Bell,
   Settings,
-  Sparkles,
-  Zap,
-  Heart,
-  ThumbsUp,
-  ThumbsDown,
-  Reply,
-  Forward,
-  Archive,
-  Trash2,
-  Volume2,
-  VolumeX,
-  Shield,
-  Crown,
-  Monitor,
-  MapPin
+  X
 } from "lucide-react";
-
-interface Message {
-  id: string;
-  sender: string;
-  senderAvatar: string;
-  content: string;
-  timestamp: string;
-  type: 'text' | 'file' | 'image' | 'video';
-  fileUrl?: string;
-  fileName?: string;
-  fileSize?: string;
-  isRead: boolean;
-  isStarred: boolean;
-  reactions: { emoji: string; count: number; users: string[] }[];
-  isEdited?: boolean;
-  isForwarded?: boolean;
-}
-
-interface Conversation {
-  id: string;
-  name: string;
-  type: 'direct' | 'group' | 'channel';
-  avatar: string;
-  lastMessage: string;
-  lastMessageTime: string;
-  unreadCount: number;
-  isOnline: boolean;
-  members: string[];
-  isPinned: boolean;
-  isMuted?: boolean;
-  isArchived?: boolean;
-  role?: 'admin' | 'moderator' | 'member';
-}
-
-interface Channel {
-  id: string;
-  name: string;
-  description: string;
-  memberCount: number;
-  isPrivate: boolean;
-  lastActivity: string;
-  topics: string[];
-  isJoined?: boolean;
-  isMuted?: boolean;
-}
+import { useMessaging } from "../../hooks/useMessaging";
 
 const InternalMessaging: React.FC = () => {
-  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const {
+    conversations,
+    channels,
+    contacts,
+    currentMessages,
+    currentConversation,
+    selectedConversation,
+    loading,
+    error,
+    isTyping,
+    setSelectedConversation,
+    sendMessage,
+    addReaction,
+    sendTypingIndicator,
+    createConversation,
+    joinChannel,
+    searchMessages,
+    totalUnreadCount
+  } = useMessaging();
+
   const [messageText, setMessageText] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [showFileUpload, setShowFileUpload] = useState(false);
   const [activeTab, setActiveTab] = useState<'conversations' | 'channels' | 'contacts'>('conversations');
-  const [isTyping, setIsTyping] = useState(false);
-  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [showReactions, setShowReactions] = useState<string | null>(null);
-  const [selectedMessage, setSelectedMessage] = useState<string | null>(null);
-  const [showMessageMenu, setShowMessageMenu] = useState<string | null>(null);
-  const [messageReactions, setMessageReactions] = useState<{[key: string]: { emoji: string; count: number; users: string[] }[]}>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  const [messages, setMessages] = useState<Message[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const conversations: Conversation[] = [
-    {
-      id: "conv-1",
-      name: "Marie Claire Niyonsaba",
-      type: "direct",
-      avatar: "MC",
-      lastMessage: "Can you review the security audit report?",
-      lastMessageTime: "2 min ago",
-      unreadCount: 2,
-      isOnline: true,
-      members: ["Marie Claire Niyonsaba"],
-      isPinned: true,
-      role: "admin"
-    },
-    {
-      id: "conv-2",
-      name: "Finance Team",
-      type: "group",
-      avatar: "FT",
-      lastMessage: "Budget approval needed for Q2",
-      lastMessageTime: "15 min ago",
-      unreadCount: 0,
-      isOnline: false,
-      members: ["Finance Manager", "Accountant", "Analyst"],
-      isPinned: false,
-      isMuted: true
-    },
-    {
-      id: "conv-3",
-      name: "IT Support",
-      type: "group",
-      avatar: "IT",
-      lastMessage: "System maintenance scheduled for tonight",
-      lastMessageTime: "1 hour ago",
-      unreadCount: 5,
-      isOnline: true,
-      members: ["IT Manager", "Tech Support", "Network Admin"],
-      isPinned: true,
-      role: "moderator"
-    },
-    {
-      id: "conv-4",
-      name: "Security Alert",
-      type: "channel",
-      avatar: "SA",
-      lastMessage: "New security protocol implemented",
-      lastMessageTime: "3 hours ago",
-      unreadCount: 1,
-      isOnline: false,
-      members: ["Security Team"],
-      isPinned: true,
-      isArchived: false
-    },
-    {
-      id: "conv-5",
-      name: "HR Updates",
-      type: "channel",
-      avatar: "HR",
-      lastMessage: "New employee onboarding process",
-      lastMessageTime: "1 day ago",
-      unreadCount: 0,
-      isOnline: false,
-      members: ["HR Team"],
-      isPinned: false,
-      isMuted: true
-    }
-  ];
-
-  const channels: Channel[] = [
-    {
-      id: "channel-1",
-      name: "general",
-      description: "Company-wide announcements and updates",
-      memberCount: 45,
-      isPrivate: false,
-      lastActivity: "2 min ago",
-      topics: ["announcements", "updates", "general"],
-      isJoined: true,
-      isMuted: false
-    },
-    {
-      id: "channel-2",
-      name: "security-alerts",
-      description: "Real-time security notifications and alerts",
-      memberCount: 12,
-      isPrivate: true,
-      lastActivity: "5 min ago",
-      topics: ["security", "alerts", "incidents"],
-      isJoined: true,
-      isMuted: false
-    },
-    {
-      id: "channel-3",
-      name: "tech-support",
-      description: "Technical support and IT assistance",
-      memberCount: 8,
-      isPrivate: false,
-      lastActivity: "1 hour ago",
-      topics: ["support", "technical", "help"],
-      isJoined: true,
-      isMuted: true
-    },
-    {
-      id: "channel-4",
-      name: "project-alpha",
-      description: "Project Alpha development team",
-      memberCount: 15,
-      isPrivate: true,
-      lastActivity: "2 hours ago",
-      topics: ["development", "project", "alpha"],
-      isJoined: false,
-      isMuted: false
-    }
-  ];
-
-  // Separate messages for each conversation
-  const conversationMessages: { [key: string]: Message[] } = {
-    "conv-1": [
-      {
-        id: "msg-1",
-        sender: "Marie Claire Niyonsaba",
-        senderAvatar: "MC",
-        content: "Hi! Can you review the security audit report I just uploaded?",
-        timestamp: "10:30 AM",
-        type: "text",
-        isRead: true,
-        isStarred: false,
-        reactions: [{ emoji: "👍", count: 2, users: ["You", "Admin"] }]
-      },
-      {
-        id: "msg-2",
-        sender: "You",
-        senderAvatar: "Y",
-        content: "Sure! I'll take a look at it right away. Which specific sections should I focus on?",
-        timestamp: "10:32 AM",
-        type: "text",
-        isRead: true,
-        isStarred: false,
-        reactions: []
-      },
-      {
-        id: "msg-3",
-        sender: "Marie Claire Niyonsaba",
-        senderAvatar: "MC",
-        content: "Please check the access control section and the incident response procedures. I've highlighted the areas that need attention.",
-        timestamp: "10:35 AM",
-        type: "text",
-        isRead: true,
-        isStarred: true,
-        reactions: [{ emoji: "⭐", count: 1, users: ["You"] }]
-      },
-      {
-        id: "msg-4",
-        sender: "You",
-        senderAvatar: "Y",
-        content: "Perfect! I can see the highlighted sections. I'll review them and get back to you with my feedback by end of day.",
-        timestamp: "10:37 AM",
-        type: "text",
-        isRead: false,
-        isStarred: false,
-        reactions: [{ emoji: "👍", count: 1, users: ["Marie Claire Niyonsaba"] }]
-      },
-      {
-        id: "msg-5",
-        sender: "Marie Claire Niyonsaba",
-        senderAvatar: "MC",
-        content: "Great! Also, I've attached the latest compliance checklist. Can you verify if we're meeting all the requirements?",
-        timestamp: "10:40 AM",
-        type: "file",
-        fileName: "compliance-checklist-2024.pdf",
-        fileSize: "2.3 MB",
-        isRead: false,
-        isStarred: false,
-        reactions: []
-      }
-    ]
-  };
-
-  const contacts = [
-    { name: "Marie Claire Niyonsaba", role: "Security Manager", avatar: "MC", isOnline: true },
-    { name: "Finance Manager", role: "Finance Department", avatar: "FM", isOnline: false },
-    { name: "IT Manager", role: "IT Department", avatar: "IM", isOnline: true },
-    { name: "HR Manager", role: "Human Resources", avatar: "HM", isOnline: false },
-    { name: "Operations Lead", role: "Operations", avatar: "OL", isOnline: true }
-  ];
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    scrollToBottom();
-  }, [selectedConversation]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [currentMessages]);
 
-  const handleSendMessage = () => {
-    if (messageText.trim()) {
-      setSuccessMessage('Message sent successfully! ✨');
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
-      setMessageText("");
-      
-      // Simulate typing indicator
-      setIsTyping(true);
-      setTimeout(() => setIsTyping(false), 2000);
-    }
-  };
-
+  // Handle typing indicator
   const handleTyping = () => {
-    setIsTyping(true);
-    if (typingTimeout) {
-      clearTimeout(typingTimeout);
+    if (selectedConversation) {
+      sendTypingIndicator(selectedConversation, true);
     }
-    const timeout = setTimeout(() => setIsTyping(false), 3000);
-    setTypingTimeout(timeout);
   };
 
-  const addReaction = (messageId: string, emoji: string) => {
-    setMessageReactions(prev => ({
-      ...prev,
-      [messageId]: [
-        ...(prev[messageId] || []),
-        { emoji, count: 1, users: ['You'] }
-      ]
-    }));
-  };
-
-  const handleMessageMenu = (messageId: string) => {
-    setShowMessageMenu(showMessageMenu === messageId ? null : messageId);
-  };
-
+  // Handle key press for sending messages
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -351,130 +70,321 @@ const InternalMessaging: React.FC = () => {
     }
   };
 
-  const getConversationById = (id: string) => {
-    return conversations.find(conv => conv.id === id);
+  // Send message
+  const handleSendMessage = async () => {
+    if (!messageText.trim() || !selectedConversation) return;
+
+    try {
+      await sendMessage(selectedConversation, messageText.trim());
+      setMessageText("");
+      setShowSuccess(true);
+      setSuccessMessage('Message sent successfully!');
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (err) {
+      console.error('Failed to send message:', err);
+    }
   };
 
-  const getUnreadCount = () => {
-    return conversations.reduce((total, conv) => total + conv.unreadCount, 0);
+  // Handle file upload
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !selectedConversation) return;
+
+    try {
+      await sendMessage(selectedConversation, `Sent: ${file.name}`, 'file', file);
+      setShowSuccess(true);
+      setSuccessMessage('File uploaded successfully!');
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (err) {
+      console.error('Failed to upload file:', err);
+    }
   };
 
-  const getOnlineCount = () => {
-    return conversations.filter(conv => conv.isOnline).length;
+  // Search functionality
+  const handleSearch = async () => {
+    if (!searchTerm.trim()) return;
+    
+    try {
+      const results = await searchMessages(searchTerm);
+      console.log('Search results:', results);
+    } catch (err) {
+      console.error('Search failed:', err);
+    }
+  };
+
+  // Filter conversations
+  const filteredConversations = conversations.filter(conv => {
+    if (selectedFilter === 'all') return true;
+    if (selectedFilter === 'unread') return conv.unreadCount > 0;
+    if (selectedFilter === 'pinned') return conv.isPinned;
+    if (selectedFilter === 'direct') return conv.type === 'direct';
+    if (selectedFilter === 'group') return conv.type === 'group';
+    if (selectedFilter === 'channel') return conv.type === 'channel';
+    return true;
+  });
+
+  // Filter channels
+  const filteredChannels = channels.filter(channel => {
+    if (selectedFilter === 'all') return true;
+    if (selectedFilter === 'joined') return channel.isJoined;
+    if (selectedFilter === 'public') return !channel.isPrivate;
+    if (selectedFilter === 'private') return channel.isPrivate;
+    return true;
+  });
+
+  // Filter contacts
+  const filteredContacts = contacts.filter(contact => {
+    if (selectedFilter === 'all') return true;
+    if (selectedFilter === 'online') return contact.isOnline;
+    return true;
+  });
+
+  // Open in new tab
+  const openInNewTab = () => {
+    window.open('/messages/fullscreen', '_blank');
   };
 
   return (
-    <>
-      {/* Success Notification */}
-      {showSuccess && (
-        <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right duration-300">
-          <div className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2 border border-green-400">
-            <CheckCircle className="w-5 h-5" />
-            <span className="font-medium">{successMessage}</span>
-          </div>
+    <div className="fixed inset-0 z-50 bg-white">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <MessageSquare className="w-6 h-6 text-blue-600" />
+          <h1 className="text-xl font-bold text-gray-800">Internal Messaging</h1>
         </div>
-      )}
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={openInNewTab}
+            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300"
+            title="Open in new tab"
+          >
+            <Globe className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => window.close()}
+            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-300"
+            title="Close"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
 
-      <div className="flex h-full bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
-        {/* Enhanced Sidebar */}
-        <div className="w-96 bg-white/90 backdrop-blur-xl border-r border-gray-200/50 flex flex-col shadow-xl">
-          {/* Search Bar */}
-          <div className="p-4 border-b border-gray-200/50 bg-white/50 backdrop-blur-sm flex-shrink-0">
+      {/* Main Content */}
+      <div className="flex h-[calc(100vh-80px)] bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        {/* Sidebar */}
+        <div className="w-80 bg-white/80 backdrop-blur-xl border-r border-gray-200/50 flex flex-col">
+          {/* Search and Filter Section */}
+          <div className="p-6 border-b border-gray-200/50">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-800">Messages</h2>
+              <div className="flex items-center space-x-2">
+                {totalUnreadCount > 0 && (
+                  <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                    {totalUnreadCount}
+                  </span>
+                )}
+                <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300">
+                  <Settings className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Search messages, people, or channels..."
+                placeholder="Search messages..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700 placeholder-gray-500 transition-all duration-200 text-sm"
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/90 backdrop-blur-sm"
               />
+            </div>
+
+            {/* Filter */}
+            <div className="mt-4">
+              <select
+                value={selectedFilter}
+                onChange={(e) => setSelectedFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/90 backdrop-blur-sm"
+              >
+                <option value="all">All</option>
+                <option value="unread">Unread</option>
+                <option value="pinned">Pinned</option>
+                <option value="direct">Direct Messages</option>
+                <option value="group">Groups</option>
+                <option value="channel">Channels</option>
+              </select>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="flex border-b border-gray-200/50 bg-white/50 backdrop-blur-sm flex-shrink-0">
+          <div className="flex border-b border-gray-200/50">
             <button
               onClick={() => setActiveTab('conversations')}
-              className={`flex-1 py-4 px-4 text-sm font-medium transition-all duration-300 relative ${
+              className={`flex-1 py-3 px-4 text-sm font-medium transition-all duration-300 ${
                 activeTab === 'conversations'
-                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50/50'
+                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                  : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
               }`}
             >
-              <div className="flex items-center justify-center space-x-2">
-                <MessageSquare className="w-4 h-4" />
-                <span>Chats</span>
-              </div>
+              Conversations
             </button>
             <button
               onClick={() => setActiveTab('channels')}
-              className={`flex-1 py-4 px-4 text-sm font-medium transition-all duration-300 relative ${
+              className={`flex-1 py-3 px-4 text-sm font-medium transition-all duration-300 ${
                 activeTab === 'channels'
-                  ? 'text-purple-600 border-b-2 border-purple-600 bg-purple-50/50'
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50/50'
+                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                  : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
               }`}
             >
-              <div className="flex items-center justify-center space-x-2">
-                <Hash className="w-4 h-4" />
-                <span>Channels</span>
-              </div>
+              Channels
             </button>
             <button
               onClick={() => setActiveTab('contacts')}
-              className={`flex-1 py-4 px-4 text-sm font-medium transition-all duration-300 relative ${
+              className={`flex-1 py-3 px-4 text-sm font-medium transition-all duration-300 ${
                 activeTab === 'contacts'
-                  ? 'text-green-600 border-b-2 border-green-600 bg-green-50/50'
-                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50/50'
+                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
+                  : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
               }`}
             >
-              <div className="flex items-center justify-center space-x-2">
-                <Users className="w-4 h-4" />
-                <span>Contacts</span>
-              </div>
+              Contacts
             </button>
           </div>
 
-          {/* Conversations List */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto">
             {activeTab === 'conversations' && (
               <div className="p-4 space-y-2">
-                {conversations.map((conversation) => (
+                {filteredConversations.map((conversation) => (
                   <div
                     key={conversation.id}
                     onClick={() => setSelectedConversation(conversation.id)}
-                    className={`p-4 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-[1.02] ${
+                    className={`p-4 rounded-xl cursor-pointer transition-all duration-300 ${
                       selectedConversation === conversation.id
-                        ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-200/50 shadow-lg'
-                        : 'hover:bg-gray-50/80 border border-transparent hover:border-gray-200/50'
+                        ? 'bg-blue-100 border-2 border-blue-300'
+                        : 'bg-white/60 hover:bg-white/80 border-2 border-transparent'
                     }`}
                   >
                     <div className="flex items-center space-x-3">
                       <div className="relative">
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-semibold text-white shadow-lg transition-all duration-300 ${
-                          conversation.type === 'direct' ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
-                          conversation.type === 'group' ? 'bg-gradient-to-r from-purple-500 to-purple-600' :
-                          'bg-gradient-to-r from-green-500 to-green-600'
-                        }`}>
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
                           {conversation.avatar}
                         </div>
                         {conversation.isOnline && (
-                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full animate-pulse"></div>
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <h3 className="text-sm font-semibold text-gray-900 truncate">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold text-gray-800 truncate">
                             {conversation.name}
                           </h3>
-                          <span className="text-xs text-gray-500">{conversation.lastMessageTime}</span>
+                          <div className="flex items-center space-x-1">
+                            {conversation.isPinned && (
+                              <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                            )}
+                            {conversation.unreadCount > 0 && (
+                              <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                                {conversation.unreadCount}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <p className="text-xs text-gray-600 truncate mb-2">{conversation.lastMessage}</p>
-                        {conversation.unreadCount > 0 && (
-                          <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center font-medium animate-pulse">
-                            {conversation.unreadCount}
-                          </span>
+                        <p className="text-sm text-gray-600 truncate">{conversation.lastMessage}</p>
+                        <p className="text-xs text-gray-400">{conversation.lastMessageTime}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {activeTab === 'channels' && (
+              <div className="p-4 space-y-2">
+                {filteredChannels.map((channel) => (
+                  <div
+                    key={channel.id}
+                    onClick={() => setSelectedConversation(channel.id)}
+                    className={`p-4 rounded-xl cursor-pointer transition-all duration-300 ${
+                      selectedConversation === channel.id
+                        ? 'bg-blue-100 border-2 border-blue-300'
+                        : 'bg-white/60 hover:bg-white/80 border-2 border-transparent'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+                        #{channel.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold text-gray-800 truncate">
+                            #{channel.name}
+                          </h3>
+                          <div className="flex items-center space-x-1">
+                            {channel.isPrivate && <Lock className="w-4 h-4 text-gray-400" />}
+                            {channel.isJoined && (
+                              <CheckCircle className="w-4 h-4 text-green-500" />
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-600 truncate">{channel.description}</p>
+                        <p className="text-xs text-gray-400">
+                          {channel.memberCount} members • {channel.lastActivity}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {activeTab === 'contacts' && (
+              <div className="p-4 space-y-2">
+                {filteredContacts.map((contact) => (
+                  <div
+                    key={contact.id}
+                    onClick={() => {
+                      const existingConv = conversations.find(conv => 
+                        conv.type === 'direct' && conv.members.includes(contact.name)
+                      );
+                      if (existingConv) {
+                        setSelectedConversation(existingConv.id);
+                      } else {
+                        createConversation({
+                          name: contact.name,
+                          type: 'direct',
+                          avatar: contact.avatar,
+                          members: [contact.name],
+                          lastMessage: '',
+                          lastMessageTime: '',
+                          unreadCount: 0,
+                          isOnline: contact.isOnline,
+                          isPinned: false
+                        }).then(newConv => {
+                          if (newConv) setSelectedConversation(newConv.id);
+                        });
+                      }
+                    }}
+                    className="p-4 rounded-xl cursor-pointer transition-all duration-300 bg-white/60 hover:bg-white/80 border-2 border-transparent"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="relative">
+                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-semibold">
+                          {contact.avatar}
+                        </div>
+                        {contact.isOnline && (
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
                         )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-800 truncate">{contact.name}</h3>
+                        <p className="text-sm text-gray-600 truncate">{contact.role}</p>
+                        <p className="text-xs text-gray-400">
+                          {contact.isOnline ? 'Online' : 'Offline'}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -482,65 +392,43 @@ const InternalMessaging: React.FC = () => {
               </div>
             )}
           </div>
-
-          {/* Quick Stats */}
-          <div className="p-4 border-t border-gray-200/50 bg-white/50 backdrop-blur-sm flex-shrink-0">
-            <div className="flex items-center justify-between text-sm text-gray-600">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span>{getOnlineCount()} online</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                <span>{getUnreadCount()} unread</span>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col bg-white/60 backdrop-blur-sm">
+        <div className="flex-1 flex flex-col">
           {selectedConversation ? (
             <>
               {/* Chat Header */}
-              <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 p-6 shadow-sm flex-shrink-0">
+              <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-3">
                     <div className="relative">
-                      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl flex items-center justify-center font-semibold shadow-lg">
-                        {getConversationById(selectedConversation)?.avatar || "C"}
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                        {currentConversation?.avatar || 'C'}
                       </div>
-                      {getConversationById(selectedConversation)?.isOnline && (
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full animate-pulse"></div>
+                      {currentConversation?.isOnline && (
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
                       )}
                     </div>
                     <div>
-                      <h2 className="text-lg font-bold text-gray-900">
-                        {getConversationById(selectedConversation)?.name || "Channel"}
+                      <h2 className="text-lg font-bold text-gray-800">
+                        {currentConversation?.name || 'Conversation'}
                       </h2>
                       <p className="text-sm text-gray-600">
-                        {getConversationById(selectedConversation)?.isOnline ? (
-                          <span className="flex items-center space-x-1">
-                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                            <span>Online</span>
-                          </span>
-                        ) : (
-                          "Last seen recently"
-                        )}
+                        {currentConversation?.type === 'direct' ? 'Direct Message' : 
+                         currentConversation?.type === 'group' ? `${currentConversation.members.length} members` :
+                         'Channel'}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <button className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300" title="Voice call">
+                    <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300">
                       <Phone className="w-5 h-5" />
                     </button>
-                    <button className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300" title="Video call">
+                    <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300">
                       <Video className="w-5 h-5" />
                     </button>
-                    <button className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-300" title="Screen share">
-                      <Monitor className="w-5 h-5" />
-                    </button>
-                    <button className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-all duration-300" title="More options">
+                    <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300">
                       <MoreHorizontal className="w-5 h-5" />
                     </button>
                   </div>
@@ -548,55 +436,84 @@ const InternalMessaging: React.FC = () => {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
-                {conversationMessages[selectedConversation]?.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.sender === "You" ? "justify-end" : "justify-start"}`}
-                  >
-                    <div className={`flex space-x-3 max-w-xs lg:max-w-md xl:max-w-lg ${message.sender === "You" ? "flex-row-reverse" : ""}`}>
-                      {message.sender !== "You" && (
-                        <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 shadow-sm">
-                          {message.senderAvatar}
-                        </div>
-                      )}
-                      <div className={`flex flex-col ${message.sender === "You" ? "items-end" : "items-start"}`}>
-                        <div className={`rounded-2xl px-4 py-3 shadow-sm ${
-                          message.sender === "You"
-                            ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
-                            : "bg-white text-gray-900 border border-gray-200/50"
-                        }`}>
-                          <p className="text-sm leading-relaxed">{message.content}</p>
-                        </div>
-                        <div className={`flex items-center space-x-2 mt-2 text-xs text-gray-500 ${
-                          message.sender === "You" ? "justify-end" : "justify-start"
-                        }`}>
-                          <span>{message.timestamp}</span>
-                          {message.isRead && message.sender === "You" && (
-                            <CheckCircle className="w-3 h-3 text-blue-500" />
-                          )}
-                        </div>
-                      </div>
+              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                {loading ? (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : !currentMessages || currentMessages.length === 0 ? (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    <div className="text-center">
+                      <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                      <p className="text-lg font-medium">No messages yet</p>
+                      <p className="text-sm">Start a conversation by sending a message!</p>
                     </div>
                   </div>
-                ))}
-                
-                {/* Typing Indicator */}
-                {isTyping && (
-                  <div className="flex justify-start">
-                    <div className="flex space-x-3 max-w-xs lg:max-w-md xl:max-w-lg">
-                      <div className="w-8 h-8 bg-gradient-to-r from-gray-400 to-gray-500 text-white rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0">
-                        {getConversationById(selectedConversation)?.avatar || "MC"}
-                      </div>
-                      <div className="bg-white text-gray-900 border border-gray-200/50 rounded-2xl px-4 py-3 shadow-sm">
-                        <div className="flex items-center space-x-2">
-                          <div className="flex space-x-1">
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                ) : (
+                  (currentMessages || []).map((message) => (
+                    message && (
+                      <div
+                        key={message.id}
+                        className={`flex ${message.sender === 'You' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
+                            message.sender === 'You'
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-white/80 backdrop-blur-sm text-gray-800 border border-gray-200/50'
+                          }`}
+                        >
+                          {message.sender && message.sender !== 'You' && (
+                            <p className="text-xs font-medium mb-1 opacity-75">{message.sender}</p>
+                          )}
+                          
+                          {message.type === 'text' && (
+                            <p className="text-sm">{message.content}</p>
+                          )}
+                          
+                          {message.type === 'file' && (
+                            <div className="flex items-center space-x-2">
+                              <FileText className="w-4 h-4" />
+                              <div>
+                                <p className="text-sm font-medium">{message.fileName}</p>
+                                <p className="text-xs opacity-75">{message.fileSize}</p>
+                              </div>
+                            </div>
+                          )}
+                          
+                          <div className="flex items-center justify-between mt-2">
+                            <p className="text-xs opacity-75">{message.timestamp}</p>
+                            {message.reactions && message.reactions.length > 0 && (
+                              <div className="flex items-center space-x-1">
+                                {message.reactions.map((reaction, index) => (
+                                  <span
+                                    key={index}
+                                    className="bg-white/20 px-2 py-1 rounded-full text-xs"
+                                    title={`${reaction.count} ${reaction.users.join(', ')}`}
+                                  >
+                                    {reaction.emoji} {reaction.count}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                           </div>
-                          <span className="text-xs text-gray-500">typing...</span>
                         </div>
+                      </div>
+                    )
+                  ))
+                )}
+                
+                {/* Typing indicator */}
+                {isTyping[selectedConversation] && (
+                  <div className="flex justify-start">
+                    <div className="bg-white/80 backdrop-blur-sm text-gray-800 border border-gray-200/50 px-4 py-2 rounded-2xl">
+                      <div className="flex items-center space-x-1">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        </div>
+                        <span className="text-xs text-gray-500">typing...</span>
                       </div>
                     </div>
                   </div>
@@ -623,14 +540,13 @@ const InternalMessaging: React.FC = () => {
                       />
                       <div className="absolute right-3 bottom-3 flex items-center space-x-2">
                         <button
-                          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                           className="p-1.5 text-gray-400 hover:text-yellow-500 hover:bg-yellow-50 rounded-lg transition-all duration-300"
                           title="Add emoji"
                         >
                           <Smile className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => setShowFileUpload(!showFileUpload)}
+                          onClick={() => fileInputRef.current?.click()}
                           className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all duration-300"
                           title="Attach file"
                         >
@@ -642,61 +558,44 @@ const InternalMessaging: React.FC = () => {
                   <button
                     onClick={handleSendMessage}
                     disabled={!messageText.trim()}
-                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 shadow-lg"
+                    className="p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-300"
                   >
-                    <Send className="w-4 h-4" />
+                    <Send className="w-5 h-5" />
                   </button>
                 </div>
                 
-                {/* Quick Actions */}
-                <div className="mt-4 flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300" title="Send image">
-                      <Image className="w-4 h-4" />
-                    </button>
-                    <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300" title="Voice message">
-                      <Mic className="w-4 h-4" />
-                    </button>
-                    <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300" title="Video call">
-                      <Video className="w-4 h-4" />
-                    </button>
-                    <button className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-300" title="Send location">
-                      <MapPin className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <div className="flex-1"></div>
-                  <div className="flex items-center space-x-2 text-xs text-gray-500">
-                    <span>Press Enter to send</span>
-                    <span>•</span>
-                    <span>Shift + Enter for new line</span>
-                  </div>
-                </div>
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  accept="image/*,video/*,.pdf,.doc,.docx,.txt"
+                />
               </div>
             </>
           ) : (
             /* Welcome Screen */
-            <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
-              <div className="text-center max-w-md mx-auto p-8">
-                <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl">
-                  <MessageSquare className="w-10 h-10 text-white" />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-3">Welcome to Team Chat</h2>
-                <p className="text-gray-600 mb-8">Select a conversation to start messaging with your team</p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 shadow-sm hover:shadow-md transition-all duration-300">
-                    <Users className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                    <h3 className="font-semibold text-gray-900">Direct Messages</h3>
-                    <p className="text-sm text-gray-500">Chat with team members</p>
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center">
+                <MessageSquare className="w-24 h-24 mx-auto mb-6 text-gray-300" />
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">Welcome to Messages</h2>
+                <p className="text-gray-600 mb-6">Select a conversation to start messaging</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
+                  <div className="p-4 bg-white/60 rounded-xl border border-gray-200/50">
+                    <Users className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+                    <h3 className="font-semibold text-gray-800">Direct Messages</h3>
+                    <p className="text-sm text-gray-600">Chat with individual team members</p>
                   </div>
-                  <div className="text-center p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 shadow-sm hover:shadow-md transition-all duration-300">
-                    <Hash className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-                    <h3 className="font-semibold text-gray-900">Channels</h3>
-                    <p className="text-sm text-gray-500">Join team discussions</p>
+                  <div className="p-4 bg-white/60 rounded-xl border border-gray-200/50">
+                    <Hash className="w-8 h-8 mx-auto mb-2 text-green-600" />
+                    <h3 className="font-semibold text-gray-800">Channels</h3>
+                    <p className="text-sm text-gray-600">Join topic-based discussions</p>
                   </div>
-                  <div className="text-center p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 shadow-sm hover:shadow-md transition-all duration-300">
-                    <Globe className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                    <h3 className="font-semibold text-gray-900">Public Channels</h3>
-                    <p className="text-sm text-gray-500">Company-wide updates</p>
+                  <div className="p-4 bg-white/60 rounded-xl border border-gray-200/50">
+                    <Globe className="w-8 h-8 mx-auto mb-2 text-purple-600" />
+                    <h3 className="font-semibold text-gray-800">Groups</h3>
+                    <p className="text-sm text-gray-600">Collaborate with teams</p>
                   </div>
                 </div>
               </div>
@@ -704,7 +603,21 @@ const InternalMessaging: React.FC = () => {
           )}
         </div>
       </div>
-    </>
+
+      {/* Success Toast */}
+      {showSuccess && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+          {successMessage}
+        </div>
+      )}
+
+      {/* Error Toast */}
+      {error && (
+        <div className="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50">
+          {error}
+        </div>
+      )}
+    </div>
   );
 };
 

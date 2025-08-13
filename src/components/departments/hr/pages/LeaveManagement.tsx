@@ -1,174 +1,357 @@
 import React, { useState } from 'react';
 import { 
   Calendar, 
-  Clock, 
-  User, 
-  CheckCircle, 
-  XCircle, 
-  AlertCircle, 
-  Plus, 
   Search, 
   Filter,
+  Plus, 
+  Edit, 
+  Trash2, 
+  Eye, 
   Download,
-  Eye,
-  Edit,
-  Trash2,
-  FileText,
-  CalendarDays,
-  Users,
   TrendingUp,
-  TrendingDown
+  Clock,
+  MapPin,
+  Phone,
+  Mail,
+  Star,
+  DollarSign,
+  Building,
+  UserCheck,
+  UserX,
+  GraduationCap,
+  CheckCircle,
+  AlertTriangle,
+  Info,
+  Users,
+  FileText,
+  Send,
+  BookOpen,
+  Award,
+  Play,
+  Pause,
+  StopCircle,
+  CalendarDays,
+  Clock3,
+  UserMinus,
+  CheckSquare
 } from 'lucide-react';
-import AnimatedCard from '../../../shared/AnimatedCard';
-import { AnimatedButton, AnimatedProgressBar } from '../../../shared/AnimatedCard';
+import { useApiList, useApiMutation } from '../../../../hooks/useApi';
+import { leaveAPI } from '../../../../services/api';
+import Modal from '../../../shared/Modal';
+import LeaveRequestForm from '../../../forms/LeaveRequestForm';
+
+interface LeaveRequest {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  leaveType: string;
+  startDate: string;
+  endDate: string;
+  daysRequested: number;
+  reason: string;
+  status: string;
+  emergencyContact: string;
+  emergencyPhone: string;
+  attachments: string[];
+  notes: string;
+  submittedDate: string;
+  approvedBy?: string;
+  approvedDate?: string;
+  rejectionReason?: string;
+}
+
+interface LeaveType {
+  id: string;
+  name: string;
+  color: string;
+  daysAllocated: number;
+  description: string;
+}
 
 const LeaveManagement: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('requests');
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterDepartment, setFilterDepartment] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [filterType, setFilterType] = useState('all');
+  const [showAddRequestModal, setShowAddRequestModal] = useState(false);
+  const [showEditRequestModal, setShowEditRequestModal] = useState(false);
+  const [showViewRequestModal, setShowViewRequestModal] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | null>(null);
+
+  // Fetch leave requests data
+  const { 
+    items: requestsData, 
+    loading: requestsLoading, 
+    error: requestsError, 
+    refetch: refetchRequests, 
+    updateFilters: updateRequestsFilters,
+    total: requestsTotal,
+    currentPage: requestsCurrentPage,
+    totalPages: requestsTotalPages
+  } = useApiList(leaveAPI.getAllRequests, {
+    page: 1,
+    limit: 10,
+    status: "all",
+    department: "all"
+  });
+
+  // Ensure requestsData is always an array and has proper structure
+  const safeRequestsData = Array.isArray(requestsData) ? requestsData.map(request => ({
+    id: request?.id || '',
+    employeeId: typeof request?.employeeId === 'string' ? request.employeeId : '',
+    employeeName: typeof request?.employeeName === 'string' ? request.employeeName : 'Unknown Employee',
+    leaveType: typeof request?.leaveType === 'string' ? request.leaveType : 'Unknown',
+    startDate: typeof request?.startDate === 'string' ? request.startDate : new Date().toISOString(),
+    endDate: typeof request?.endDate === 'string' ? request.endDate : new Date().toISOString(),
+    daysRequested: typeof request?.daysRequested === 'number' ? request.daysRequested : 0,
+    reason: typeof request?.reason === 'string' ? request.reason : '',
+    status: typeof request?.status === 'string' ? request.status : 'Pending',
+    emergencyContact: typeof request?.emergencyContact === 'string' ? request.emergencyContact : '',
+    emergencyPhone: typeof request?.emergencyPhone === 'string' ? request.emergencyPhone : '',
+    attachments: Array.isArray(request?.attachments) ? request.attachments : [],
+    notes: typeof request?.notes === 'string' ? request.notes : '',
+    submittedDate: typeof request?.submittedDate === 'string' ? request.submittedDate : new Date().toISOString(),
+    approvedBy: typeof request?.approvedBy === 'string' ? request.approvedBy : undefined,
+    approvedDate: typeof request?.approvedDate === 'string' ? request.approvedDate : undefined,
+    rejectionReason: typeof request?.rejectionReason === 'string' ? request.rejectionReason : undefined
+  })) : [];
+
+  // Fetch leave types data
+  const { 
+    items: leaveTypesData, 
+    loading: leaveTypesLoading, 
+    error: leaveTypesError, 
+    refetch: refetchLeaveTypes
+  } = useApiList(leaveAPI.getAllTypes, {
+    page: 1,
+    limit: 50
+  });
+
+  // Ensure leaveTypesData is always an array and has proper structure
+  const safeLeaveTypesData = Array.isArray(leaveTypesData) ? leaveTypesData.map(leaveType => ({
+    id: leaveType?.id || '',
+    name: typeof leaveType?.name === 'string' ? leaveType.name : 'Unknown',
+    color: typeof leaveType?.color === 'string' ? leaveType.color : '#6B7280',
+    daysAllocated: typeof leaveType?.daysAllocated === 'number' ? leaveType.daysAllocated : 0,
+    description: typeof leaveType?.description === 'string' ? leaveType.description : ''
+  })) : [];
+
+  // Delete mutations
+  const deleteRequestMutation = useApiMutation(leaveAPI.deleteRequest);
+
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+    if (activeTab === 'requests') {
+      updateRequestsFilters({ search: value, page: 1 });
+    }
+  };
+
+  const handleDepartmentFilter = (department: string) => {
+    setFilterDepartment(department);
+    if (activeTab === 'requests') {
+      updateRequestsFilters({ department, page: 1 });
+    }
+  };
+
+  const handleStatusFilter = (status: string) => {
+    setFilterStatus(status);
+    if (activeTab === 'requests') {
+      updateRequestsFilters({ status, page: 1 });
+    }
+  };
+
+  const handlePageChange = (page: number) => {
+    if (activeTab === 'requests') {
+      updateRequestsFilters({ page });
+    }
+  };
+
+  const handleAddRequest = () => {
+    setSelectedRequest(null);
+    setShowAddRequestModal(true);
+  };
+
+  const handleEditRequest = (request: LeaveRequest) => {
+    setSelectedRequest(request);
+    setShowEditRequestModal(true);
+  };
+
+  const handleViewRequest = (request: LeaveRequest) => {
+    setSelectedRequest(request);
+    setShowViewRequestModal(true);
+  };
+
+  const handleDeleteRequest = async (requestId: string) => {
+    if (window.confirm('Are you sure you want to delete this leave request?')) {
+      try {
+        await deleteRequestMutation.mutate(requestId);
+        refetchRequests();
+      } catch (error) {
+        console.error('Error deleting leave request:', error);
+      }
+    }
+  };
+
+  // Separate handlers for leave types
+  const handleViewLeaveType = (leaveType: LeaveType) => {
+    setSelectedRequest({
+      id: leaveType.id,
+      employeeId: '',
+      employeeName: leaveType.name,
+      leaveType: leaveType.name,
+      startDate: '',
+      endDate: '',
+      daysRequested: leaveType.daysAllocated,
+      reason: leaveType.description,
+      status: 'Active',
+      emergencyContact: '',
+      emergencyPhone: '',
+      attachments: [],
+      notes: '',
+      submittedDate: new Date().toISOString()
+    });
+    setShowViewRequestModal(true);
+  };
+
+  const handleEditLeaveType = (leaveType: LeaveType) => {
+    setSelectedRequest({
+      id: leaveType.id,
+      employeeId: '',
+      employeeName: leaveType.name,
+      leaveType: leaveType.name,
+      startDate: '',
+      endDate: '',
+      daysRequested: leaveType.daysAllocated,
+      reason: leaveType.description,
+      status: 'Active',
+      emergencyContact: '',
+      emergencyPhone: '',
+      attachments: [],
+      notes: '',
+      submittedDate: new Date().toISOString()
+    });
+    setShowEditRequestModal(true);
+  };
+
+  const handleFormSuccess = () => {
+    setShowAddRequestModal(false);
+    setShowEditRequestModal(false);
+    refetchRequests();
+  };
+
+  const handleFormCancel = () => {
+    setShowAddRequestModal(false);
+    setShowEditRequestModal(false);
+  };
 
   const leaveStats = [
-    { title: 'Total Leave Requests', value: '45', subtitle: 'This Month', color: 'blue', icon: '📅', trend: { value: '+12%', isPositive: true }, delay: 0 },
-    { title: 'Approved', value: '32', subtitle: 'This Month', color: 'green', icon: '✅', trend: { value: '+8%', isPositive: true }, delay: 100 },
-    { title: 'Pending', value: '8', subtitle: 'Awaiting Approval', color: 'orange', icon: '⏳', trend: { value: '-5%', isPositive: true }, delay: 200 },
-    { title: 'Rejected', value: '5', subtitle: 'This Month', color: 'red', icon: '❌', trend: { value: '-2%', isPositive: true }, delay: 300 }
-  ];
-
-  const leaveTypes = [
-    { id: 1, name: 'Annual Leave', daysAllocated: 25, daysUsed: 18, daysRemaining: 7, color: 'blue' },
-    { id: 2, name: 'Sick Leave', daysAllocated: 15, daysUsed: 3, daysRemaining: 12, color: 'red' },
-    { id: 3, name: 'Maternity Leave', daysAllocated: 90, daysUsed: 0, daysRemaining: 90, color: 'pink' },
-    { id: 4, name: 'Paternity Leave', daysAllocated: 7, daysUsed: 0, daysRemaining: 7, color: 'purple' },
-    { id: 5, name: 'Bereavement Leave', daysAllocated: 5, daysUsed: 1, daysRemaining: 4, color: 'gray' },
-    { id: 6, name: 'Study Leave', daysAllocated: 10, daysUsed: 2, daysRemaining: 8, color: 'green' }
-  ];
-
-  const leaveRequests = [
-    {
-      id: 1,
-      employeeName: 'Jean Pierre Uwimana',
-      employeeId: 'EMP-001',
-      leaveType: 'Annual Leave',
-      startDate: '2024-03-15',
-      endDate: '2024-03-20',
-      days: 6,
-      reason: 'Family vacation',
-      status: 'Approved',
-      approver: 'Marie Claire Niyonsaba',
-      submittedDate: '2024-02-28',
-      department: 'Field Operations'
+    { 
+      title: 'Pending Requests', 
+      value: (safeRequestsData?.filter((request: LeaveRequest) => request.status === 'Pending').length || 0).toString(), 
+      change: '+5', 
+      icon: Clock, 
+      color: 'text-yellow-600',
+      subtitle: 'Awaiting approval'
     },
-    {
-      id: 2,
-      employeeName: 'Marie Claire Niyonsaba',
-      employeeId: 'EMP-002',
-      leaveType: 'Sick Leave',
-      startDate: '2024-03-10',
-      endDate: '2024-03-12',
-      days: 3,
-      reason: 'Medical appointment',
-      status: 'Approved',
-      approver: 'HR Director',
-      submittedDate: '2024-03-09',
-      department: 'Human Resources'
+    { 
+      title: 'Approved This Month', 
+      value: (safeRequestsData?.filter((request: LeaveRequest) => request.status === 'Approved').length || 0).toString(), 
+      change: '+12', 
+      icon: CheckCircle, 
+      color: 'text-green-600',
+      subtitle: 'Successfully approved'
     },
-    {
-      id: 3,
-      employeeName: 'Emmanuel Ndayisaba',
-      employeeId: 'EMP-003',
-      leaveType: 'Annual Leave',
-      startDate: '2024-04-01',
-      endDate: '2024-04-05',
-      days: 5,
-      reason: 'Personal matters',
-      status: 'Pending',
-      approver: 'Regional Manager',
-      submittedDate: '2024-03-01',
-      department: 'Field Operations'
+    { 
+      title: 'Total Days Taken', 
+      value: (safeRequestsData?.reduce((total: number, request: LeaveRequest) => total + (request.daysRequested || 0), 0) || 0).toString(), 
+      change: '+45', 
+      icon: CalendarDays, 
+      color: 'text-blue-600',
+      subtitle: 'This month'
     },
-    {
-      id: 4,
-      employeeName: 'Ange Uwineza',
-      employeeId: 'EMP-004',
-      leaveType: 'Study Leave',
-      startDate: '2024-03-25',
-      endDate: '2024-03-27',
-      days: 3,
-      reason: 'Professional certification exam',
-      status: 'Approved',
-      approver: 'Finance Manager',
-      submittedDate: '2024-02-25',
-      department: 'Finance'
-    },
-    {
-      id: 5,
-      employeeName: 'Patrick Nshimiyimana',
-      employeeId: 'EMP-005',
-      leaveType: 'Maternity Leave',
-      startDate: '2024-05-01',
-      endDate: '2024-07-30',
-      days: 90,
-      reason: 'Maternity leave',
-      status: 'Approved',
-      approver: 'HR Manager',
-      submittedDate: '2024-02-15',
-      department: 'Field Operations'
+    { 
+      title: 'Leave Types', 
+      value: (safeLeaveTypesData?.length || 0).toString(), 
+      change: '+2', 
+      icon: Award, 
+      color: 'text-purple-600',
+      subtitle: 'Available types'
     }
   ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Approved': return 'text-green-600 bg-green-100';
-      case 'Pending': return 'text-yellow-600 bg-yellow-100';
-      case 'Rejected': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'Pending': return 'bg-yellow-100 text-yellow-800';
+      case 'Approved': return 'bg-green-100 text-green-800';
+      case 'Rejected': return 'bg-red-100 text-red-800';
+      case 'Cancelled': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getLeaveTypeColor = (type: string) => {
-    switch (type) {
-      case 'Annual Leave': return 'text-blue-600 bg-blue-100';
-      case 'Sick Leave': return 'text-red-600 bg-red-100';
-      case 'Maternity Leave': return 'text-pink-600 bg-pink-100';
-      case 'Paternity Leave': return 'text-purple-600 bg-purple-100';
-      case 'Bereavement Leave': return 'text-gray-600 bg-gray-100';
-      case 'Study Leave': return 'text-green-600 bg-green-100';
-      default: return 'text-gray-600 bg-gray-100';
+  const getLeaveTypeColor = (leaveType: string) => {
+    switch (leaveType) {
+      case 'Annual Leave': return 'bg-blue-100 text-blue-800';
+      case 'Sick Leave': return 'bg-red-100 text-red-800';
+      case 'Maternity Leave': return 'bg-pink-100 text-pink-800';
+      case 'Paternity Leave': return 'bg-purple-100 text-purple-800';
+      case 'Bereavement Leave': return 'bg-gray-100 text-gray-800';
+      case 'Study Leave': return 'bg-indigo-100 text-indigo-800';
+      case 'Unpaid Leave': return 'bg-orange-100 text-orange-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const filteredRequests = leaveRequests.filter(request => {
-    const matchesSearch = request.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         request.employeeId.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || request.status === filterStatus;
-    const matchesType = filterType === 'all' || request.leaveType === filterType;
-    return matchesSearch && matchesStatus && matchesType;
-  });
+  if (requestsLoading || leaveTypesLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (requestsError || leaveTypesError) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="flex">
+          <AlertTriangle className="h-5 w-5 text-red-400" />
+          <div className="ml-3">
+            <h3 className="text-sm font-medium text-red-800">Error loading leave data</h3>
+            <div className="mt-2 text-sm text-red-700">{requestsError || leaveTypesError}</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Leave Management</h1>
-          <p className="text-gray-600 mt-1">Manage employee leave requests and approvals</p>
+          <h1 className="text-2xl font-bold text-gray-900">Leave Management</h1>
+          <p className="text-gray-600">Manage employee leave requests and approvals</p>
         </div>
-        <AnimatedButton
-          onClick={() => {}}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Leave Request</span>
-        </AnimatedButton>
+        {activeTab === 'requests' && (
+          <button
+            onClick={handleAddRequest}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            New Leave Request
+          </button>
+        )}
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {leaveStats.map((stat, index) => (
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {leaveStats.map((stat, index) => {
+          const IconComponent = stat.icon;
+          return (
           <div
             key={index}
-            className="bg-white rounded-xl p-4 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300"
-            style={{ animationDelay: `${stat.delay}ms` }}
+              className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              style={{ animationDelay: `${index * 100}ms` }}
           >
             <div className="flex items-center justify-between">
               <div>
@@ -176,178 +359,171 @@ const LeaveManagement: React.FC = () => {
                 <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
                 <p className="text-xs text-gray-500">{stat.subtitle}</p>
               </div>
-              <div className="text-2xl">{stat.icon}</div>
-            </div>
-            {stat.trend && (
-              <div className={`flex items-center mt-2 text-xs ${
-                stat.trend.isPositive ? 'text-green-600' : 'text-red-600'
-              }`}>
-                <span>{stat.trend.isPositive ? '↗' : '↘'}</span>
-                <span className="ml-1">{stat.trend.value}</span>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Leave Types Overview */}
-      <AnimatedCard
-        title="Leave Types Overview"
-        subtitle="Employee leave allocation and usage"
-        className="bg-white rounded-xl shadow-lg border border-gray-100"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {leaveTypes.map((type) => {
-            const percentage = (type.daysUsed / type.daysAllocated) * 100;
-            return (
-              <div key={type.id} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-900">{type.name}</h3>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getLeaveTypeColor(type.name)}`}>
-                    {type.daysRemaining} days left
-                  </span>
+                <div className="text-2xl">
+                  <IconComponent className={`w-8 h-8 ${stat.color}`} />
                 </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Used: {type.daysUsed} days</span>
-                    <span className="text-gray-600">{percentage.toFixed(1)}%</span>
                   </div>
-                  <AnimatedProgressBar
-                    progress={percentage}
-                    color={percentage > 80 ? 'red' : percentage > 60 ? 'orange' : 'green'}
-                    height={6}
-                    showLabel={false}
-                  />
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <span>Allocated: {type.daysAllocated} days</span>
-                    <span>Remaining: {type.daysRemaining} days</span>
-                  </div>
+              <div className="flex items-center mt-3 text-xs text-green-600">
+                <TrendingUp className="w-3 h-3 mr-1" />
+                <span>{stat.change}</span>
                 </div>
               </div>
             );
           })}
         </div>
-      </AnimatedCard>
 
-      {/* Leave Requests */}
-      <AnimatedCard
-        title="Leave Requests"
-        subtitle="Manage and approve employee leave requests"
-        className="bg-white rounded-xl shadow-lg border border-gray-100"
-      >
+      {/* Tabs */}
+      <div className="bg-white rounded-lg shadow-sm border">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8 px-6">
+            <button
+              onClick={() => setActiveTab('requests')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'requests'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Leave Requests
+            </button>
+            <button
+              onClick={() => setActiveTab('types')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'types'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Leave Types
+            </button>
+          </nav>
+        </div>
+
+        <div className="p-6">
         {/* Filters */}
-        <div className="mb-4 flex flex-wrap gap-4">
-          <div className="flex items-center space-x-2">
-            <Search className="w-4 h-4 text-gray-400" />
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <input
               type="text"
-              placeholder="Search by employee name or ID..."
+                  placeholder={`Search ${activeTab === 'requests' ? 'leave requests' : 'leave types'}...`}
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
-          <div className="flex items-center space-x-2">
-            <Filter className="w-4 h-4 text-gray-400" />
+            </div>
+            <div className="flex gap-4">
+              <select
+                value={filterDepartment}
+                onChange={(e) => handleDepartmentFilter(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="all">All Departments</option>
+                <option value="IT">IT</option>
+                <option value="HR">HR</option>
+                <option value="Finance">Finance</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Sales">Sales</option>
+                <option value="Operations">Operations</option>
+              </select>
             <select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => handleStatusFilter(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">All Status</option>
+                <option value="Pending">Pending</option>
               <option value="Approved">Approved</option>
-              <option value="Pending">Pending</option>
               <option value="Rejected">Rejected</option>
-            </select>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Calendar className="w-4 h-4 text-gray-400" />
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Types</option>
-              <option value="Annual Leave">Annual Leave</option>
-              <option value="Sick Leave">Sick Leave</option>
-              <option value="Maternity Leave">Maternity Leave</option>
-              <option value="Paternity Leave">Paternity Leave</option>
-              <option value="Bereavement Leave">Bereavement Leave</option>
-              <option value="Study Leave">Study Leave</option>
+                <option value="Cancelled">Cancelled</option>
             </select>
           </div>
         </div>
 
-        {/* Requests Table */}
+          {/* Content based on active tab */}
+          {activeTab === 'requests' ? (
+            /* Leave Requests Table */
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Leave Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dates</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Days</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Employee
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Leave Type
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Duration
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Submitted Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredRequests.map((request) => (
+                  {safeRequestsData.map((request: LeaveRequest) => (
                 <tr key={request.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                        <span className="text-blue-600 text-sm font-medium">
-                          {request.employeeName.split(' ').map(n => n[0]).join('')}
+                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <span className="text-sm font-medium text-blue-600">
+                              {request.employeeName?.charAt(0)}
                         </span>
                       </div>
-                      <div className="ml-3">
+                          <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">{request.employeeName}</div>
                         <div className="text-sm text-gray-500">{request.employeeId}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getLeaveTypeColor(request.leaveType)}`}>
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getLeaveTypeColor(request.leaveType)}`}>
                       {request.leaveType}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{request.startDate} to {request.endDate}</div>
-                    <div className="text-xs text-gray-500">Submitted: {request.submittedDate}</div>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <div>
+                          <div>{new Date(request.startDate).toLocaleDateString()} - {new Date(request.endDate).toLocaleDateString()}</div>
+                          <div className="text-gray-500">{request.daysRequested} days</div>
+                        </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{request.days} days</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(request.status)}`}>
                       {request.status}
                     </span>
                   </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {new Date(request.submittedDate).toLocaleDateString()}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">
-                      <AnimatedButton
-                        onClick={() => {}}
+                          <button
+                            onClick={() => handleViewRequest(request)}
                         className="text-blue-600 hover:text-blue-900"
                       >
-                        <Eye className="w-4 h-4" />
-                      </AnimatedButton>
-                      {request.status === 'Pending' && (
-                        <>
-                          <AnimatedButton
-                            onClick={() => {}}
-                            className="text-green-600 hover:text-green-900"
+                            <Eye className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleEditRequest(request)}
+                            className="text-indigo-600 hover:text-indigo-900"
                           >
-                            <CheckCircle className="w-4 h-4" />
-                          </AnimatedButton>
-                          <AnimatedButton
-                            onClick={() => {}}
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteRequest(request.id)}
                             className="text-red-600 hover:text-red-900"
                           >
-                            <XCircle className="w-4 h-4" />
-                          </AnimatedButton>
-                        </>
-                      )}
+                            <Trash2 className="h-4 w-4" />
+                          </button>
                     </div>
                   </td>
                 </tr>
@@ -355,85 +531,127 @@ const LeaveManagement: React.FC = () => {
             </tbody>
           </table>
         </div>
-      </AnimatedCard>
+          ) : (
+            /* Leave Types Table */
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Leave Type
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Days Allocated
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Description
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {safeLeaveTypesData.map((leaveType: LeaveType) => (
+                    <tr key={leaveType.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ backgroundColor: leaveType.color + '20' }}>
+                            <span className="text-sm font-medium" style={{ color: leaveType.color }}>
+                              {leaveType.name?.charAt(0)}
+                            </span>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">{leaveType.name}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {leaveType.daysAllocated} days
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        <div className="max-w-xs truncate">{leaveType.description}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => handleViewLeaveType(leaveType)}
+                            className="text-blue-600 hover:text-blue-900"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleEditLeaveType(leaveType)}
+                            className="text-indigo-600 hover:text-indigo-900"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteRequest(leaveType.id)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
-      {/* Quick Actions */}
-      <AnimatedCard
-        title="Quick Actions"
-        subtitle="Common leave management tasks"
-        className="bg-white rounded-xl shadow-lg border border-gray-100"
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <AnimatedButton
-            onClick={() => {}}
-            className="flex items-center space-x-2 p-4 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors duration-200"
-          >
-            <Plus className="w-5 h-5 text-blue-600" />
-            <span className="text-sm font-medium text-gray-700">New Request</span>
-          </AnimatedButton>
-          <AnimatedButton
-            onClick={() => {}}
-            className="flex items-center space-x-2 p-4 rounded-lg bg-green-50 hover:bg-green-100 transition-colors duration-200"
-          >
-            <CheckCircle className="w-5 h-5 text-green-600" />
-            <span className="text-sm font-medium text-gray-700">Approve All</span>
-          </AnimatedButton>
-          <AnimatedButton
-            onClick={() => {}}
-            className="flex items-center space-x-2 p-4 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors duration-200"
-          >
-            <FileText className="w-5 h-5 text-purple-600" />
-            <span className="text-sm font-medium text-gray-700">Generate Report</span>
-          </AnimatedButton>
-          <AnimatedButton
-            onClick={() => {}}
-            className="flex items-center space-x-2 p-4 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors duration-200"
-          >
-            <Download className="w-5 h-5 text-orange-600" />
-            <span className="text-sm font-medium text-gray-700">Export Data</span>
-          </AnimatedButton>
+          {/* Pagination */}
+          {activeTab === 'requests' && requestsTotalPages > 1 && (
+            <div className="flex items-center justify-between mt-6">
+              <div className="text-sm text-gray-700">
+                Showing {(requestsCurrentPage - 1) * 10 + 1} to {Math.min(requestsCurrentPage * 10, requestsTotal)} of {requestsTotal} results
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => handlePageChange(requestsCurrentPage - 1)}
+                  disabled={requestsCurrentPage === 1}
+                  className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => handlePageChange(requestsCurrentPage + 1)}
+                  disabled={requestsCurrentPage === requestsTotalPages}
+                  className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-      </AnimatedCard>
+      </div>
 
-      {/* Leave Analytics */}
-      <AnimatedCard
-        title="Leave Analytics"
-        subtitle="Leave trends and patterns"
-        className="bg-white rounded-xl shadow-lg border border-gray-100"
+      {/* Add/Edit/View Modals */}
+      <Modal
+        isOpen={showAddRequestModal || showEditRequestModal || showViewRequestModal}
+        onClose={() => {
+          setShowAddRequestModal(false);
+          setShowEditRequestModal(false);
+          setShowViewRequestModal(false);
+        }}
+        title={selectedRequest ? (selectedRequest.id ? 'Edit Leave Request' : 'New Leave Request') : 'Leave Request Details'}
+        size="xl"
       >
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-3">Leave Approval Rate</h4>
-            <AnimatedProgressBar
-              progress={85}
-              color="green"
-              height={8}
-              showLabel={true}
-            />
-            <AnimatedProgressBar
-              progress={72}
-              color="blue"
-              height={8}
-              showLabel={true}
-            />
-          </div>
-          <div>
-            <h4 className="font-semibold text-gray-900 mb-3">Leave Type Distribution</h4>
-            <AnimatedProgressBar
-              progress={65}
-              color="purple"
-              height={8}
-              showLabel={true}
-            />
-            <AnimatedProgressBar
-              progress={90}
-              color="orange"
-              height={8}
-              showLabel={true}
-            />
-          </div>
-        </div>
-      </AnimatedCard>
+        {selectedRequest ? (
+          <LeaveRequestForm
+            leaveRequest={selectedRequest}
+            onSuccess={handleFormSuccess}
+            onCancel={handleFormCancel}
+          />
+        ) : (
+          <LeaveRequestForm
+            onSuccess={handleFormSuccess}
+            onCancel={handleFormCancel}
+          />
+        )}
+      </Modal>
     </div>
   );
 };

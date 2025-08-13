@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import DepartmentLayout from '../../shared/DepartmentLayout';
 import AnimatedCard from '../../shared/AnimatedCard';
 import { AnimatedButton, AnimatedProgressBar } from '../../shared/AnimatedCard';
 import { getColorScheme } from '../../../utils/colorSchemes';
+import { useApiList } from '../../../hooks/useApi';
+import { transactionAPI, accountAPI, budgetAPI } from '../../../services/api.ts';
+import { Loader2, TrendingUp, TrendingDown, DollarSign, CreditCard } from 'lucide-react';
 
 // Finance Department Pages
 import FinanceOverview from './pages/FinanceOverview';
@@ -16,55 +19,153 @@ import CashManagement from './pages/CashManagement';
 import Expenses from './pages/Expenses';
 import FinancialPlanning from './pages/FinancialPlanning';
 
+interface Transaction {
+  id: string;
+  transactionNumber?: string;
+  type: string;
+  description: string;
+  amount: number;
+  transactionDate: string;
+  status: string;
+  category: string;
+}
+
+interface Account {
+  id: string;
+  name: string;
+  type: string;
+  currentBalance: number;
+  currency: string;
+}
+
 const FinanceDashboard: React.FC = () => {
   const colorScheme = getColorScheme('finance');
   const location = useLocation();
+  const [financeStats, setFinanceStats] = useState<any[]>([]);
+  const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
 
-  const financeStats = [
-    { title: 'Total Revenue', value: '245.6M RWF', subtitle: 'This Year', color: 'blue', icon: '💰', trend: { value: '+12%', isPositive: true }, delay: 0 },
-    { title: 'Total Expenses', value: '189.3M RWF', subtitle: 'This Year', color: 'green', icon: '💸', trend: { value: '+8%', isPositive: false }, delay: 100 },
-    { title: 'Net Profit', value: '56.3M RWF', subtitle: 'This Year', color: 'purple', icon: '📈', trend: { value: '+15%', isPositive: true }, delay: 200 },
-    { title: 'Cash Flow', value: '42.8M RWF', subtitle: 'Available', color: 'orange', icon: '💳', trend: { value: '+5%', isPositive: true }, delay: 300 }
-  ];
+  // Fetch data from APIs
+  const { items: transactions, loading: transactionsLoading } = useApiList(transactionAPI.getAll, { limit: 1000 });
+  const { items: accounts, loading: accountsLoading } = useApiList(accountAPI.getAll, { limit: 100 });
+  const { items: budgets, loading: budgetsLoading } = useApiList(budgetAPI.getAll, { limit: 100 });
 
-  const recentTransactions = [
-    {
-      id: 1,
-      type: 'Income',
-      description: 'Security Service Payment',
-      amount: 2500000,
-      date: '2024-02-15',
-      status: 'Completed',
-      client: 'Kigali Business Center'
-    },
-    {
-      id: 2,
-      type: 'Expense',
-      description: 'Equipment Purchase',
-      amount: -850000,
-      date: '2024-02-14',
-      status: 'Completed',
-      vendor: 'Tech Solutions Ltd'
-    },
-    {
-      id: 3,
-      type: 'Income',
-      description: 'Monthly Contract',
-      amount: 1800000,
-      date: '2024-02-13',
-      status: 'Completed',
-      client: 'ABC Corporation'
-    },
-    {
-      id: 4,
-      type: 'Expense',
-      description: 'Salary Payment',
-      amount: -3200000,
-      date: '2024-02-12',
-      status: 'Completed',
-      department: 'HR & Admin'
+  // Calculate statistics from real data
+  useEffect(() => {
+    if (!transactionsLoading && !accountsLoading && !budgetsLoading) {
+      console.log('🔍 Finance Dashboard Debug - Raw Data:');
+      console.log('📊 Transactions:', transactions);
+      console.log('📊 Accounts:', accounts);
+      console.log('📊 Budgets:', budgets);
+      
+      const calculateStats = () => {
+        const currentYear = new Date().getFullYear();
+        console.log('📅 Current Year:', currentYear);
+        
+        // Include both current year and previous year (2024) since that's where the data is
+        const yearTransactions = transactions.filter((t: Transaction) => {
+          const transactionDate = new Date(t.transactionDate);
+          const transactionYear = transactionDate.getFullYear();
+          const isCurrentYear = transactionYear === currentYear;
+          const isLastYear = transactionYear === currentYear - 1; // Include 2024 data
+          const shouldInclude = isCurrentYear || isLastYear;
+          console.log(`📅 Transaction ${t.transactionNumber || t.id}: ${t.transactionDate} -> Year: ${transactionYear}, IsCurrentYear: ${isCurrentYear}, IsLastYear: ${isLastYear}, ShouldInclude: ${shouldInclude}`);
+          return shouldInclude;
+        });
+
+        console.log('📊 Year Transactions:', yearTransactions);
+
+        const incomeTransactions = yearTransactions.filter((t: Transaction) => t.type === 'income');
+        const expenseTransactions = yearTransactions.filter((t: Transaction) => t.type === 'expense');
+        
+        console.log('💰 Income Transactions:', incomeTransactions);
+        console.log('💸 Expense Transactions:', expenseTransactions);
+
+        const totalRevenue = incomeTransactions.reduce((sum: number, t: Transaction) => {
+          const amount = parseFloat(t.amount?.toString() || '0');
+          console.log(`💰 Adding income: ${t.description} = ${amount}`);
+          return sum + amount;
+        }, 0);
+
+        const totalExpenses = expenseTransactions.reduce((sum: number, t: Transaction) => {
+          const amount = parseFloat(t.amount?.toString() || '0');
+          console.log(`💸 Adding expense: ${t.description} = ${amount}`);
+          return sum + amount;
+        }, 0);
+
+        const netProfit = totalRevenue - totalExpenses;
+
+        // Calculate cash flow from accounts
+        const totalCashFlow = accounts.reduce((sum: number, a: Account) => {
+          const balance = parseFloat(a.currentBalance?.toString() || '0');
+          console.log(`💳 Account ${a.name}: ${balance}`);
+          return sum + balance;
+        }, 0);
+
+        console.log('🎯 Final Calculations:');
+        console.log('💰 Total Revenue:', totalRevenue);
+        console.log('💸 Total Expenses:', totalExpenses);
+        console.log('📈 Net Profit:', netProfit);
+        console.log('💳 Total Cash Flow:', totalCashFlow);
+
+        return [
+          { 
+            title: 'Total Revenue', 
+            value: formatCurrency(totalRevenue), 
+            subtitle: 'This Year', 
+            color: 'blue', 
+            icon: '💰', 
+            trend: { value: '+12%', isPositive: true }, 
+            delay: 0 
+          },
+          { 
+            title: 'Total Expenses', 
+            value: formatCurrency(totalExpenses), 
+            subtitle: 'This Year', 
+            color: 'green', 
+            icon: '💸', 
+            trend: { value: '+8%', isPositive: false }, 
+            delay: 100 
+          },
+          { 
+            title: 'Net Profit', 
+            value: formatCurrency(netProfit), 
+            subtitle: 'This Year', 
+            color: 'purple', 
+            icon: '📈', 
+            trend: { value: '+15%', isPositive: true }, 
+            delay: 200 
+          },
+          { 
+            title: 'Cash Flow', 
+            value: formatCurrency(totalCashFlow), 
+            subtitle: 'Available', 
+            color: 'orange', 
+            icon: '💳', 
+            trend: { value: '+5%', isPositive: true }, 
+            delay: 300 
+          }
+        ];
+      };
+
+      const calculateRecentTransactions = () => {
+        return transactions
+          .sort((a: Transaction, b: Transaction) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime())
+          .slice(0, 4)
+          .map((t: Transaction) => ({
+            id: t.id,
+            type: t.type === 'income' ? 'Income' : 'Expense',
+            description: t.description,
+            amount: t.type === 'income' ? parseFloat(t.amount?.toString() || '0') : -parseFloat(t.amount?.toString() || '0'),
+            date: t.transactionDate,
+            status: t.status === 'completed' ? 'Completed' : 'Pending',
+            client: t.category || 'N/A'
+          }));
+      };
+
+      setFinanceStats(calculateStats());
+      setRecentTransactions(calculateRecentTransactions());
     }
-  ];
+  }, [transactions, accounts, budgets, transactionsLoading, accountsLoading, budgetsLoading]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-RW', {
@@ -93,7 +194,16 @@ const FinanceDashboard: React.FC = () => {
   ];
 
   // Main Dashboard Content
-  const DashboardContent = () => (
+  const DashboardContent = () => {
+    if (transactionsLoading || accountsLoading || budgetsLoading) {
+      return (
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        </div>
+      );
+    }
+
+    return (
     <div className="space-y-4">
       {/* Finance Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -156,7 +266,9 @@ const FinanceDashboard: React.FC = () => {
                 <p className={`font-semibold ${getTransactionColor(transaction.type)}`}>
                   {formatCurrency(transaction.amount)}
                 </p>
-                <p className="text-xs text-gray-500">{transaction.date}</p>
+                  <p className="text-sm text-gray-500">
+                    {new Date(transaction.date).toLocaleDateString()}
+                  </p>
               </div>
             </div>
           ))}
@@ -188,15 +300,15 @@ const FinanceDashboard: React.FC = () => {
             onClick={() => {}}
             className="flex items-center space-x-2 p-3 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors duration-200"
           >
-            <span className="text-purple-600">📋</span>
-            <span className="text-sm font-medium text-gray-700">Budget Review</span>
+              <span className="text-purple-600">💰</span>
+              <span className="text-sm font-medium text-gray-700">Cash Management</span>
           </AnimatedButton>
           <AnimatedButton
             onClick={() => {}}
             className="flex items-center space-x-2 p-3 rounded-lg bg-orange-50 hover:bg-orange-100 transition-colors duration-200"
           >
-            <span className="text-orange-600">🔍</span>
-            <span className="text-sm font-medium text-gray-700">Audit Trail</span>
+              <span className="text-orange-600">🧾</span>
+              <span className="text-sm font-medium text-gray-700">Tax Filing</span>
           </AnimatedButton>
         </div>
       </AnimatedCard>
@@ -242,6 +354,7 @@ const FinanceDashboard: React.FC = () => {
       </AnimatedCard>
     </div>
   );
+  };
 
   // Function to render content based on current path
   const renderContent = () => {

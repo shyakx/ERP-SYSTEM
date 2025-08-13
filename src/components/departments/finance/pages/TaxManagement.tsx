@@ -1,63 +1,103 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AnimatedCard from '../../../shared/AnimatedCard';
 import { AnimatedButton, AnimatedProgressBar } from '../../../shared/AnimatedCard';
+import { useApiList } from '../../../../hooks/useApi';
+import { taxRecordAPI, transactionAPI } from '../../../../services/api.ts';
+import { Loader2, Plus, AlertCircle, CheckCircle, Clock, FileText, DollarSign, Calendar } from 'lucide-react';
+
+interface TaxRecord {
+  id: string;
+  taxNumber: string;
+  type: string;
+  period: string;
+  year: number;
+  month?: number;
+  quarter?: number;
+  taxableAmount: number;
+  taxRate: number;
+  taxAmount: number;
+  status: string;
+  dueDate: string;
+  filedDate?: string;
+  paidDate?: string;
+  referenceNumber?: string;
+  notes?: string;
+}
+
+interface Transaction {
+  id: string;
+  type: string;
+  amount: number;
+  transactionDate: string;
+  status: string;
+}
 
 const TaxManagement: React.FC = () => {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('2024');
+  const [taxStats, setTaxStats] = useState<any[]>([]);
 
-  const taxStats = [
-    { title: 'Total Tax Liability', value: '12.8M RWF', subtitle: 'This Year', color: 'red', icon: '💰', trend: { value: '+5.2%', isPositive: false }, delay: 0 },
-    { title: 'Tax Paid', value: '8.5M RWF', subtitle: 'This Year', color: 'green', icon: '✅', trend: { value: '+12%', isPositive: true }, delay: 100 },
-    { title: 'Pending Filings', value: '3', subtitle: 'Due Soon', color: 'orange', icon: '📋', trend: { value: '-1', isPositive: true }, delay: 200 },
-    { title: 'Compliance Score', value: '94%', subtitle: 'Overall', color: 'blue', icon: '📊', trend: { value: '+2%', isPositive: true }, delay: 300 }
-  ];
+  // Fetch data from APIs
+  const { items: taxRecords, loading: taxRecordsLoading } = useApiList(taxRecordAPI.getAll, { limit: 100 });
+  const { items: transactions, loading: transactionsLoading } = useApiList(transactionAPI.getAll, { limit: 1000 });
 
-  const taxCategories = [
-    { id: 1, name: 'Corporate Income Tax', amount: 8500000, dueDate: '2024-03-31', status: 'Pending', rate: '30%', category: 'Direct Tax' },
-    { id: 2, name: 'VAT', amount: 3200000, dueDate: '2024-02-28', status: 'Paid', rate: '18%', category: 'Indirect Tax' },
-    { id: 3, name: 'Withholding Tax', amount: 1200000, dueDate: '2024-03-15', status: 'Pending', rate: '15%', category: 'Direct Tax' },
-    { id: 4, name: 'Payroll Tax', amount: 450000, dueDate: '2024-02-25', status: 'Paid', rate: '5%', category: 'Employment Tax' },
-    { id: 5, name: 'Property Tax', amount: 850000, dueDate: '2024-04-30', status: 'Pending', rate: '1%', category: 'Property Tax' }
-  ];
+  // Calculate statistics from real data
+  useEffect(() => {
+    if (!taxRecordsLoading && !transactionsLoading) {
+      const calculateStats = () => {
+        const currentYear = parseInt(selectedPeriod);
+        const yearTaxRecords = taxRecords.filter((record: TaxRecord) => record.year === currentYear);
+        
+        const totalTaxLiability = yearTaxRecords.reduce((sum: number, record: TaxRecord) => sum + parseFloat(record.taxAmount.toString()), 0);
+        const paidTaxRecords = yearTaxRecords.filter((record: TaxRecord) => record.status === 'paid');
+        const totalTaxPaid = paidTaxRecords.reduce((sum: number, record: TaxRecord) => sum + parseFloat(record.taxAmount.toString()), 0);
+        const pendingFilings = yearTaxRecords.filter((record: TaxRecord) => record.status === 'draft' || record.status === 'calculated').length;
+        
+        // Calculate compliance score based on paid vs total
+        const complianceScore = totalTaxLiability > 0 ? Math.round((totalTaxPaid / totalTaxLiability) * 100) : 100;
 
-  const recentFilings = [
-    {
-      id: 1,
-      type: 'VAT Return',
-      period: 'Q4 2023',
-      dueDate: '2024-01-31',
-      status: 'Filed',
-      amount: 3200000,
-      filingDate: '2024-01-28'
-    },
-    {
-      id: 2,
-      type: 'Corporate Tax',
-      period: '2023',
-      dueDate: '2024-03-31',
-      status: 'Pending',
-      amount: 8500000,
-      filingDate: null
-    },
-    {
-      id: 3,
-      type: 'Withholding Tax',
-      period: 'Q1 2024',
-      dueDate: '2024-03-15',
-      status: 'Draft',
-      amount: 1200000,
-      filingDate: null
-    },
-    {
-      id: 4,
-      type: 'Payroll Tax',
-      period: 'January 2024',
-      dueDate: '2024-02-25',
-      status: 'Filed',
-      amount: 450000,
-      filingDate: '2024-02-20'
+        return [
+          { 
+            title: 'Total Tax Liability', 
+            value: formatCurrency(totalTaxLiability), 
+            subtitle: 'This Year', 
+            color: 'red', 
+            icon: '💰', 
+            trend: { value: '+5.2%', isPositive: false }, 
+            delay: 0 
+          },
+          { 
+            title: 'Tax Paid', 
+            value: formatCurrency(totalTaxPaid), 
+            subtitle: 'This Year', 
+            color: 'green', 
+            icon: '✅', 
+            trend: { value: '+12%', isPositive: true }, 
+            delay: 100 
+          },
+          { 
+            title: 'Pending Filings', 
+            value: pendingFilings.toString(), 
+            subtitle: 'Due Soon', 
+            color: 'orange', 
+            icon: '📋', 
+            trend: { value: '-1', isPositive: true }, 
+            delay: 200 
+          },
+          { 
+            title: 'Compliance Score', 
+            value: `${complianceScore}%`, 
+            subtitle: 'Overall', 
+            color: 'blue', 
+            icon: '📊', 
+            trend: { value: '+2%', isPositive: true }, 
+            delay: 300 
+          }
+        ];
+      };
+
+      setTaxStats(calculateStats());
     }
-  ];
+  }, [taxRecords, transactions, selectedPeriod, taxRecordsLoading, transactionsLoading]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-RW', {
@@ -70,14 +110,60 @@ const TaxManagement: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Pending': return 'text-orange-600 bg-orange-100';
-      case 'Paid': return 'text-green-600 bg-green-100';
-      case 'Filed': return 'text-blue-600 bg-blue-100';
-      case 'Draft': return 'text-gray-600 bg-gray-100';
-      case 'Overdue': return 'text-red-600 bg-red-100';
+      case 'draft': return 'text-gray-600 bg-gray-100';
+      case 'calculated': return 'text-blue-600 bg-blue-100';
+      case 'filed': return 'text-purple-600 bg-purple-100';
+      case 'paid': return 'text-green-600 bg-green-100';
+      case 'overdue': return 'text-red-600 bg-red-100';
+      case 'cancelled': return 'text-gray-600 bg-gray-100';
       default: return 'text-gray-600 bg-gray-100';
     }
   };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'draft': return <FileText className="w-4 h-4" />;
+      case 'calculated': return <Clock className="w-4 h-4" />;
+      case 'filed': return <CheckCircle className="w-4 h-4" />;
+      case 'paid': return <CheckCircle className="w-4 h-4" />;
+      case 'overdue': return <AlertCircle className="w-4 h-4" />;
+      case 'cancelled': return <Clock className="w-4 h-4" />;
+      default: return <Clock className="w-4 h-4" />;
+    }
+  };
+
+  const getTaxTypeLabel = (type: string) => {
+    switch (type) {
+      case 'vat': return 'VAT';
+      case 'income_tax': return 'Income Tax';
+      case 'withholding_tax': return 'Withholding Tax';
+      case 'corporate_tax': return 'Corporate Tax';
+      case 'property_tax': return 'Property Tax';
+      default: return type.replace('_', ' ').toUpperCase();
+    }
+  };
+
+  const getPeriodLabel = (record: TaxRecord) => {
+    if (record.period === 'monthly' && record.month) {
+      const monthNames = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+      ];
+      return `${monthNames[record.month - 1]} ${record.year}`;
+    } else if (record.period === 'quarterly' && record.quarter) {
+      return `Q${record.quarter} ${record.year}`;
+    } else {
+      return record.year.toString();
+    }
+  };
+
+  if (taxRecordsLoading || transactionsLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -143,26 +229,26 @@ const TaxManagement: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {taxCategories.map((tax) => (
-                <tr key={tax.id} className="hover:bg-gray-50">
+              {taxRecords.map((record: TaxRecord) => (
+                <tr key={record.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{tax.name}</div>
+                    <div className="text-sm font-medium text-gray-900">{getTaxTypeLabel(record.type)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{tax.category}</div>
+                    <div className="text-sm text-gray-500">{record.type.replace('_', ' ').toUpperCase()}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{formatCurrency(tax.amount)}</div>
+                    <div className="text-sm font-medium text-gray-900">{formatCurrency(record.taxAmount)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{tax.rate}</div>
+                    <div className="text-sm text-gray-500">{record.taxRate}%</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{tax.dueDate}</div>
+                    <div className="text-sm text-gray-500">{record.dueDate}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(tax.status)}`}>
-                      {tax.status}
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(record.status)}`}>
+                      {record.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -193,27 +279,27 @@ const TaxManagement: React.FC = () => {
         className="bg-white rounded-xl shadow-lg border border-gray-100"
       >
         <div className="space-y-3">
-          {recentFilings.map((filing) => (
+          {taxRecords.map((record: TaxRecord) => (
             <div
-              key={filing.id}
+              key={record.id}
               className="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-200"
             >
               <div className="flex items-center space-x-4">
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <span className="text-blue-600 text-sm font-medium">📋</span>
+                  <span className="text-blue-600 text-sm font-medium">{getStatusIcon(record.status)}</span>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">{filing.type}</p>
-                  <p className="text-sm text-gray-500">Period: {filing.period}</p>
+                  <p className="font-medium text-gray-900">{getTaxTypeLabel(record.type)}</p>
+                  <p className="text-sm text-gray-500">Period: {getPeriodLabel(record)}</p>
                 </div>
               </div>
               <div className="text-right">
-                <p className="font-semibold text-gray-900">{formatCurrency(filing.amount)}</p>
-                <p className="text-sm text-gray-500">Due: {filing.dueDate}</p>
+                <p className="font-semibold text-gray-900">{formatCurrency(record.taxAmount)}</p>
+                <p className="text-sm text-gray-500">Due: {record.dueDate}</p>
               </div>
               <div className="flex items-center space-x-2">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(filing.status)}`}>
-                  {filing.status}
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(record.status)}`}>
+                  {record.status}
                 </span>
                 <AnimatedButton
                   onClick={() => {}}

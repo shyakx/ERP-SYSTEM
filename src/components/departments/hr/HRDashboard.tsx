@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import DepartmentLayout from '../../shared/DepartmentLayout';
 import AnimatedStatsCard from '../../shared/AnimatedStatsCard';
 import AnimatedCard from '../../shared/AnimatedCard';
 import { AnimatedButton } from '../../shared/AnimatedCard';
 import { getColorScheme } from '../../../utils/colorSchemes';
+import { employeeAPI, trainingAPI, leaveAPI, attendanceAPI, performanceAPI, payrollAPI } from '../../../services/api';
 
 // HR Department Pages
 import EmployeeManagement from './pages/EmployeeManagement';
@@ -15,71 +16,155 @@ import Performance from './pages/Performance';
 import LeaveManagement from './pages/LeaveManagement';
 import Attendance from './pages/Attendance';
 import HROverview from './pages/HROverview';
+import Benefits from './pages/Benefits';
+import Compliance from './pages/Compliance';
+import Reports from './pages/Reports';
+import Settings from './pages/Settings';
+
+interface Employee {
+  id: string;
+  employeeId: string;
+  position: string;
+  department: string;
+  location: string;
+  status: string;
+  firstName: string;
+  lastName: string;
+}
+
+interface DashboardStats {
+  totalEmployees: number;
+  activeEmployees: number;
+  newHires: number;
+  trainingSessions: number;
+  leaveRequests: number;
+  attendanceRate: number;
+  performanceReviews: number;
+  payrollProcessed: number;
+}
 
 const HRDashboard: React.FC = () => {
   const colorScheme = getColorScheme('hr');
   const location = useLocation();
+  const [statsData, setStatsData] = useState<DashboardStats>({
+    totalEmployees: 0,
+    activeEmployees: 0,
+    newHires: 0,
+    trainingSessions: 0,
+    leaveRequests: 0,
+    attendanceRate: 0,
+    performanceReviews: 0,
+    payrollProcessed: 0
+  });
+  const [recentEmployees, setRecentEmployees] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const statsData = [
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch employee stats
+      const employeeStats = await employeeAPI.getStats();
+      
+      // Fetch recent employees
+      const employeesResponse = await employeeAPI.getAll({ page: 1, limit: 5 });
+      
+      // Fetch training data
+      const trainingResponse = await trainingAPI.getAllCourses({ page: 1, limit: 10 });
+      
+      // Fetch leave requests
+      const leaveResponse = await leaveAPI.getAllRequests({ page: 1, limit: 10 });
+      
+      // Fetch attendance data
+      const attendanceResponse = await attendanceAPI.getAll({ page: 1, limit: 10 });
+      
+      // Fetch performance data
+      const performanceResponse = await performanceAPI.getAll({ page: 1, limit: 10 });
+      
+      // Fetch payroll data
+      const payrollResponse = await payrollAPI.getAll({ page: 1, limit: 10 });
+
+      // Calculate stats
+      const totalEmployees = employeeStats.data?.total || 0;
+      const activeEmployees = employeeStats.data?.active || 0;
+      const newHires = employeeStats.data?.newHires || 0;
+      const trainingSessions = trainingResponse.data?.items?.length || 0;
+      const leaveRequests = leaveResponse.data?.items?.length || 0;
+      const attendanceRate = attendanceResponse.data?.items?.length > 0 ? 95 : 0; // Simplified calculation
+      const performanceReviews = performanceResponse.data?.items?.length || 0;
+      const payrollProcessed = payrollResponse.data?.items?.length || 0;
+
+      setStatsData({
+        totalEmployees,
+        activeEmployees,
+        newHires,
+        trainingSessions,
+        leaveRequests,
+        attendanceRate,
+        performanceReviews,
+        payrollProcessed
+      });
+
+      // Set recent employees
+      const employees = employeesResponse.data?.items || [];
+      setRecentEmployees(employees.map((emp: any) => ({
+        id: emp.id,
+        employeeId: emp.employeeId,
+        position: emp.position,
+        department: emp.department,
+        location: emp.location,
+        status: emp.status,
+        firstName: emp.firstName || emp.name?.split(' ')[0] || '',
+        lastName: emp.lastName || emp.name?.split(' ')[1] || ''
+      })));
+
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const dashboardStats = [
     {
       title: 'Total Employees',
-      value: 127,
-      subtitle: '+12% from last month',
+      value: statsData.totalEmployees,
+      subtitle: `${statsData.activeEmployees} active`,
       color: '#3b82f6',
       icon: '👥',
-      trend: { value: '+12%', isPositive: true },
+      trend: { value: `+${statsData.newHires}`, isPositive: true },
       delay: 0
     },
     {
-      title: 'Active Guards',
-      value: 89,
-      subtitle: '+8% from last month',
+      title: 'Active Employees',
+      value: statsData.activeEmployees,
+      subtitle: `${Math.round((statsData.activeEmployees / statsData.totalEmployees) * 100)}% of total`,
       color: '#10b981',
       icon: '🛡️',
       trend: { value: '+8%', isPositive: true },
       delay: 100
     },
     {
-      title: 'New Hires',
-      value: 15,
+      title: 'Training Sessions',
+      value: statsData.trainingSessions,
       subtitle: 'This month',
       color: '#8b5cf6',
-      icon: '🎯',
-      trend: { value: '+15%', isPositive: true },
+      icon: '📚',
+      trend: { value: '+25%', isPositive: true },
       delay: 200
     },
     {
-      title: 'Training Sessions',
-      value: 8,
-      subtitle: 'This week',
+      title: 'Leave Requests',
+      value: statsData.leaveRequests,
+      subtitle: 'Pending approval',
       color: '#f59e0b',
-      icon: '📚',
-      trend: { value: '+25%', isPositive: true },
+      icon: '📅',
+      trend: { value: '+5%', isPositive: false },
       delay: 300
-    }
-  ];
-
-  const recentEmployees = [
-    {
-      name: 'Jean Pierre Uwimana',
-      position: 'Security Guard',
-      location: 'Kigali, Rwanda',
-      status: 'Active',
-      avatar: 'JU'
-    },
-    {
-      name: 'Marie Claire Niyonsaba',
-      position: 'HR Manager',
-      location: 'Kigali, Rwanda',
-      status: 'Active',
-      avatar: 'MN'
-    },
-    {
-      name: 'Emmanuel Ndayisaba',
-      position: 'Security Supervisor',
-      location: 'Huye, Rwanda',
-      status: 'Active',
-      avatar: 'EN'
     }
   ];
 
@@ -124,7 +209,7 @@ const HRDashboard: React.FC = () => {
     <div className="space-y-4">
       {/* Animated Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {statsData.map((stat, index) => (
+        {dashboardStats.map((stat, index) => (
           <div
             key={index}
             className="bg-white rounded-xl p-4 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300"
@@ -164,10 +249,10 @@ const HRDashboard: React.FC = () => {
             >
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <span className="text-blue-600 font-semibold text-sm">{employee.avatar}</span>
+                  <span className="text-blue-600 font-semibold text-sm">{employee.firstName.charAt(0)}{employee.lastName.charAt(0)}</span>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">{employee.name}</p>
+                  <p className="font-medium text-gray-900">{employee.firstName} {employee.lastName}</p>
                   <p className="text-sm text-gray-500">{employee.position} • {employee.location}</p>
                 </div>
               </div>
@@ -223,10 +308,13 @@ const HRDashboard: React.FC = () => {
       case '/hr/attendance':
         return <Attendance />;
       case '/hr/benefits':
+        return <Benefits />;
       case '/hr/compliance':
+        return <Compliance />;
       case '/hr/reports':
+        return <Reports />;
       case '/hr/settings':
-        return <HROverview />;
+        return <Settings />;
       default:
         return <DashboardContent />;
     }
@@ -238,7 +326,13 @@ const HRDashboard: React.FC = () => {
       colorScheme={colorScheme}
       sidebarItems={sidebarItems}
     >
-      {renderContent()}
+      {loading ? (
+        <div className="text-center py-10">
+          <p>Loading dashboard data...</p>
+        </div>
+      ) : (
+        renderContent()
+      )}
     </DepartmentLayout>
   );
 };

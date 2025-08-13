@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -11,14 +11,100 @@ import {
   Calendar,
   AlertCircle,
   CheckCircle,
-  Clock
+  Clock,
+  Loader2,
+  X
 } from 'lucide-react';
+import { useApiList } from '../../../../hooks/useApi';
+import { transactionAPI, accountAPI, vendorAPI, customerAPI } from '../../../../services/api.ts';
+
+interface Transaction {
+  id: string;
+  type: 'income' | 'expense' | 'transfer' | 'adjustment';
+  description: string;
+  amount: number;
+  transactionDate: string;
+  status: 'pending' | 'completed' | 'cancelled' | 'overdue';
+  category: string;
+  account?: {
+    name: string;
+    accountNumber: string;
+  };
+  vendor?: {
+    name: string;
+    vendorCode: string;
+  };
+  customer?: {
+    name: string;
+    customerCode: string;
+  };
+}
+
+interface Account {
+  id: string;
+  name: string;
+  type: string;
+  currentBalance: number;
+  currency: string;
+}
+
+interface Vendor {
+  id: string;
+  name: string;
+  currentBalance: number;
+  status: string;
+}
+
+interface Customer {
+  id: string;
+  name: string;
+  currentBalance: number;
+  status: string;
+}
 
 const FinanceOverview: React.FC = () => {
-  const stats = [
+  const [stats, setStats] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch data from APIs
+  const { items: transactions, loading: transactionsLoading } = useApiList(transactionAPI.getAll, { limit: 10 });
+  const { items: accounts, loading: accountsLoading } = useApiList(accountAPI.getAll, { limit: 10 });
+  const { items: vendors, loading: vendorsLoading } = useApiList(vendorAPI.getAll, { limit: 10 });
+  const { items: customers, loading: customersLoading } = useApiList(customerAPI.getAll, { limit: 10 });
+
+  // Calculate statistics from real data
+  useEffect(() => {
+    if (!transactionsLoading && !accountsLoading && !vendorsLoading && !customersLoading) {
+      const calculateStats = () => {
+        const totalRevenue = transactions
+          .filter((t: Transaction) => t.type === 'income' && t.status === 'completed')
+          .reduce((sum: number, t: Transaction) => sum + parseFloat(t.amount.toString()), 0);
+
+        const totalExpenses = transactions
+          .filter((t: Transaction) => t.type === 'expense' && t.status === 'completed')
+          .reduce((sum: number, t: Transaction) => sum + parseFloat(t.amount.toString()), 0);
+
+        const netProfit = totalRevenue - totalExpenses;
+
+        const outstandingInvoices = customers
+          .reduce((sum: number, c: Customer) => sum + parseFloat(c.currentBalance.toString()), 0);
+
+        const totalPayables = vendors
+          .reduce((sum: number, v: Vendor) => sum + parseFloat(v.currentBalance.toString()), 0);
+
+        const bankAccounts = accounts.filter((a: Account) => a.type === 'bank');
+        const totalBankBalance = bankAccounts
+          .reduce((sum: number, a: Account) => sum + parseFloat(a.currentBalance.toString()), 0);
+
+        return [
     {
       title: 'Total Revenue',
-      value: '$2,456,789',
+            value: new Intl.NumberFormat('en-RW', {
+              style: 'currency',
+              currency: 'RWF',
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            }).format(totalRevenue),
       change: '+12.5%',
       changeType: 'positive',
       icon: DollarSign,
@@ -26,8 +112,13 @@ const FinanceOverview: React.FC = () => {
       bgColor: 'bg-green-50'
     },
     {
-      title: 'Monthly Expenses',
-      value: '$1,234,567',
+            title: 'Total Expenses',
+            value: new Intl.NumberFormat('en-RW', {
+              style: 'currency',
+              currency: 'RWF',
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            }).format(totalExpenses),
       change: '+8.2%',
       changeType: 'negative',
       icon: TrendingDown,
@@ -36,89 +127,76 @@ const FinanceOverview: React.FC = () => {
     },
     {
       title: 'Net Profit',
-      value: '$1,222,222',
-      change: '+15.3%',
-      changeType: 'positive',
+            value: new Intl.NumberFormat('en-RW', {
+              style: 'currency',
+              currency: 'RWF',
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            }).format(netProfit),
+            change: netProfit > 0 ? '+15.3%' : '-5.2%',
+            changeType: netProfit > 0 ? 'positive' : 'negative',
       icon: TrendingUp,
-      color: 'bg-blue-500',
-      bgColor: 'bg-blue-50'
-    },
-    {
-      title: 'Outstanding Invoices',
-      value: '$345,678',
-      change: '-5.1%',
+            color: netProfit > 0 ? 'bg-blue-500' : 'bg-red-500',
+            bgColor: netProfit > 0 ? 'bg-blue-50' : 'bg-red-50'
+          },
+          {
+            title: 'Bank Balance',
+            value: new Intl.NumberFormat('en-RW', {
+              style: 'currency',
+              currency: 'RWF',
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            }).format(totalBankBalance),
+            change: '+2.1%',
       changeType: 'positive',
-      icon: Receipt,
-      color: 'bg-orange-500',
-      bgColor: 'bg-orange-50'
-    }
-  ];
+            icon: CreditCard,
+            color: 'bg-purple-500',
+            bgColor: 'bg-purple-50'
+          }
+        ];
+      };
 
-  const recentTransactions = [
-    {
-      id: 1,
-      type: 'income',
-      description: 'Security Service Payment - ABC Corp',
-      amount: '$25,000',
-      date: '2024-01-15',
-      status: 'completed'
-    },
-    {
-      id: 2,
-      type: 'expense',
-      description: 'Equipment Purchase - Security Cameras',
-      amount: '-$12,500',
-      date: '2024-01-14',
-      status: 'completed'
-    },
-    {
-      id: 3,
-      type: 'income',
-      description: 'Monthly Contract - XYZ Business',
-      amount: '$18,750',
-      date: '2024-01-13',
-      status: 'pending'
-    },
-    {
-      id: 4,
-      type: 'expense',
-      description: 'Employee Payroll',
-      amount: '-$125,000',
-      date: '2024-01-12',
-      status: 'completed'
+      setStats(calculateStats());
+      setLoading(false);
     }
-  ];
+  }, [transactions, accounts, vendors, customers, transactionsLoading, accountsLoading, vendorsLoading, customersLoading]);
 
-  const upcomingPayments = [
-    {
-      id: 1,
-      client: 'Kigali Business Center',
-      amount: '$32,500',
-      dueDate: '2024-01-25',
-      status: 'pending'
-    },
-    {
-      id: 2,
-      client: 'Rwanda Tech Hub',
-      amount: '$28,750',
-      dueDate: '2024-01-28',
-      status: 'pending'
-    },
-    {
-      id: 3,
-      client: 'Central Bank Branch',
-      amount: '$45,000',
-      dueDate: '2024-01-30',
-      status: 'pending'
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-RW', {
+      style: 'currency',
+      currency: 'RWF',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'text-green-600 bg-green-100';
+      case 'pending': return 'text-yellow-600 bg-yellow-100';
+      case 'overdue': return 'text-red-600 bg-red-100';
+      case 'cancelled': return 'text-gray-600 bg-gray-100';
+      default: return 'text-gray-600 bg-gray-100';
     }
-  ];
+  };
 
-  const budgetBreakdown = [
-    { category: 'Personnel', amount: 1250000, percentage: 65 },
-    { category: 'Equipment', amount: 300000, percentage: 15 },
-    { category: 'Operations', amount: 250000, percentage: 13 },
-    { category: 'Marketing', amount: 120000, percentage: 7 }
-  ];
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed': return <CheckCircle className="w-4 h-4" />;
+      case 'pending': return <Clock className="w-4 h-4" />;
+      case 'overdue': return <AlertCircle className="w-4 h-4" />;
+      case 'cancelled': return <X className="w-4 h-4" />;
+      default: return <Clock className="w-4 h-4" />;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -175,8 +253,13 @@ const FinanceOverview: React.FC = () => {
               <h3 className="text-lg font-semibold text-gray-900">Recent Transactions</h3>
             </div>
             <div className="card-body">
+              {transactionsLoading ? (
+                <div className="flex items-center justify-center h-32">
+                  <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                </div>
+              ) : (
               <div className="space-y-4">
-                {recentTransactions.map((transaction) => (
+                  {transactions.map((transaction: Transaction) => (
                   <div key={transaction.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg animate-slide-in-left">
                     <div className="flex items-center space-x-3">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
@@ -190,103 +273,120 @@ const FinanceOverview: React.FC = () => {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-900">{transaction.description}</p>
-                        <p className="text-xs text-gray-500">{transaction.date}</p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(transaction.transactionDate).toLocaleDateString()}
+                          </p>
                       </div>
                     </div>
                     <div className="text-right">
                       <p className={`text-sm font-medium ${
                         transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                       }`}>
-                        {transaction.amount}
-                      </p>
-                      <span className={`text-xs ${
-                        transaction.status === 'completed' ? 'text-green-600' : 'text-yellow-600'
-                      }`}>
-                        {transaction.status}
+                          {transaction.type === 'income' ? '+' : '-'}{formatCurrency(parseFloat(transaction.amount.toString()))}
+                        </p>
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
+                          {getStatusIcon(transaction.status)}
+                          <span className="ml-1">{transaction.status}</span>
                       </span>
                     </div>
                   </div>
                 ))}
               </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Upcoming Payments */}
+        {/* Quick Stats */}
         <div className="space-y-6">
+          {/* Account Balances */}
           <div className="card">
             <div className="card-header">
-              <h3 className="text-lg font-semibold text-gray-900">Upcoming Payments</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Account Balances</h3>
             </div>
             <div className="card-body">
+              {accountsLoading ? (
+                <div className="flex items-center justify-center h-32">
+                  <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                </div>
+              ) : (
               <div className="space-y-3">
-                {upcomingPayments.map((payment) => (
-                  <div key={payment.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors duration-200">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">{payment.client}</p>
-                      <p className="text-xs text-gray-500">Due: {payment.dueDate}</p>
+                  {accounts.slice(0, 5).map((account: Account) => (
+                    <div key={account.id} className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{account.name}</p>
+                        <p className="text-xs text-gray-500">{account.type}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-green-600">{payment.amount}</p>
-                      <span className="badge-warning">Pending</span>
-                    </div>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {formatCurrency(parseFloat(account.currentBalance.toString()))}
+                      </p>
                   </div>
                 ))}
               </div>
+              )}
             </div>
           </div>
 
-          {/* Quick Actions */}
+          {/* Outstanding Invoices */}
           <div className="card">
             <div className="card-header">
-              <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Outstanding Invoices</h3>
             </div>
             <div className="card-body">
+              {customersLoading ? (
+                <div className="flex items-center justify-center h-32">
+                  <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                </div>
+              ) : (
               <div className="space-y-3">
-                <button className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 rounded-lg transition-colors duration-200">
-                  <DollarSign className="w-5 h-5 text-green-600" />
-                  <span className="text-sm font-medium">Record Payment</span>
-                </button>
-                <button className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 rounded-lg transition-colors duration-200">
-                  <Receipt className="w-5 h-5 text-blue-600" />
-                  <span className="text-sm font-medium">Create Invoice</span>
-                </button>
-                <button className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 rounded-lg transition-colors duration-200">
-                  <BarChart3 className="w-5 h-5 text-purple-600" />
-                  <span className="text-sm font-medium">Generate Report</span>
-                </button>
-                <button className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 rounded-lg transition-colors duration-200">
-                  <Calculator className="w-5 h-5 text-orange-600" />
-                  <span className="text-sm font-medium">Budget Planning</span>
-                </button>
+                  {customers
+                    .filter((c: Customer) => parseFloat(c.currentBalance.toString()) > 0)
+                    .slice(0, 5)
+                    .map((customer: Customer) => (
+                      <div key={customer.id} className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{customer.name}</p>
+                          <p className="text-xs text-gray-500">{customer.status}</p>
+                        </div>
+                        <p className="text-sm font-semibold text-orange-600">
+                          {formatCurrency(parseFloat(customer.currentBalance.toString()))}
+                        </p>
+                      </div>
+                    ))}
               </div>
-            </div>
-          </div>
+              )}
         </div>
       </div>
 
-      {/* Budget Breakdown */}
+          {/* Vendor Payables */}
       <div className="card">
         <div className="card-header">
-          <h3 className="text-lg font-semibold text-gray-900">Budget Breakdown</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Vendor Payables</h3>
         </div>
         <div className="card-body">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {budgetBreakdown.map((item, index) => (
-              <div key={index} className="text-center p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
-                <h4 className="text-sm font-medium text-gray-900">{item.category}</h4>
-                <p className="text-2xl font-bold text-gray-900 mt-2">${(item.amount / 1000).toFixed(0)}k</p>
-                <p className="text-xs text-gray-500 mt-1">{item.percentage}% of total</p>
-                <div className="mt-3">
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${item.percentage}%` }}
-                    ></div>
-                  </div>
+              {vendorsLoading ? (
+                <div className="flex items-center justify-center h-32">
+                  <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
                 </div>
+              ) : (
+                <div className="space-y-3">
+                  {vendors
+                    .filter((v: Vendor) => parseFloat(v.currentBalance.toString()) > 0)
+                    .slice(0, 5)
+                    .map((vendor: Vendor) => (
+                      <div key={vendor.id} className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{vendor.name}</p>
+                          <p className="text-xs text-gray-500">{vendor.status}</p>
+                        </div>
+                        <p className="text-sm font-semibold text-red-600">
+                          {formatCurrency(parseFloat(vendor.currentBalance.toString()))}
+                        </p>
               </div>
             ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

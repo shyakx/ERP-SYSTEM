@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AnimatedCard from '../../../shared/AnimatedCard';
 import { AnimatedButton, AnimatedProgressBar } from '../../../shared/AnimatedCard';
 import { getColorScheme } from '../../../../utils/colorSchemes';
+import { useApiList } from '../../../../hooks/useApi.ts';
+import { inventoryItemAPI } from '../../../../services/api.ts';
 import { 
   Package, 
   TrendingUp, 
@@ -29,16 +31,94 @@ import {
   Tag
 } from 'lucide-react';
 
+interface InventoryItem {
+  id: string;
+  itemCode: string;
+  name: string;
+  description: string;
+  category: string;
+  subcategory: string;
+  unit: string;
+  currentStock: number;
+  minimumStock: number;
+  maximumStock: number;
+  unitCost: number;
+  totalValue: number;
+  location: string;
+  warehouse: string;
+  shelf: string;
+  supplier: string;
+  supplierCode: string;
+  reorderPoint: number;
+  reorderQuantity: number;
+  leadTime: number;
+  status: string;
+  condition: string;
+  barcode: string;
+  specifications: any;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const InventoryOverview: React.FC = () => {
   const colorScheme = getColorScheme('inventory');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  const inventoryStats = [
-    { title: 'Total Items', value: '2,847', subtitle: 'In stock', color: 'blue', icon: '📦', trend: { value: '+45', isPositive: true }, delay: 0 },
-    { title: 'Low Stock', value: '23', subtitle: 'Items below threshold', color: 'red', icon: '⚠️', trend: { value: '-5', isPositive: true }, delay: 100 },
-    { title: 'Total Value', value: 'RWF 45.2M', subtitle: 'Inventory worth', color: 'green', icon: '💰', trend: { value: '+2.1M', isPositive: true }, delay: 200 },
-    { title: 'Categories', value: '18', subtitle: 'Product categories', color: 'purple', icon: '🏷️', trend: { value: '+1', isPositive: true }, delay: 300 }
-  ];
+  // Fetch inventory data from API
+  const { data: inventoryData, loading, error } = useApiList(inventoryItemAPI.getAll);
+
+  // Calculate stats from real data
+  const calculateStats = () => {
+    if (!inventoryData?.items) return [];
+
+    const items = inventoryData.items as InventoryItem[];
+    const totalItems = items.length;
+    const lowStock = items.filter(item => item.currentStock <= item.minimumStock).length;
+    const totalValue = items.reduce((sum, item) => sum + parseFloat(item.totalValue?.toString() || '0'), 0);
+    const categories = new Set(items.map(item => item.category)).size;
+
+    return [
+      { 
+        title: 'Total Items', 
+        value: totalItems.toString(), 
+        subtitle: 'In stock', 
+        color: 'blue', 
+        icon: '📦', 
+        trend: { value: '+0', isPositive: true }, 
+        delay: 0 
+      },
+      { 
+        title: 'Low Stock', 
+        value: lowStock.toString(), 
+        subtitle: 'Items below threshold', 
+        color: 'red', 
+        icon: '⚠️', 
+        trend: { value: '-0', isPositive: true }, 
+        delay: 100 
+      },
+      { 
+        title: 'Total Value', 
+        value: `RWF ${(totalValue / 1000000).toFixed(1)}M`, 
+        subtitle: 'Inventory worth', 
+        color: 'green', 
+        icon: '💰', 
+        trend: { value: '+0', isPositive: true }, 
+        delay: 200 
+      },
+      { 
+        title: 'Categories', 
+        value: categories.toString(), 
+        subtitle: 'Product categories', 
+        color: 'purple', 
+        icon: '🏷️', 
+        trend: { value: '+0', isPositive: true }, 
+        delay: 300 
+      }
+    ];
+  };
+
+  const inventoryStats = calculateStats();
 
   const recentActivities = [
     {

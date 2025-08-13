@@ -36,8 +36,12 @@ import {
   Plus,
   Activity,
   Target,
-  Building
+  Building,
+  MapPin
 } from 'lucide-react';
+
+// Import logo image
+import dicelLogo from '../../assets/images/dicel-logo.png';
 
 interface SidebarItem {
   name: string;
@@ -45,6 +49,26 @@ interface SidebarItem {
   path: string;
   color: string;
 }
+
+// Logo component with fallback
+const LogoComponent = ({ className = "w-6 h-6" }: { className?: string }) => {
+  const [logoError, setLogoError] = useState(false);
+  
+  return (
+    <div className={`flex items-center justify-center ${className}`}>
+      {!logoError ? (
+        <img
+          src={dicelLogo}
+          alt="Dicel Security Company Logo"
+          className="w-full h-full object-contain"
+          onError={() => setLogoError(true)}
+        />
+      ) : (
+        <Shield className="w-full h-full text-white" />
+      )}
+    </div>
+  );
+};
 
 // Department-specific sidebar items
 const getSidebarItems = (userRole: string): SidebarItem[] => {
@@ -102,21 +126,21 @@ const getSidebarItems = (userRole: string): SidebarItem[] => {
     case 'client-management':
       return [
         { name: 'Client Dashboard', icon: Home, path: '/client-management', color: 'text-indigo-600' },
-        { name: 'Client Directory', icon: Users, path: '/client-management/directory', color: 'text-blue-600' },
-        { name: 'Contract Management', icon: FileText, path: '/client-management/contracts', color: 'text-green-600' },
-        { name: 'Client Communications', icon: MessageSquare, path: '/client-management/communications', color: 'text-purple-600' },
-        { name: 'Service Requests', icon: AlertCircle, path: '/client-management/requests', color: 'text-orange-600' },
-        { name: 'Client Analytics', icon: BarChart3, path: '/client-management/analytics', color: 'text-red-600' },
+        { name: 'Client Directory', icon: UserCheck, path: '/client-management/directory', color: 'text-blue-600' },
+        { name: 'Client Relations', icon: MessageSquare, path: '/client-management/relations', color: 'text-green-600' },
+        { name: 'Contract Management', icon: FileText, path: '/client-management/contracts', color: 'text-purple-600' },
+        { name: 'Client Analytics', icon: BarChart3, path: '/client-management/analytics', color: 'text-orange-600' },
+        { name: 'Client Support', icon: ShieldCheck, path: '/client-management/support', color: 'text-red-600' },
       ];
     
     case 'sales-marketing':
       return [
         { name: 'Sales Dashboard', icon: Home, path: '/sales-marketing', color: 'text-pink-600' },
-        { name: 'Lead Management', icon: UserPlus, path: '/sales-marketing/leads', color: 'text-blue-600' },
+        { name: 'Lead Management', icon: Target, path: '/sales-marketing/leads', color: 'text-blue-600' },
         { name: 'Sales Pipeline', icon: TrendingUp, path: '/sales-marketing/pipeline', color: 'text-green-600' },
-        { name: 'Marketing Campaigns', icon: Target, path: '/sales-marketing/campaigns', color: 'text-purple-600' },
+        { name: 'Marketing Campaigns', icon: Activity, path: '/sales-marketing/campaigns', color: 'text-purple-600' },
         { name: 'Sales Reports', icon: BarChart3, path: '/sales-marketing/reports', color: 'text-orange-600' },
-        { name: 'Customer Analytics', icon: Activity, path: '/sales-marketing/analytics', color: 'text-indigo-600' },
+        { name: 'Customer Analytics', icon: PieChart, path: '/sales-marketing/analytics', color: 'text-indigo-600' },
       ];
     
     case 'customer-experience':
@@ -124,66 +148,63 @@ const getSidebarItems = (userRole: string): SidebarItem[] => {
         { name: 'CX Dashboard', icon: Home, path: '/customer-experience', color: 'text-cyan-600' },
         { name: 'Customer Support', icon: MessageSquare, path: '/customer-experience/support', color: 'text-blue-600' },
         { name: 'Feedback Management', icon: CheckCircle, path: '/customer-experience/feedback', color: 'text-green-600' },
-        { name: 'Satisfaction Surveys', icon: BarChart3, path: '/customer-experience/surveys', color: 'text-purple-600' },
-        { name: 'Service Quality', icon: Award, path: '/customer-experience/quality', color: 'text-orange-600' },
-        { name: 'CX Analytics', icon: Activity, path: '/customer-experience/analytics', color: 'text-indigo-600' },
+        { name: 'Service Requests', icon: AlertCircle, path: '/customer-experience/requests', color: 'text-purple-600' },
+        { name: 'Customer Analytics', icon: BarChart3, path: '/customer-experience/analytics', color: 'text-orange-600' },
+        { name: 'Quality Assurance', icon: Award, path: '/customer-experience/quality', color: 'text-indigo-600' },
       ];
     
     case 'security-guard-management':
       return [
-        { name: 'Guard Dashboard', icon: Home, path: '/security-guard-management', color: 'text-yellow-600' },
-        { name: 'Guard Assignment', icon: UserCheck, path: '/security-guard-management/guard-assignment', color: 'text-blue-600' },
-        { name: 'Patrol Schedules', icon: Clock, path: '/security-guard-management/patrol-schedules', color: 'text-green-600' },
-        { name: 'Incident Reports', icon: AlertTriangle, path: '/security-guard-management/incident-reports', color: 'text-red-600' },
-        { name: 'Training', icon: Award, path: '/security-guard-management/training', color: 'text-purple-600' },
-        { name: 'Performance', icon: Target, path: '/security-guard-management/performance', color: 'text-indigo-600' },
+        { name: 'Security Dashboard', icon: Home, path: '/security-guard-management', color: 'text-yellow-600' },
+        { name: 'Guard Management', icon: ShieldCheck, path: '/security-guard-management/guards', color: 'text-blue-600' },
+        { name: 'Patrol Routes', icon: MapPin, path: '/security-guard-management/patrols', color: 'text-green-600' },
+        { name: 'Incident Reports', icon: AlertTriangle, path: '/security-guard-management/incidents', color: 'text-purple-600' },
+        { name: 'Equipment Tracking', icon: Package, path: '/security-guard-management/equipment', color: 'text-orange-600' },
+        { name: 'Security Analytics', icon: BarChart3, path: '/security-guard-management/analytics', color: 'text-indigo-600' },
       ];
     
     case 'risk':
       return [
-        { name: 'Risk Dashboard', icon: Home, path: '/risk', color: 'text-red-500' },
+        { name: 'Risk Dashboard', icon: Home, path: '/risk', color: 'text-red-600' },
         { name: 'Risk Assessment', icon: AlertTriangle, path: '/risk/assessment', color: 'text-blue-600' },
-        { name: 'Threat Analysis', icon: Eye, path: '/risk/threats', color: 'text-green-600' },
-        { name: 'Risk Reports', icon: BarChart3, path: '/risk/reports', color: 'text-purple-600' },
-        { name: 'Mitigation Plans', icon: Shield, path: '/risk/mitigation', color: 'text-orange-600' },
-        { name: 'Alerts', icon: AlertTriangle, path: '/risk/alerts', color: 'text-red-600' },
-        { name: 'Reporting', icon: FileText, path: '/risk/reporting', color: 'text-indigo-600' },
-        { name: 'Mitigation', icon: Shield, path: '/risk/mitigation-plans', color: 'text-yellow-600' },
-        { name: 'Monitoring', icon: Eye, path: '/risk/monitoring', color: 'text-cyan-600' },
+        { name: 'Risk Monitoring', icon: Monitor, path: '/risk/monitoring', color: 'text-green-600' },
+        { name: 'Risk Reports', icon: FileText, path: '/risk/reports', color: 'text-purple-600' },
+        { name: 'Risk Analytics', icon: BarChart3, path: '/risk/analytics', color: 'text-orange-600' },
+        { name: 'Risk Calendar', icon: Calendar, path: '/risk/calendar', color: 'text-indigo-600' },
       ];
     
     case 'recovery':
       return [
         { name: 'Recovery Dashboard', icon: Home, path: '/recovery', color: 'text-emerald-600' },
-        { name: 'Recovery Cases', icon: Briefcase, path: '/recovery/cases', color: 'text-blue-600' },
-        { name: 'Asset Recovery', icon: Package, path: '/recovery/assets', color: 'text-green-600' },
-        { name: 'Legal Proceedings', icon: FileText, path: '/recovery/legal', color: 'text-purple-600' },
-        { name: 'Recovery Reports', icon: BarChart3, path: '/recovery/reports', color: 'text-orange-600' },
-        { name: 'Recovery Analytics', icon: Activity, path: '/recovery/analytics', color: 'text-indigo-600' },
+        { name: 'Asset Recovery', icon: RotateCcw, path: '/recovery/assets', color: 'text-blue-600' },
+        { name: 'Recovery Tracking', icon: Eye, path: '/recovery/tracking', color: 'text-green-600' },
+        { name: 'Recovery Reports', icon: FileText, path: '/recovery/reports', color: 'text-purple-600' },
+        { name: 'Recovery Analytics', icon: BarChart3, path: '/recovery/analytics', color: 'text-orange-600' },
+        { name: 'Recovery Calendar', icon: Calendar, path: '/recovery/calendar', color: 'text-indigo-600' },
       ];
     
     case 'it':
       return [
-        { name: 'IT Dashboard', icon: Home, path: '/it', color: 'text-blue-500' },
-        { name: 'System Management', icon: Monitor, path: '/it/systems', color: 'text-blue-600' },
-        { name: 'Network Security', icon: Shield, path: '/it/security', color: 'text-green-600' },
+        { name: 'IT Dashboard', icon: Home, path: '/it', color: 'text-blue-600' },
+        { name: 'System Monitoring', icon: Monitor, path: '/it/monitoring', color: 'text-green-600' },
         { name: 'Technical Support', icon: Settings, path: '/it/support', color: 'text-purple-600' },
-        { name: 'IT Reports', icon: BarChart3, path: '/it/reports', color: 'text-orange-600' },
-        { name: 'IT Analytics', icon: Activity, path: '/it/analytics', color: 'text-indigo-600' },
+        { name: 'System Reports', icon: FileText, path: '/it/reports', color: 'text-orange-600' },
+        { name: 'IT Analytics', icon: BarChart3, path: '/it/analytics', color: 'text-indigo-600' },
+        { name: 'System Settings', icon: Settings, path: '/it/settings', color: 'text-red-600' },
       ];
     
     default:
       return [
-        { name: 'Dashboard', icon: Home, path: '/dashboard', color: 'text-blue-600' },
+        { name: 'Dashboard', icon: Home, path: '/', color: 'text-blue-600' },
       ];
   }
 };
 
 const Layout: React.FC = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -191,12 +212,12 @@ const Layout: React.FC = () => {
   };
 
   const isActive = (path: string) => {
-    return location.pathname.startsWith(path);
+    return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
   const getUserDisplayName = () => {
     if (!user) return 'U';
-    return user.firstName ? user.firstName.charAt(0) : user.email.charAt(0);
+    return user.firstName ? user.firstName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase();
   };
 
   const getFullName = () => {
@@ -219,7 +240,7 @@ const Layout: React.FC = () => {
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
-                <Shield className="w-6 h-6 text-white" />
+                <LogoComponent className="w-6 h-6" />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Dicel ERP</h1>
@@ -299,38 +320,28 @@ const Layout: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
-            
             <div className="flex items-center space-x-4">
-              <button className="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
+              <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
                 <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
-              <button className="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg">
-                <Settings className="w-5 h-5" />
-              </button>
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-semibold">
+                  {getUserDisplayName()}
+                </span>
+              </div>
             </div>
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="animate-fade-in">
+        <main className="flex-1 overflow-y-auto">
             <Outlet />
-          </div>
         </main>
       </div>
-
-      {/* Mobile Overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
     </div>
   );
 };
