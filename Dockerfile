@@ -7,11 +7,14 @@ WORKDIR /app
 # Copy package files
 COPY backend/package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies (including devDependencies)
+RUN npm ci
 
 # Copy application code
 COPY backend/ ./
+
+# Remove devDependencies to reduce image size
+RUN npm prune --production
 
 # Create uploads directory
 RUN mkdir -p uploads/documents
