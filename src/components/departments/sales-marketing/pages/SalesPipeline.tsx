@@ -36,90 +36,24 @@ import {
 
 const SalesPipeline: React.FC = () => {
   const colorScheme = getColorScheme('sales-marketing');
-  const [selectedStage, setSelectedStage] = useState('all');
 
   const pipelineStats = [
-    { title: 'Total Opportunities', value: '89', subtitle: 'Active deals', color: 'blue', icon: '🎯', trend: { value: '+12', isPositive: true }, delay: 0 },
-    { title: 'Pipeline Value', value: 'RWF 45.2M', subtitle: 'Total value', color: 'green', icon: '💰', trend: { value: '+2.1M', isPositive: true }, delay: 100 },
-    { title: 'Win Rate', value: '68.5%', subtitle: 'Success rate', color: 'orange', icon: '🏆', trend: { value: '+3.2%', isPositive: true }, delay: 200 },
-    { title: 'Avg Deal Size', value: 'RWF 2.8M', subtitle: 'Per opportunity', color: 'purple', icon: '📊', trend: { value: '+0.3M', isPositive: true }, delay: 300 }
+    { title: 'Total Pipeline', value: 'RWF 0', change: '+0%', icon: 'trending-up', color: 'from-blue-500 to-blue-600', delay: 0, subtitle: 'Active deals', trend: { value: '+0', isPositive: true } },
+    { title: 'Won Deals', value: 'RWF 0', change: '+0%', icon: 'check-circle', color: 'from-green-500 to-green-600', delay: 100, subtitle: 'Successful deals', trend: { value: '+0', isPositive: true } },
+    { title: 'Lost Deals', value: 'RWF 0', change: '+0%', icon: 'x-circle', color: 'from-red-500 to-red-600', delay: 200, subtitle: 'Unsuccessful deals', trend: { value: '+0', isPositive: false } },
+    { title: 'Win Rate', value: '0%', change: '+0%', icon: 'target', color: 'from-purple-500 to-purple-600', delay: 300, subtitle: 'Success rate', trend: { value: '+0%', isPositive: true } }
   ];
 
-  const opportunities = [
-    {
-      id: 1,
-      name: 'Kigali Business Center Expansion',
-      client: 'Kigali Business Center',
-      contact: 'Jean Pierre Uwimana',
-      value: 'RWF 8.5M',
-      stage: 'Proposal',
-      probability: 75,
-      expectedClose: '2024-02-15',
-      salesRep: 'Marie Claire Niyonsaba',
-      lastActivity: '2024-01-15',
-      nextAction: 'Present proposal'
-    },
-    {
-      id: 2,
-      name: 'Musanze Hotel Security Upgrade',
-      client: 'Musanze Hotel & Resort',
-      contact: 'Marie Claire Niyonsaba',
-      value: 'RWF 6.2M',
-      stage: 'Negotiation',
-      probability: 85,
-      expectedClose: '2024-01-30',
-      salesRep: 'Patrick Nshimiyimana',
-      lastActivity: '2024-01-14',
-      nextAction: 'Contract review'
-    },
-    {
-      id: 3,
-      name: 'Huye University Campus Security',
-      client: 'Huye University',
-      contact: 'Patrick Nshimiyimana',
-      value: 'RWF 4.8M',
-      stage: 'Qualification',
-      probability: 60,
-      expectedClose: '2024-03-01',
-      salesRep: 'Emmanuel Ndayisaba',
-      lastActivity: '2024-01-13',
-      nextAction: 'Technical assessment'
-    },
-    {
-      id: 4,
-      name: 'Rubavu Manufacturing Facility',
-      client: 'Rubavu Manufacturing',
-      contact: 'Emmanuel Ndayisaba',
-      value: 'RWF 5.5M',
-      stage: 'Discovery',
-      probability: 40,
-      expectedClose: '2024-02-28',
-      salesRep: 'Alexis Nkurunziza',
-      lastActivity: '2024-01-12',
-      nextAction: 'Needs analysis'
-    },
-    {
-      id: 5,
-      name: 'Kigali Shopping Mall Security',
-      client: 'Kigali Shopping Mall',
-      contact: 'Alexis Nkurunziza',
-      value: 'RWF 3.9M',
-      stage: 'Closed Won',
-      probability: 100,
-      expectedClose: '2024-01-20',
-      salesRep: 'Dr. Sarah Uwamahoro',
-      lastActivity: '2024-01-11',
-      nextAction: 'Contract signing'
-    }
-  ];
+  // Empty opportunities array - no mock data
+  const opportunities: any[] = [];
 
   const pipelineStages = [
-    { stage: 'Prospecting', count: 15, value: 'RWF 12.5M', color: 'bg-gray-100 text-gray-800' },
-    { stage: 'Qualification', count: 22, value: 'RWF 18.2M', color: 'bg-blue-100 text-blue-800' },
-    { stage: 'Discovery', count: 18, value: 'RWF 14.8M', color: 'bg-green-100 text-green-800' },
-    { stage: 'Proposal', count: 12, value: 'RWF 9.6M', color: 'bg-yellow-100 text-yellow-800' },
-    { stage: 'Negotiation', count: 8, value: 'RWF 6.4M', color: 'bg-orange-100 text-orange-800' },
-    { stage: 'Closed Won', count: 14, value: 'RWF 11.2M', color: 'bg-green-100 text-green-800' }
+    { stage: 'Prospecting', count: 0, value: 'RWF 0', color: 'gray' },
+    { stage: 'Qualification', count: 0, value: 'RWF 0', color: 'blue' },
+    { stage: 'Proposal', count: 0, value: 'RWF 0', color: 'yellow' },
+    { stage: 'Negotiation', count: 0, value: 'RWF 0', color: 'orange' },
+    { stage: 'Closed Won', count: 0, value: 'RWF 0', color: 'green' },
+    { stage: 'Closed Lost', count: 0, value: 'RWF 0', color: 'red' }
   ];
 
   const getStageBadge = (stage: string) => {

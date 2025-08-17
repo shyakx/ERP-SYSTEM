@@ -433,7 +433,7 @@ const Performance: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(review.status)}`}>
                       {review.status}
-                    </span>
+                      </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     <div className="flex items-center">
@@ -464,7 +464,7 @@ const Performance: React.FC = () => {
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
-                    </div>
+                  </div>
                   </td>
                 </tr>
               ))}
@@ -486,16 +486,16 @@ const Performance: React.FC = () => {
               className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
-            </button>
+          </button>
             <button
               onClick={() => handlePageChange(performanceCurrentPage + 1)}
               disabled={performanceCurrentPage === performanceTotalPages}
               className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
-            </button>
-          </div>
+          </button>
         </div>
+      </div>
       )}
 
       {/* Add/Edit/View Modals */}

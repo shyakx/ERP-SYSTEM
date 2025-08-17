@@ -1,99 +1,11 @@
 import React from 'react';
 
 const Recruitment: React.FC = () => {
-  const jobOpenings = [
-    {
-      id: 1,
-      title: 'Security Guard',
-      location: 'Kigali, Rwanda',
-      department: 'Operations',
-      type: 'Full-time',
-      salary: 'RWF 450,000 - 550,000',
-      status: 'Active',
-      applications: 24,
-      postedDate: '2024-01-15'
-    },
-    {
-      id: 2,
-      title: 'Security Supervisor',
-      location: 'Huye, Rwanda',
-      department: 'Operations',
-      type: 'Full-time',
-      salary: 'RWF 650,000 - 750,000',
-      status: 'Active',
-      applications: 12,
-      postedDate: '2024-01-10'
-    },
-    {
-      id: 3,
-      title: 'Finance Officer',
-      location: 'Kigali, Rwanda',
-      department: 'Finance',
-      type: 'Full-time',
-      salary: 'RWF 800,000 - 900,000',
-      status: 'Active',
-      applications: 18,
-      postedDate: '2024-01-08'
-    },
-    {
-      id: 4,
-      title: 'Customer Service Representative',
-      location: 'Kigali, Rwanda',
-      department: 'Customer Experience',
-      type: 'Full-time',
-      salary: 'RWF 550,000 - 650,000',
-      status: 'Active',
-      applications: 31,
-      postedDate: '2024-01-12'
-    }
-  ];
+  // Empty job openings array - no mock data
+  const jobOpenings: any[] = [];
 
-  const candidates = [
-    {
-      id: 1,
-      name: 'Eric Niyonshuti',
-      position: 'Security Guard',
-      status: 'Interview Scheduled',
-      experience: '3 years',
-      location: 'Kigali, Rwanda',
-      phone: '+250 788 111 222',
-      email: 'eric.niyonshuti@email.com',
-      appliedDate: '2024-01-20'
-    },
-    {
-      id: 2,
-      name: 'Sarah Uwimana',
-      position: 'Finance Officer',
-      status: 'Under Review',
-      experience: '5 years',
-      location: 'Kigali, Rwanda',
-      phone: '+250 789 222 333',
-      email: 'sarah.uwimana@email.com',
-      appliedDate: '2024-01-18'
-    },
-    {
-      id: 3,
-      name: 'David Ndayisaba',
-      position: 'Security Supervisor',
-      status: 'Shortlisted',
-      experience: '7 years',
-      location: 'Huye, Rwanda',
-      phone: '+250 787 333 444',
-      email: 'david.ndayisaba@email.com',
-      appliedDate: '2024-01-15'
-    },
-    {
-      id: 4,
-      name: 'Grace Mukamana',
-      position: 'Customer Service Rep',
-      status: 'Interview Completed',
-      experience: '2 years',
-      location: 'Kigali, Rwanda',
-      phone: '+250 786 444 555',
-      email: 'grace.mukamana@email.com',
-      appliedDate: '2024-01-16'
-    }
-  ];
+  // Empty candidates array - no mock data
+  const candidates: any[] = [];
 
   const getStatusBadge = (status: string) => {
     switch (status) {

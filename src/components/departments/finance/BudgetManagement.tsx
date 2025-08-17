@@ -6,69 +6,42 @@ import { getColorScheme } from '../../../utils/colorSchemes';
 const BudgetManagement: React.FC = () => {
   const colorScheme = getColorScheme('finance');
 
-  const budgetData = [
-    {
-      id: 1,
-      department: 'Security Operations',
-      budget: 45000000,
-      spent: 32000000,
-      remaining: 13000000,
-      percentage: 71,
-      status: 'On Track',
-      manager: 'Jean Pierre Uwimana',
-      avatar: 'JP'
-    },
-    {
-      id: 2,
-      department: 'HR & Administration',
-      budget: 28000000,
-      spent: 19500000,
-      remaining: 8500000,
-      percentage: 70,
-      status: 'On Track',
-      manager: 'Marie Claire Niyonsaba',
-      avatar: 'MC'
-    },
-    {
-      id: 3,
-      department: 'IT & Technology',
-      budget: 35000000,
-      spent: 28000000,
-      remaining: 7000000,
-      percentage: 80,
-      status: 'Over Budget',
-      manager: 'Emmanuel Ndayisaba',
-      avatar: 'EN'
-    },
-    {
-      id: 4,
-      department: 'Marketing & Sales',
-      budget: 22000000,
-      spent: 15000000,
-      remaining: 7000000,
-      percentage: 68,
-      status: 'On Track',
-      manager: 'Grace Uwamahoro',
-      avatar: 'GU'
-    },
-    {
-      id: 5,
-      department: 'Finance & Accounting',
-      budget: 18000000,
-      spent: 12000000,
-      remaining: 6000000,
-      percentage: 67,
-      status: 'On Track',
-      manager: 'Patrick Nkurunziza',
-      avatar: 'PN'
-    }
-  ];
+  // Empty budget data array - no mock data
+  const budgetData: any[] = [];
 
   const budgetStats = [
-    { title: 'Total Budget', value: '148M RWF', subtitle: 'This Year', color: 'blue', icon: '💰', trend: { value: '+8%', isPositive: true }, delay: 0 },
-    { title: 'Total Spent', value: '106.5M RWF', subtitle: 'Year to Date', color: 'green', icon: '💸', trend: { value: '72%', isPositive: true }, delay: 100 },
-    { title: 'Remaining', value: '41.5M RWF', subtitle: 'Available', color: 'purple', icon: '💳', trend: { value: '28%', isPositive: true }, delay: 200 },
-    { title: 'Overspending', value: '2', subtitle: 'Departments', color: 'red', icon: '⚠️', trend: { value: '40%', isPositive: false }, delay: 300 }
+    {
+      title: 'Total Budget',
+      value: 'RWF 0',
+      change: '+0%',
+      icon: 'dollar-sign',
+      color: 'from-green-500 to-green-600',
+      delay: 0
+    },
+    {
+      title: 'Total Spent',
+      value: 'RWF 0',
+      change: '+0%',
+      icon: 'trending-up',
+      color: 'from-blue-500 to-blue-600',
+      delay: 100
+    },
+    {
+      title: 'Remaining',
+      value: 'RWF 0',
+      change: '+0%',
+      icon: 'trending-down',
+      color: 'from-orange-500 to-orange-600',
+      delay: 200
+    },
+    {
+      title: 'Overspent',
+      value: 'RWF 0',
+      change: '+0%',
+      icon: 'alert-triangle',
+      color: 'from-red-500 to-red-600',
+      delay: 300
+    }
   ];
 
   const budgetCategories = [
@@ -111,18 +84,9 @@ const BudgetManagement: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">{stat.title}</p>
                 <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                <p className="text-xs text-gray-500">{stat.subtitle}</p>
               </div>
               <div className="text-2xl">{stat.icon}</div>
             </div>
-            {stat.trend && (
-              <div className={`flex items-center mt-2 text-xs ${
-                stat.trend.isPositive ? 'text-green-600' : 'text-red-600'
-              }`}>
-                <span>{stat.trend.isPositive ? '↗' : '↘'}</span>
-                <span className="ml-1">{stat.trend.value}</span>
-              </div>
-            )}
           </div>
         ))}
       </div>

@@ -16,8 +16,8 @@ const AdminOverview: React.FC = () => {
   const stats = [
     {
       title: 'Total Employees',
-      value: '247',
-      change: '+12%',
+      value: '0',
+      change: '+0%',
       changeType: 'positive',
       icon: Users,
       color: 'from-blue-500 to-blue-600',
@@ -25,8 +25,8 @@ const AdminOverview: React.FC = () => {
     },
     {
       title: 'Monthly Revenue',
-      value: '$45,678',
-      change: '+8.2%',
+      value: '$0',
+      change: '+0%',
       changeType: 'positive',
       icon: DollarSign,
       color: 'from-green-500 to-green-600',
@@ -34,8 +34,8 @@ const AdminOverview: React.FC = () => {
     },
     {
       title: 'Active Clients',
-      value: '89',
-      change: '+5%',
+      value: '0',
+      change: '+0%',
       changeType: 'positive',
       icon: UserCheck,
       color: 'from-purple-500 to-purple-600',
@@ -43,8 +43,8 @@ const AdminOverview: React.FC = () => {
     },
     {
       title: 'Security Guards',
-      value: '156',
-      change: '+3%',
+      value: '0',
+      change: '+0%',
       changeType: 'positive',
       icon: ShieldCheck,
       color: 'from-yellow-500 to-yellow-600',
@@ -94,85 +94,49 @@ const AdminOverview: React.FC = () => {
   const systemMetrics = [
     {
       name: 'CPU Usage',
-      value: '68%',
+      value: '0%',
       status: 'normal',
       icon: Cpu,
       color: 'text-blue-600'
     },
     {
       name: 'Memory Usage',
-      value: '72%',
-      status: 'warning',
+      value: '0%',
+      status: 'normal',
       icon: ActivityIcon,
       color: 'text-yellow-600'
     },
     {
       name: 'Disk Space',
-      value: '45%',
+      value: '0%',
       status: 'normal',
       icon: HardDrive,
       color: 'text-green-600'
     },
     {
       name: 'Network',
-      value: '95%',
-      status: 'excellent',
+      value: '0%',
+      status: 'normal',
       icon: Network,
       color: 'text-purple-600'
     }
   ];
 
-  const recentActivities = [
-    {
-      id: 1,
-      type: 'client',
-      message: 'New client registration: Kigali Business Center',
-      time: '2 minutes ago',
-      icon: UserCheck,
-      color: 'text-blue-600',
-      priority: 'high'
-    },
-    {
-      id: 2,
-      type: 'payment',
-      message: 'Payment received: $2,500 from ABC Corporation',
-      time: '15 minutes ago',
-      icon: DollarSign,
-      color: 'text-green-600',
-      priority: 'medium'
-    },
-    {
-      id: 3,
-      type: 'security',
-      message: 'Security guard assigned to new location',
-      time: '1 hour ago',
-      icon: ShieldCheck,
-      color: 'text-yellow-600',
-      priority: 'low'
-    },
-    {
-      id: 4,
-      type: 'alert',
-      message: 'System maintenance scheduled for tonight',
-      time: '2 hours ago',
-      icon: AlertCircle,
-      color: 'text-orange-600',
-      priority: 'high'
-    }
-  ];
+  // Empty recent activities array - no mock data
+  const recentActivities: any[] = [];
 
   const departmentStats = [
-    { name: 'HR', employees: 12, status: 'active', color: 'from-purple-500 to-purple-600', growth: '+8%' },
-    { name: 'Finance', employees: 8, status: 'active', color: 'from-green-500 to-green-600', growth: '+12%' },
-    { name: 'Compliance', employees: 6, status: 'active', color: 'from-red-500 to-red-600', growth: '+5%' },
-    { name: 'Inventory', employees: 15, status: 'active', color: 'from-orange-500 to-orange-600', growth: '+15%' },
-    { name: 'Client Management', employees: 10, status: 'active', color: 'from-indigo-500 to-indigo-600', growth: '+10%' },
-    { name: 'Sales & Marketing', employees: 14, status: 'active', color: 'from-pink-500 to-pink-600', growth: '+18%' },
-    { name: 'Customer Experience', employees: 9, status: 'active', color: 'from-cyan-500 to-cyan-600', growth: '+7%' },
-    { name: 'Security Guard Management', employees: 25, status: 'active', color: 'from-yellow-500 to-yellow-600', growth: '+20%' },
-    { name: 'Risk Department', employees: 7, status: 'active', color: 'from-red-400 to-red-500', growth: '+6%' },
-    { name: 'Recovery', employees: 5, status: 'active', color: 'from-emerald-500 to-emerald-600', growth: '+4%' },
-    { name: 'IT Department', employees: 11, status: 'active', color: 'from-blue-400 to-blue-500', growth: '+9%' }
+    { name: 'HR', employees: 0, status: 'active', color: 'from-purple-500 to-purple-600', growth: '+0%' },
+    { name: 'Finance', employees: 0, status: 'active', color: 'from-green-500 to-green-600', growth: '+0%' },
+    { name: 'Compliance', employees: 0, status: 'active', color: 'from-red-500 to-red-600', growth: '+0%' },
+    { name: 'Inventory', employees: 0, status: 'active', color: 'from-orange-500 to-orange-600', growth: '+0%' },
+    { name: 'Client Management', employees: 0, status: 'active', color: 'from-indigo-500 to-indigo-600', growth: '+0%' },
+    { name: 'Sales & Marketing', employees: 0, status: 'active', color: 'from-pink-500 to-pink-600', growth: '+0%' },
+    { name: 'Customer Experience', employees: 0, status: 'active', color: 'from-cyan-500 to-cyan-600', growth: '+0%' },
+    { name: 'Security Guard Management', employees: 0, status: 'active', color: 'from-yellow-500 to-yellow-600', growth: '+0%' },
+    { name: 'Risk Department', employees: 0, status: 'active', color: 'from-red-400 to-red-500', growth: '+0%' },
+    { name: 'Recovery', employees: 0, status: 'active', color: 'from-emerald-500 to-emerald-600', growth: '+0%' },
+    { name: 'IT Department', employees: 0, status: 'active', color: 'from-blue-400 to-blue-500', growth: '+0%' }
   ];
 
   if (isLoading) {

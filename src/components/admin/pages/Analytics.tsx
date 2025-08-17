@@ -30,73 +30,29 @@ import {
 } from 'lucide-react';
 
 const Analytics: React.FC = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState('30d');
-  const [selectedMetric, setSelectedMetric] = useState('revenue');
-
-  const metrics = [
-    {
-      title: 'Total Revenue',
-      value: '$2,847,392',
-      change: '+12.5%',
-      changeType: 'positive',
-      icon: DollarSign,
-      color: 'from-green-500 to-green-600'
-    },
-    {
-      title: 'Active Users',
-      value: '1,247',
-      change: '+8.2%',
-      changeType: 'positive',
-      icon: Users,
-      color: 'from-blue-500 to-blue-600'
-    },
-    {
-      title: 'Security Guards',
-      value: '156',
-      change: '+3.1%',
-      changeType: 'positive',
-      icon: Shield,
-      color: 'from-yellow-500 to-yellow-600'
-    },
-    {
-      title: 'System Uptime',
-      value: '99.9%',
-      change: '+0.1%',
-      changeType: 'positive',
-      icon: Activity,
-      color: 'from-purple-500 to-purple-600'
-    }
-  ];
+  const [selectedPeriod, setSelectedPeriod] = useState('month');
 
   const chartData = {
-    revenue: [32000, 35000, 38000, 42000, 45000, 48000, 52000, 55000, 58000, 62000, 65000, 68000],
-    users: [1200, 1250, 1300, 1350, 1400, 1450, 1500, 1550, 1600, 1650, 1700, 1750],
-    guards: [140, 145, 150, 155, 160, 165, 170, 175, 180, 185, 190, 195],
-    uptime: [99.5, 99.6, 99.7, 99.8, 99.9, 99.9, 99.9, 99.9, 99.9, 99.9, 99.9, 99.9]
+    revenue: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    users: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    security: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    system: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
   };
 
   const departmentStats = [
-    { name: 'HR', revenue: 450000, growth: '+15%', employees: 12, color: 'from-purple-500 to-purple-600' },
-    { name: 'Finance', revenue: 680000, growth: '+12%', employees: 8, color: 'from-green-500 to-green-600' },
-    { name: 'Security', revenue: 1200000, growth: '+20%', employees: 25, color: 'from-yellow-500 to-yellow-600' },
-    { name: 'IT', revenue: 320000, growth: '+8%', employees: 11, color: 'from-blue-500 to-blue-600' },
-    { name: 'Sales', revenue: 890000, growth: '+18%', employees: 14, color: 'from-pink-500 to-pink-600' },
-    { name: 'Operations', revenue: 560000, growth: '+10%', employees: 15, color: 'from-orange-500 to-orange-600' }
+    { name: 'HR', revenue: 0, growth: '+0%', employees: 0, color: 'from-purple-500 to-purple-600' },
+    { name: 'Finance', revenue: 0, growth: '+0%', employees: 0, color: 'from-green-500 to-green-600' },
+    { name: 'Security', revenue: 0, growth: '+0%', employees: 0, color: 'from-yellow-500 to-yellow-600' },
+    { name: 'IT', revenue: 0, growth: '+0%', employees: 0, color: 'from-blue-500 to-blue-600' },
+    { name: 'Sales', revenue: 0, growth: '+0%', employees: 0, color: 'from-pink-500 to-pink-600' },
+    { name: 'Operations', revenue: 0, growth: '+0%', employees: 0, color: 'from-orange-500 to-orange-600' }
   ];
 
-  const topPerformers = [
-    { name: 'Marie Claire Niyonsaba', role: 'HR Manager', performance: 95, avatar: 'MC' },
-    { name: 'Jean Pierre Uwimana', role: 'Security Supervisor', performance: 92, avatar: 'JU' },
-    { name: 'Alice Mukamana', role: 'IT Manager', performance: 88, avatar: 'AM' },
-    { name: 'Emmanuel Ndayisaba', role: 'Finance Lead', performance: 85, avatar: 'EN' }
-  ];
+  // Empty top performers array - no mock data
+  const topPerformers: any[] = [];
 
-  const recentActivities = [
-    { type: 'revenue', message: 'Monthly revenue target exceeded by 15%', time: '2 hours ago', value: '+$45,000' },
-    { type: 'users', message: 'New client onboarding completed', time: '4 hours ago', value: '+5 users' },
-    { type: 'security', message: 'Security guard deployment successful', time: '6 hours ago', value: '+3 guards' },
-    { type: 'system', message: 'System maintenance completed', time: '8 hours ago', value: '99.9% uptime' }
-  ];
+  // Empty recent activities array - no mock data
+  const recentActivities: any[] = [];
 
   const renderChart = (data: number[], color: string) => (
     <div className="flex items-end space-x-1 h-20">
@@ -143,34 +99,89 @@ const Analytics: React.FC = () => {
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {metrics.map((metric, index) => {
-          const Icon = metric.icon;
-          return (
-            <div 
-              key={index} 
-              className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105 border border-gray-100 overflow-hidden"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <div className="relative p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 rounded-xl bg-gradient-to-r ${metric.color} shadow-lg`}>
-                    <Icon className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-right">
-                    <span className={`text-sm font-medium px-2 py-1 rounded-full ${
-                      metric.changeType === 'positive' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {metric.change}
-                    </span>
-                  </div>
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-1">{metric.value}</h3>
-                <p className="text-sm font-medium text-gray-600 mb-4">{metric.title}</p>
-                {renderChart(chartData[metric.title.toLowerCase().replace(' ', '') as keyof typeof chartData] || [], metric.color)}
+        {/* Total Revenue */}
+        <div 
+          className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105 border border-gray-100 overflow-hidden"
+        >
+          <div className="relative p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 rounded-xl bg-gradient-to-r from-green-500 to-green-600 shadow-lg">
+                <DollarSign className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-right">
+                <span className="text-sm font-medium px-2 py-1 rounded-full bg-green-100 text-green-800">
+                  +0%
+                </span>
               </div>
             </div>
-          );
-        })}
+            <h3 className="text-2xl font-bold text-gray-900 mb-1">$0</h3>
+            <p className="text-sm font-medium text-gray-600 mb-4">Total Revenue</p>
+            {renderChart(chartData.revenue, 'from-green-500 to-green-600')}
+          </div>
+        </div>
+
+        {/* Active Users */}
+        <div 
+          className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105 border border-gray-100 overflow-hidden"
+        >
+          <div className="relative p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg">
+                <Users className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-right">
+                <span className="text-sm font-medium px-2 py-1 rounded-full bg-blue-100 text-blue-800">
+                  +0%
+                </span>
+              </div>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-1">0</h3>
+            <p className="text-sm font-medium text-gray-600 mb-4">Active Users</p>
+            {renderChart(chartData.users, 'from-blue-500 to-blue-600')}
+          </div>
+        </div>
+
+        {/* Security Guards */}
+        <div 
+          className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105 border border-gray-100 overflow-hidden"
+        >
+          <div className="relative p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 rounded-xl bg-gradient-to-r from-yellow-500 to-yellow-600 shadow-lg">
+                <Shield className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-right">
+                <span className="text-sm font-medium px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">
+                  +0%
+                </span>
+              </div>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-1">0</h3>
+            <p className="text-sm font-medium text-gray-600 mb-4">Security Guards</p>
+            {renderChart(chartData.security, 'from-yellow-500 to-yellow-600')}
+          </div>
+        </div>
+
+        {/* System Uptime */}
+        <div 
+          className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105 border border-gray-100 overflow-hidden"
+        >
+          <div className="relative p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 shadow-lg">
+                <Activity className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-right">
+                <span className="text-sm font-medium px-2 py-1 rounded-full bg-purple-100 text-purple-800">
+                  +0%
+                </span>
+              </div>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-1">0%</h3>
+            <p className="text-sm font-medium text-gray-600 mb-4">System Uptime</p>
+            {renderChart(chartData.system, 'from-purple-500 to-purple-600')}
+          </div>
+        </div>
       </div>
 
       {/* Main Content Grid */}
@@ -261,12 +272,7 @@ const Analytics: React.FC = () => {
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="flex items-center justify-between mb-2">
-                <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                  activity.type === 'revenue' ? 'bg-green-100 text-green-800' :
-                  activity.type === 'users' ? 'bg-blue-100 text-blue-800' :
-                  activity.type === 'security' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-purple-100 text-purple-800'
-                }`}>
+                <span className={`text-xs font-medium px-2 py-1 rounded-full bg-purple-100 text-purple-800`}>
                   {activity.type}
                 </span>
                 <span className="text-xs text-gray-500">{activity.time}</span>

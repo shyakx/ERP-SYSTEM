@@ -29,85 +29,21 @@ const Opportunities: React.FC = () => {
   const [selectedPriority, setSelectedPriority] = useState("all");
 
   const opportunityStats = [
-    { title: "Total Opportunities", value: "234", subtitle: "Active opportunities", icon: Target, color: "blue" },
-    { title: "Pipeline Value", value: "RWF 89.5M", subtitle: "Total potential value", icon: DollarSign, color: "green" },
-    { title: "Win Rate", value: "32.8%", subtitle: "Conversion success", icon: TrendingUp, color: "orange" },
-    { title: "Avg. Deal Size", value: "RWF 3.2M", subtitle: "Average opportunity value", icon: Users, color: "purple" }
+    { title: 'Total Opportunities', value: '0', change: '+0%', icon: Target, color: 'blue', subtitle: 'Active opportunities' },
+    { title: 'Total Value', value: 'RWF 0', change: '+0%', icon: DollarSign, color: 'green', subtitle: 'Total potential value' },
+    { title: 'Win Rate', value: '0%', change: '+0%', icon: TrendingUp, color: 'purple', subtitle: 'Conversion success' },
+    { title: 'Avg Deal Size', value: 'RWF 0', change: '+0%', icon: Users, color: 'orange', subtitle: 'Average opportunity value' }
   ];
 
-  const opportunities = [
-    {
-      id: "OPP-2024-001",
-      title: "Kigali Airport Security Upgrade",
-      company: "Kigali International Airport",
-      contactPerson: "Jean Pierre Ndayisaba",
-      contactEmail: "jp.ndayisaba@kia.rw",
-      contactPhone: "+250 788 123 456",
-      value: "RWF 15.2M",
-      probability: 75,
-      stage: "Proposal",
-      priority: "High",
-      expectedClose: "2024-03-15",
-      assignedTo: "Marie Claire Niyonsaba",
-      lastActivity: "2024-01-20",
-      description: "Complete security system upgrade for airport terminals and parking areas"
-    },
-    {
-      id: "OPP-2024-002",
-      title: "Musanze Hospital Security System",
-      company: "Musanze Regional Hospital",
-      contactPerson: "Dr. Sarah Uwimana",
-      contactEmail: "s.uwimana@musanze-hospital.rw",
-      contactPhone: "+250 789 234 567",
-      value: "RWF 8.7M",
-      probability: 60,
-      stage: "Qualification",
-      priority: "Medium",
-      expectedClose: "2024-04-20",
-      assignedTo: "Patrick Nshimiyimana",
-      lastActivity: "2024-01-18",
-      description: "Hospital security and access control system implementation"
-    },
-    {
-      id: "OPP-2024-003",
-      title: "Huye University Campus Security",
-      company: "University of Huye",
-      contactPerson: "Prof. Emmanuel Nkurunziza",
-      contactEmail: "e.nkurunziza@huye-university.rw",
-      contactPhone: "+250 787 345 678",
-      value: "RWF 12.3M",
-      probability: 85,
-      stage: "Negotiation",
-      priority: "High",
-      expectedClose: "2024-02-28",
-      assignedTo: "Emmanuel Ndayisaba",
-      lastActivity: "2024-01-22",
-      description: "Campus-wide security infrastructure and surveillance system"
-    },
-    {
-      id: "OPP-2024-004",
-      title: "Rubavu Bank Branch Security",
-      company: "Bank of Kigali - Rubavu",
-      contactPerson: "Alice Mukamana",
-      contactEmail: "a.mukamana@bk.rw",
-      contactPhone: "+250 786 456 789",
-      value: "RWF 6.8M",
-      probability: 45,
-      stage: "Discovery",
-      priority: "Medium",
-      expectedClose: "2024-05-10",
-      assignedTo: "Alice Uwimana",
-      lastActivity: "2024-01-15",
-      description: "Bank branch security enhancement and monitoring systems"
-    }
-  ];
+  // Empty opportunities array - no mock data
+  const opportunities: any[] = [];
 
   const pipelineStages = [
-    { stage: "Discovery", count: 45, value: "RWF 18.2M", color: "gray" },
-    { stage: "Qualification", count: 38, value: "RWF 15.6M", color: "blue" },
-    { stage: "Proposal", count: 28, value: "RWF 22.4M", color: "yellow" },
-    { stage: "Negotiation", count: 15, value: "RWF 18.7M", color: "orange" },
-    { stage: "Closed Won", count: 12, value: "RWF 14.6M", color: "green" }
+    { stage: "Discovery", count: 0, value: "RWF 0", color: "gray" },
+    { stage: "Qualification", count: 0, value: "RWF 0", color: "blue" },
+    { stage: "Proposal", count: 0, value: "RWF 0", color: "yellow" },
+    { stage: "Negotiation", count: 0, value: "RWF 0", color: "orange" },
+    { stage: "Closed Won", count: 0, value: "RWF 0", color: "green" }
   ];
 
   const getStageBadge = (stage: string) => {

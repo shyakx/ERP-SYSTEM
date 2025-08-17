@@ -38,125 +38,35 @@ const DepartmentManagement: React.FC = () => {
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [showAddDepartment, setShowAddDepartment] = useState(false);
 
-  const departments = [
-    {
-      id: 1,
-      name: 'Human Resources',
-      code: 'HR',
-      manager: 'Marie Claire Niyonsaba',
-      employees: 12,
-      budget: 450000,
-      status: 'active',
-      location: 'Kigali, Rwanda',
-      phone: '+250 788 123 456',
-      email: 'hr@dicel.com',
-      color: 'from-purple-500 to-purple-600',
-      growth: '+15%',
-      performance: 92
-    },
-    {
-      id: 2,
-      name: 'Finance',
-      code: 'FIN',
-      manager: 'Emmanuel Ndayisaba',
-      employees: 8,
-      budget: 680000,
-      status: 'active',
-      location: 'Kigali, Rwanda',
-      phone: '+250 789 123 456',
-      email: 'finance@dicel.com',
-      color: 'from-green-500 to-green-600',
-      growth: '+12%',
-      performance: 88
-    },
-    {
-      id: 3,
-      name: 'Security Guard Management',
-      code: 'SGM',
-      manager: 'Jean Pierre Uwimana',
-      employees: 25,
-      budget: 1200000,
-      status: 'active',
-      location: 'Huye, Rwanda',
-      phone: '+250 787 123 456',
-      email: 'security@dicel.com',
-      color: 'from-yellow-500 to-yellow-600',
-      growth: '+20%',
-      performance: 95
-    },
-    {
-      id: 4,
-      name: 'Information Technology',
-      code: 'IT',
-      manager: 'Alice Mukamana',
-      employees: 11,
-      budget: 320000,
-      status: 'active',
-      location: 'Kigali, Rwanda',
-      phone: '+250 786 123 456',
-      email: 'it@dicel.com',
-      color: 'from-blue-500 to-blue-600',
-      growth: '+8%',
-      performance: 85
-    },
-    {
-      id: 5,
-      name: 'Sales & Marketing',
-      code: 'S&M',
-      manager: 'Patrick Niyongabo',
-      employees: 14,
-      budget: 890000,
-      status: 'active',
-      location: 'Kigali, Rwanda',
-      phone: '+250 785 123 456',
-      email: 'sales@dicel.com',
-      color: 'from-pink-500 to-pink-600',
-      growth: '+18%',
-      performance: 90
-    },
-    {
-      id: 6,
-      name: 'Operations',
-      code: 'OPS',
-      manager: 'Sarah Uwamahoro',
-      employees: 15,
-      budget: 560000,
-      status: 'active',
-      location: 'Butare, Rwanda',
-      phone: '+250 784 123 456',
-      email: 'operations@dicel.com',
-      color: 'from-orange-500 to-orange-600',
-      growth: '+10%',
-      performance: 87
-    }
-  ];
+  // Empty departments array - no mock data
+  const departments: any[] = [];
 
   const stats = [
     {
       title: 'Total Departments',
-      value: '6',
-      change: '+1',
+      value: '0',
+      change: '+0',
       icon: Building,
       color: 'from-purple-500 to-purple-600'
     },
     {
       title: 'Total Employees',
-      value: '85',
-      change: '+12',
+      value: '0',
+      change: '+0',
       icon: Users,
       color: 'from-blue-500 to-blue-600'
     },
     {
       title: 'Total Budget',
-      value: '$4.1M',
-      change: '+15%',
+      value: '$0',
+      change: '+0%',
       icon: DollarSign,
       color: 'from-green-500 to-green-600'
     },
     {
       title: 'Avg Performance',
-      value: '89%',
-      change: '+5%',
+      value: '0%',
+      change: '+0%',
       icon: Award,
       color: 'from-yellow-500 to-yellow-600'
     }

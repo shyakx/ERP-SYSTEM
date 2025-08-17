@@ -26,91 +26,19 @@ import {
 
 const PolicyManagement: React.FC = () => {
   const colorScheme = getColorScheme('compliance');
-  const [selectedCategory, setSelectedCategory] = useState('all');
 
   const policyStats = [
-    { title: 'Total Policies', value: '24', subtitle: 'Active policies', color: 'blue', icon: '📋', trend: { value: '+2', isPositive: true }, delay: 0 },
-    { title: 'Under Review', value: '5', subtitle: 'Pending updates', color: 'orange', icon: '⏳', trend: { value: '-1', isPositive: true }, delay: 100 },
-    { title: 'Compliance Rate', value: '96%', subtitle: 'Policy adherence', color: 'green', icon: '✅', trend: { value: '+1%', isPositive: true }, delay: 200 },
-    { title: 'Last Updated', value: '2 days', subtitle: 'Most recent', color: 'purple', icon: '📅', trend: { value: 'Ago', isPositive: false }, delay: 300 }
+    { title: 'Total Policies', value: '0', change: '+0%', icon: 'file-text', color: 'from-blue-500 to-blue-600', delay: 0 },
+    { title: 'Active Policies', value: '0', change: '+0%', icon: 'check-circle', color: 'from-green-500 to-green-600', delay: 100 },
+    { title: 'Under Review', value: '0', change: '+0%', icon: 'clock', color: 'from-yellow-500 to-yellow-600', delay: 200 },
+    { title: 'Compliance Rate', value: '0%', change: '+0%', icon: 'trending-up', color: 'from-purple-500 to-purple-600', delay: 300 }
   ];
 
-  const policies = [
-    {
-      id: 1,
-      title: 'Data Protection Policy',
-      category: 'Data Security',
-      status: 'Active',
-      lastUpdated: '2024-01-10',
-      nextReview: '2024-04-10',
-      complianceRate: 98,
-      createdBy: 'Jean Pierre Uwimana',
-      description: 'Comprehensive data protection and privacy policy for client information',
-      version: '2.1',
-      priority: 'High'
-    },
-    {
-      id: 2,
-      title: 'Workplace Safety Guidelines',
-      category: 'Safety',
-      status: 'Under Review',
-      lastUpdated: '2024-01-05',
-      nextReview: '2024-02-05',
-      complianceRate: 92,
-      createdBy: 'Marie Claire Niyonsaba',
-      description: 'Safety protocols and guidelines for workplace operations',
-      version: '1.8',
-      priority: 'High'
-    },
-    {
-      id: 3,
-      title: 'Financial Reporting Standards',
-      category: 'Finance',
-      status: 'Active',
-      lastUpdated: '2024-01-12',
-      nextReview: '2024-07-12',
-      complianceRate: 95,
-      createdBy: 'Patrick Nshimiyimana',
-      description: 'Standards for financial reporting and documentation',
-      version: '3.0',
-      priority: 'Medium'
-    },
-    {
-      id: 4,
-      title: 'IT Security Protocol',
-      category: 'Technology',
-      status: 'Active',
-      lastUpdated: '2024-01-08',
-      nextReview: '2024-04-08',
-      complianceRate: 97,
-      createdBy: 'Emmanuel Ndayisaba',
-      description: 'Information technology security and access control policies',
-      version: '2.5',
-      priority: 'Critical'
-    },
-    {
-      id: 5,
-      title: 'Employee Code of Conduct',
-      category: 'HR',
-      status: 'Under Review',
-      lastUpdated: '2024-01-03',
-      nextReview: '2024-02-03',
-      complianceRate: 94,
-      createdBy: 'Alexis Nkurunziza',
-      description: 'Employee behavior and professional conduct guidelines',
-      version: '1.9',
-      priority: 'High'
-    }
-  ];
+  // Empty policies array - no mock data
+  const policies: any[] = [];
 
-  const policyCategories = [
-    { category: 'Data Security', count: 6, color: 'bg-blue-100 text-blue-800' },
-    { category: 'Safety', count: 4, color: 'bg-green-100 text-green-800' },
-    { category: 'Finance', count: 5, color: 'bg-purple-100 text-purple-800' },
-    { category: 'Technology', count: 3, color: 'bg-orange-100 text-orange-800' },
-    { category: 'HR', count: 4, color: 'bg-pink-100 text-pink-800' },
-    { category: 'Operations', count: 2, color: 'bg-yellow-100 text-yellow-800' }
-  ];
+  // Empty policy categories array - no mock data
+  const policyCategories: any[] = [];
 
   const upcomingReviews = [
     {
@@ -170,18 +98,9 @@ const PolicyManagement: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">{stat.title}</p>
                 <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                <p className="text-xs text-gray-500">{stat.subtitle}</p>
               </div>
               <div className="text-2xl">{stat.icon}</div>
             </div>
-            {stat.trend && (
-              <div className={`flex items-center mt-2 text-xs ${
-                stat.trend.isPositive ? 'text-green-600' : 'text-red-600'
-              }`}>
-                <span>{stat.trend.isPositive ? '↗' : '↘'}</span>
-                <span className="ml-1">{stat.trend.value}</span>
-              </div>
-            )}
           </div>
         ))}
       </div>

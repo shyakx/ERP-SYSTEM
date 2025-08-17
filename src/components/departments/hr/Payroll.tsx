@@ -1,89 +1,17 @@
 import React from 'react';
 
 const Payroll: React.FC = () => {
-  const payrollData = [
-    {
-      id: 1,
-      name: 'Jean Pierre Uwimana',
-      position: 'Security Guard',
-      basicSalary: 450000,
-      allowances: 50000,
-      deductions: 45000,
-      netSalary: 455000,
-      status: 'Paid',
-      paymentDate: '2024-01-31',
-      bankAccount: 'BK 1234567890'
-    },
-    {
-      id: 2,
-      name: 'Marie Claire Niyonsaba',
-      position: 'HR Manager',
-      basicSalary: 1200000,
-      allowances: 150000,
-      deductions: 120000,
-      netSalary: 1230000,
-      status: 'Paid',
-      paymentDate: '2024-01-31',
-      bankAccount: 'BK 2345678901'
-    },
-    {
-      id: 3,
-      name: 'Emmanuel Ndayisaba',
-      position: 'Security Supervisor',
-      basicSalary: 650000,
-      allowances: 75000,
-      deductions: 65000,
-      netSalary: 660000,
-      status: 'Paid',
-      paymentDate: '2024-01-31',
-      bankAccount: 'BK 3456789012'
-    },
-    {
-      id: 4,
-      name: 'Alice Mukamana',
-      position: 'Finance Officer',
-      basicSalary: 800000,
-      allowances: 100000,
-      deductions: 80000,
-      netSalary: 820000,
-      status: 'Paid',
-      paymentDate: '2024-01-31',
-      bankAccount: 'BK 4567890123'
-    },
-    {
-      id: 5,
-      name: 'Patrick Nshimiyimana',
-      position: 'Security Guard',
-      basicSalary: 450000,
-      allowances: 50000,
-      deductions: 45000,
-      netSalary: 455000,
-      status: 'Pending',
-      paymentDate: '2024-02-01',
-      bankAccount: 'BK 5678901234'
-    },
-    {
-      id: 6,
-      name: 'Grace Uwamahoro',
-      position: 'Customer Service Rep',
-      basicSalary: 550000,
-      allowances: 60000,
-      deductions: 55000,
-      netSalary: 555000,
-      status: 'Pending',
-      paymentDate: '2024-02-01',
-      bankAccount: 'BK 6789012345'
-    }
-  ];
+  // Empty payroll data array - no mock data
+  const payrollData: any[] = [];
 
   const payrollSummary = {
-    totalEmployees: 127,
-    totalBasicSalary: 85000000,
-    totalAllowances: 8500000,
-    totalDeductions: 8500000,
-    totalNetSalary: 85000000,
-    paidEmployees: 125,
-    pendingEmployees: 2
+    totalEmployees: 0,
+    totalSalary: 0,
+    totalAllowances: 0,
+    totalDeductions: 0,
+    netPayroll: 0,
+    paidEmployees: 0,
+    pendingEmployees: 0
   };
 
   const taxRates = [
@@ -176,7 +104,7 @@ const Payroll: React.FC = () => {
                         <div className="flex items-center">
                           <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center">
                             <span className="text-white font-semibold text-xs sm:text-sm">
-                              {employee.name.split(' ').map(n => n[0]).join('')}
+                              {employee.name.split(' ').map((n: string) => n[0]).join('')}
                             </span>
                           </div>
                           <div className="ml-3 sm:ml-4">

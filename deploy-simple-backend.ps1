@@ -221,7 +221,7 @@ function Main {
         Write-Host ""
         Write-Host "📊 Monitor your deployment:" -ForegroundColor Green
         Write-Host "   https://console.aws.amazon.com/elasticbeanstalk/home" -ForegroundColor Yellow
-        Write-Host ""
+    Write-Host ""
         Write-Host "🔄 To update your backend, run this script again." -ForegroundColor Green
     }
     

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authService } from '../services/auth';
+import { authenticateUser, getUsers, getUserById } from '../services/auth';
 
 export interface User {
   id: string;
@@ -37,8 +37,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        const userData = await authService.getProfile();
-        setUser(userData.user);
+        // For now, we'll use a simple mock user since we don't have a real auth service
+        const mockUser: User = {
+          id: '1',
+          email: 'admin@dicel.co.rw',
+          firstName: 'Admin',
+          lastName: 'User',
+          role: 'admin',
+          department: 'admin',
+          phone: '+250 788 123 456',
+          isActive: true,
+          lastLogin: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        setUser(mockUser);
       }
     } catch (error) {
       localStorage.removeItem('token');
@@ -49,9 +62,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await authService.login(email, password);
-      localStorage.setItem('token', response.token);
-      setUser(response.user);
+      const userData = await authenticateUser(email, password);
+      if (userData) {
+        const token = 'mock-jwt-token-' + Date.now();
+        localStorage.setItem('token', token);
+        setUser(userData);
+      } else {
+        throw new Error('Invalid credentials');
+      }
     } catch (error) {
       throw error;
     }
@@ -59,9 +77,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (userData: any) => {
     try {
-      const response = await authService.register(userData);
-      localStorage.setItem('token', response.token);
-      setUser(response.user);
+      // For now, we'll create a simple mock user
+      const mockUser: User = {
+        id: '2',
+        email: userData.email,
+        firstName: userData.firstName || 'New',
+        lastName: userData.lastName || 'User',
+        role: userData.role || 'employee',
+        department: userData.department,
+        phone: userData.phone,
+        isActive: true,
+        lastLogin: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      const token = 'mock-jwt-token-' + Date.now();
+      localStorage.setItem('token', token);
+      setUser(mockUser);
     } catch (error) {
       throw error;
     }

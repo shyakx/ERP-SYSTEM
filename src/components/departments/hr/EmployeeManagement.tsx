@@ -1,74 +1,8 @@
 import React from 'react';
 
 const EmployeeManagement: React.FC = () => {
-  const employees = [
-    {
-      id: 1,
-      name: 'Jean Pierre Uwimana',
-      position: 'Security Guard',
-      location: 'Kigali, Rwanda',
-      status: 'Active',
-      department: 'Operations',
-      hireDate: '2023-03-15',
-      salary: 'RWF 450,000',
-      contact: '+250 788 123 456'
-    },
-    {
-      id: 2,
-      name: 'Marie Claire Niyonsaba',
-      position: 'HR Manager',
-      location: 'Kigali, Rwanda',
-      status: 'Active',
-      department: 'Human Resources',
-      hireDate: '2022-08-20',
-      salary: 'RWF 1,200,000',
-      contact: '+250 789 234 567'
-    },
-    {
-      id: 3,
-      name: 'Emmanuel Ndayisaba',
-      position: 'Security Supervisor',
-      location: 'Huye, Rwanda',
-      status: 'Active',
-      department: 'Operations',
-      hireDate: '2022-11-10',
-      salary: 'RWF 650,000',
-      contact: '+250 787 345 678'
-    },
-    {
-      id: 4,
-      name: 'Alice Mukamana',
-      position: 'Finance Officer',
-      location: 'Kigali, Rwanda',
-      status: 'Active',
-      department: 'Finance',
-      hireDate: '2023-01-05',
-      salary: 'RWF 800,000',
-      contact: '+250 786 456 789'
-    },
-    {
-      id: 5,
-      name: 'Patrick Nshimiyimana',
-      position: 'Security Guard',
-      location: 'Musanze, Rwanda',
-      status: 'Active',
-      department: 'Operations',
-      hireDate: '2023-06-12',
-      salary: 'RWF 450,000',
-      contact: '+250 785 567 890'
-    },
-    {
-      id: 6,
-      name: 'Grace Uwamahoro',
-      position: 'Customer Service Rep',
-      location: 'Kigali, Rwanda',
-      status: 'Active',
-      department: 'Customer Experience',
-      hireDate: '2023-04-18',
-      salary: 'RWF 550,000',
-      contact: '+250 784 678 901'
-    }
-  ];
+  // Empty employees array - no mock data
+  const employees: any[] = [];
 
   return (
     <div className="p-4 sm:p-6">
@@ -127,7 +61,7 @@ const EmployeeManagement: React.FC = () => {
                     <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                          {employee.name.split(' ').map(n => n[0]).join('')}
+                          {employee.name.split(' ').map((n: string) => n[0]).join('')}
                         </div>
                         <div className="ml-3 sm:ml-4">
                           <div className="text-sm font-medium text-gray-900">{employee.name}</div>

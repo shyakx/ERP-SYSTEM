@@ -7,73 +7,17 @@ const ExpenseManagement: React.FC = () => {
   const colorScheme = getColorScheme('finance');
 
   const expenseStats = [
-    { title: 'Total Expenses', value: '189.3M RWF', subtitle: 'This Year', color: 'red', icon: '💸', trend: { value: '+8%', isPositive: false }, delay: 0 },
-    { title: 'This Month', value: '18.2M RWF', subtitle: 'Current', color: 'orange', icon: '📅', trend: { value: '+5%', isPositive: false }, delay: 100 },
-    { title: 'Budget Used', value: '85%', subtitle: 'Of Annual', color: 'blue', icon: '📊', trend: { value: '+3%', isPositive: false }, delay: 200 },
-    { title: 'Categories', value: '12', subtitle: 'Active', color: 'green', icon: '📁', trend: { value: '+2', isPositive: true }, delay: 300 }
+    { title: 'Total Expenses', value: 'RWF 0', change: '+0%', icon: 'dollar-sign', color: 'from-red-500 to-red-600', delay: 0 },
+    { title: 'This Month', value: 'RWF 0', change: '+0%', icon: 'calendar', color: 'from-blue-500 to-blue-600', delay: 100 },
+    { title: 'Pending', value: 'RWF 0', change: '+0%', icon: 'clock', color: 'from-yellow-500 to-yellow-600', delay: 200 },
+    { title: 'Approved', value: 'RWF 0', change: '+0%', icon: 'check-circle', color: 'from-green-500 to-green-600', delay: 300 }
   ];
 
-  const recentExpenses = [
-    {
-      id: 1,
-      description: 'Security Equipment - Cameras',
-      amount: 850000,
-      date: '2024-02-15',
-      category: 'Equipment',
-      department: 'IT',
-      status: 'Approved',
-      vendor: 'Tech Solutions Ltd'
-    },
-    {
-      id: 2,
-      description: 'Office Supplies - February',
-      amount: 250000,
-      date: '2024-02-14',
-      category: 'Office Supplies',
-      department: 'Admin',
-      status: 'Approved',
-      vendor: 'Kigali Office Supplies'
-    },
-    {
-      id: 3,
-      description: 'Transportation - Fuel',
-      amount: 180000,
-      date: '2024-02-13',
-      category: 'Transportation',
-      department: 'Operations',
-      status: 'Pending',
-      vendor: 'Shell Rwanda'
-    },
-    {
-      id: 4,
-      description: 'Insurance Premium - Q1',
-      amount: 1200000,
-      date: '2024-02-12',
-      category: 'Insurance',
-      department: 'Finance',
-      status: 'Approved',
-      vendor: 'Insurance Providers'
-    },
-    {
-      id: 5,
-      description: 'Utilities - Electricity',
-      amount: 450000,
-      date: '2024-02-11',
-      category: 'Utilities',
-      department: 'Admin',
-      status: 'Approved',
-      vendor: 'EWSA'
-    }
-  ];
+  // Empty recent expenses array - no mock data
+  const recentExpenses: any[] = [];
 
-  const expenseCategories = [
-    { name: 'Equipment & Supplies', amount: 45000000, percentage: 35, color: 'blue', budget: 50000000 },
-    { name: 'Payroll & Benefits', amount: 65000000, percentage: 25, color: 'green', budget: 70000000 },
-    { name: 'Transportation', amount: 25000000, percentage: 15, color: 'orange', budget: 30000000 },
-    { name: 'Utilities', amount: 18000000, percentage: 12, color: 'purple', budget: 20000000 },
-    { name: 'Insurance', amount: 15000000, percentage: 8, color: 'red', budget: 18000000 },
-    { name: 'Other', amount: 12000000, percentage: 5, color: 'gray', budget: 15000000 }
-  ];
+  // Empty expense categories array - no mock data
+  const expenseCategories: any[] = [];
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-RW', {
@@ -108,18 +52,9 @@ const ExpenseManagement: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">{stat.title}</p>
                 <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                <p className="text-xs text-gray-500">{stat.subtitle}</p>
               </div>
               <div className="text-2xl">{stat.icon}</div>
             </div>
-            {stat.trend && (
-              <div className={`flex items-center mt-2 text-xs ${
-                stat.trend.isPositive ? 'text-green-600' : 'text-red-600'
-              }`}>
-                <span>{stat.trend.isPositive ? '↗' : '↘'}</span>
-                <span className="ml-1">{stat.trend.value}</span>
-              </div>
-            )}
           </div>
         ))}
       </div>

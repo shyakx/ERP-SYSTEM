@@ -1,95 +1,11 @@
 import React from 'react';
 
 const TrainingDevelopment: React.FC = () => {
-  const trainingPrograms = [
-    {
-      id: 1,
-      title: 'Security Guard Basic Training',
-      instructor: 'Captain Jean Bosco Niyonsaba',
-      duration: '2 weeks',
-      location: 'Kigali Training Center',
-      status: 'Active',
-      enrolled: 15,
-      maxCapacity: 20,
-      startDate: '2024-02-01',
-      cost: 'RWF 150,000'
-    },
-    {
-      id: 2,
-      title: 'Advanced Security Management',
-      instructor: 'Major Emmanuel Ndayisaba',
-      duration: '4 weeks',
-      location: 'Huye Training Center',
-      status: 'Active',
-      enrolled: 8,
-      maxCapacity: 12,
-      startDate: '2024-02-15',
-      cost: 'RWF 300,000'
-    },
-    {
-      id: 3,
-      title: 'Customer Service Excellence',
-      instructor: 'Grace Uwamahoro',
-      duration: '1 week',
-      location: 'Kigali Training Center',
-      status: 'Active',
-      enrolled: 12,
-      maxCapacity: 15,
-      startDate: '2024-02-10',
-      cost: 'RWF 100,000'
-    },
-    {
-      id: 4,
-      title: 'First Aid & Emergency Response',
-      instructor: 'Dr. Sarah Mukamana',
-      duration: '3 days',
-      location: 'Kigali Medical Center',
-      status: 'Active',
-      enrolled: 20,
-      maxCapacity: 25,
-      startDate: '2024-02-05',
-      cost: 'RWF 75,000'
-    }
-  ];
+  // Empty training programs array - no mock data
+  const trainingPrograms: any[] = [];
 
-  const enrolledEmployees = [
-    {
-      id: 1,
-      name: 'Jean Pierre Uwimana',
-      program: 'Security Guard Basic Training',
-      progress: 75,
-      status: 'In Progress',
-      startDate: '2024-02-01',
-      completionDate: '2024-02-15'
-    },
-    {
-      id: 2,
-      name: 'Marie Claire Niyonsaba',
-      program: 'Advanced Security Management',
-      progress: 100,
-      status: 'Completed',
-      startDate: '2024-01-15',
-      completionDate: '2024-02-12'
-    },
-    {
-      id: 3,
-      name: 'Emmanuel Ndayisaba',
-      program: 'First Aid & Emergency Response',
-      progress: 50,
-      status: 'In Progress',
-      startDate: '2024-02-05',
-      completionDate: '2024-02-08'
-    },
-    {
-      id: 4,
-      name: 'Alice Mukamana',
-      program: 'Customer Service Excellence',
-      progress: 100,
-      status: 'Completed',
-      startDate: '2024-01-20',
-      completionDate: '2024-01-27'
-    }
-  ];
+  // Empty enrolled employees array - no mock data
+  const enrolledEmployees: any[] = [];
 
   const certifications = [
     {
@@ -211,7 +127,7 @@ const TrainingDevelopment: React.FC = () => {
                         <div className="flex items-center">
                           <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center">
                             <span className="text-white font-semibold text-xs sm:text-sm">
-                              {employee.name.split(' ').map(n => n[0]).join('')}
+                              {employee.name.split(' ').map((n: string) => n[0]).join('')}
                             </span>
                           </div>
                           <div className="ml-3 sm:ml-4">
