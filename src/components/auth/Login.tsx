@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { 
@@ -7,46 +7,22 @@ import {
   EyeOff, 
   Mail, 
   Lock,
-  User,
-  Building,
   CheckCircle,
   AlertCircle,
   ArrowRight,
   Zap,
-  Globe,
   Users,
   DollarSign,
-  FileText,
   Package,
-  UserCheck,
   TrendingUp,
-  Heart,
   ShieldCheck,
   AlertTriangle,
-  RefreshCw,
   Settings,
   Crown,
-  Briefcase,
-  HeadphonesIcon,
-  Target,
-  BarChart3,
-  Database,
   Cpu,
-  Network,
-  Globe2,
-  Phone,
   MessageSquare,
-  Calendar,
-  Clock,
-  Star,
-  Award,
-  Gift,
-  Coffee,
   Sparkles,
-  ChevronUp,
-  Sparkles as SparklesIcon,
-  Star as StarIcon,
-  Zap as ZapIcon
+  ChevronUp
 } from 'lucide-react';
 
 // Import logo image
@@ -60,9 +36,7 @@ const Login: React.FC = () => {
   const [error, setError] = useState('');
   const [showAllDemos, setShowAllDemos] = useState(false);
   const [logoError, setLogoError] = useState(false);
-  const [isFocused, setIsFocused] = useState({ email: false, password: false });
-  const [animateSuccess, setAnimateSuccess] = useState(false);
-  const { login, user } = useAuth();
+  const { login } = useAuth();
 
   // Demo login configurations for all departments
   const demoLogins = [
@@ -72,9 +46,79 @@ const Login: React.FC = () => {
       email: 'admin@dicel.co.rw',
       password: 'admin123',
       icon: Crown,
-      color: 'from-purple-500 to-purple-600',
+      color: 'bg-slate-600',
       description: 'Full system access',
-      category: 'admin'
+      category: 'management'
+    },
+    {
+      id: 'hr',
+      name: 'HR Manager',
+      email: 'hr.manager@dicel.co.rw',
+      password: 'hr123',
+      icon: Users,
+      color: 'bg-blue-600',
+      description: 'HR module access',
+      category: 'core'
+    },
+    {
+      id: 'finance',
+      name: 'Finance Manager',
+      email: 'finance.manager@dicel.co.rw',
+      password: 'finance123',
+      icon: DollarSign,
+      color: 'bg-emerald-600',
+      description: 'Finance module access',
+      category: 'core'
+    },
+    {
+      id: 'it',
+      name: 'IT Manager',
+      email: 'it.manager@dicel.co.rw',
+      password: 'it123',
+      icon: Cpu,
+      color: 'bg-slate-600',
+      description: 'IT module access',
+      category: 'core'
+    },
+    {
+      id: 'security',
+      name: 'Security Manager',
+      email: 'security.manager@dicel.co.rw',
+      password: 'security123',
+      icon: ShieldCheck,
+      color: 'bg-red-600',
+      description: 'Security module access',
+      category: 'core'
+    },
+    {
+      id: 'operations',
+      name: 'Operations Manager',
+      email: 'operations.manager@dicel.co.rw',
+      password: 'inventory123',
+      icon: Package,
+      color: 'bg-amber-600',
+      description: 'Operations module access',
+      category: 'core'
+    },
+    {
+      id: 'sales',
+      name: 'Sales Manager',
+      email: 'sales.manager@dicel.co.rw',
+      password: 'sales123',
+      icon: TrendingUp,
+      color: 'bg-indigo-600',
+      description: 'Sales module access',
+      category: 'core'
+    },
+    {
+      id: 'risk',
+      name: 'Risk Manager',
+      email: 'risk.manager@dicel.co.rw',
+      password: 'risk123',
+      icon: AlertTriangle,
+      color: 'bg-amber-600',
+      description: 'Risk management access',
+      category: 'support'
     }
   ];
 
@@ -84,10 +128,11 @@ const Login: React.FC = () => {
     setError('');
 
     try {
+      console.log('Attempting login with:', { email, password });
       await login(email, password);
-      setAnimateSuccess(true);
-      setTimeout(() => setAnimateSuccess(false), 2000);
+      console.log('Login successful!');
     } catch (error: any) {
+      console.error('Login failed:', error);
       setError(error.message || 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);
@@ -95,11 +140,13 @@ const Login: React.FC = () => {
   };
 
   const handleDemoLogin = (demo: typeof demoLogins[0]) => {
+    console.log('Demo login clicked for:', demo.name, demo.email);
     setEmail(demo.email);
     setPassword(demo.password);
     setTimeout(() => {
       const form = document.querySelector('form');
       if (form) {
+        console.log('Submitting form for demo login...');
         form.dispatchEvent(new Event('submit', { bubbles: true }));
       }
     }, 100);
@@ -108,7 +155,7 @@ const Login: React.FC = () => {
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case 'management': return Crown;
-      case 'core': return Building;
+      case 'core': return Users;
       case 'support': return Settings;
       default: return Users;
     }
@@ -116,10 +163,10 @@ const Login: React.FC = () => {
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'management': return 'from-purple-500 to-purple-600';
-      case 'core': return 'from-blue-500 to-blue-600';
-      case 'support': return 'from-green-500 to-green-600';
-      default: return 'from-gray-500 to-gray-600';
+      case 'management': return 'bg-slate-600';
+      case 'core': return 'bg-blue-600';
+      case 'support': return 'bg-emerald-600';
+      default: return 'bg-gray-600';
     }
   };
 
@@ -146,88 +193,60 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-hidden relative">
-      {/* Animated Background Particles */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden relative">
+      {/* Subtle Background Pattern */}
       <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900"></div>
-        
-        {/* Floating Particles */}
-        <div className="absolute top-20 left-20 w-2 h-2 bg-blue-400 rounded-full animate-pulse opacity-60 animate-float-slow"></div>
-        <div className="absolute top-40 right-20 w-1 h-1 bg-purple-400 rounded-full animate-pulse opacity-40 animate-float-medium"></div>
-        <div className="absolute bottom-40 left-40 w-3 h-3 bg-pink-400 rounded-full animate-pulse opacity-50 animate-float-fast"></div>
-        <div className="absolute top-60 left-1/4 w-1 h-1 bg-cyan-400 rounded-full animate-pulse opacity-30 animate-float-slow"></div>
-        <div className="absolute bottom-20 right-1/3 w-2 h-2 bg-yellow-400 rounded-full animate-pulse opacity-60 animate-float-medium"></div>
-        <div className="absolute top-1/2 left-1/2 w-1 h-1 bg-green-400 rounded-full animate-pulse opacity-40 animate-float-fast"></div>
-        
-        {/* Animated Grid */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:50px_50px] animate-grid-move"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"></div>
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:100px_100px]"></div>
         </div>
       </div>
 
       <div className="flex min-h-screen">
-        {/* Left Side - Enhanced Branding */}
+        {/* Left Side - Enhanced Corporate Branding */}
         <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900"></div>
-          
-          {/* Animated Background Elements */}
-          <div className="absolute top-20 left-20 w-32 h-32 bg-blue-500/10 rounded-full animate-float-slow blur-xl"></div>
-          <div className="absolute top-40 right-20 w-24 h-24 bg-purple-500/10 rounded-full animate-float-medium blur-xl"></div>
-          <div className="absolute bottom-40 left-40 w-20 h-20 bg-pink-500/10 rounded-full animate-float-fast blur-xl"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800"></div>
           
           <div className="relative z-10 flex flex-col justify-center px-16 text-white">
-            <div className="mb-12 animate-fade-in-up">
+            <div className="mb-12">
               {/* Enhanced Logo Container */}
               <div className="relative mb-8">
-                <div className="w-48 h-48 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center shadow-2xl relative overflow-hidden group animate-pulse-slow">
-                  {/* Animated Background */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-gradient-shift"></div>
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer"></div>
-                  
+                <div className="w-48 h-48 bg-gradient-to-br from-slate-700 to-slate-600 rounded-xl flex items-center justify-center shadow-xl relative overflow-hidden border border-slate-600">
+                  {/* Subtle inner glow */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
                   {/* Logo */}
-                  <div className="relative z-10 transform group-hover:scale-110 transition-transform duration-500">
-                    <LogoComponent className="w-32 h-32" />
+                  <div className="relative z-10">
+                    <LogoComponent className="w-36 h-36" />
                   </div>
-                  
-                  {/* Glow Effect */}
-                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-400/20 via-purple-400/20 to-pink-400/20 blur-xl animate-pulse-slow"></div>
-                </div>
-                
-                {/* Floating Icons */}
-                <div className="absolute -top-4 -right-4 w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center animate-bounce">
-                  <StarIcon className="w-4 h-4 text-white" />
-                </div>
-                <div className="absolute -bottom-4 -left-4 w-8 h-8 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center animate-bounce animation-delay-1000">
-                  <ZapIcon className="w-4 h-4 text-white" />
                 </div>
               </div>
               
-              <h1 className="text-6xl font-bold mb-4 bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent animate-fade-in-up animation-delay-200">
+              <h1 className="text-5xl font-bold mb-4 text-white">
                 Dicel ERP
               </h1>
-              <p className="text-xl text-blue-200 mb-8 animate-fade-in-up animation-delay-400">
+              <p className="text-xl text-slate-300 mb-8 font-medium">
                 Enterprise Resource Planning System
               </p>
             </div>
 
             {/* Enhanced Feature Cards */}
-            <div className="space-y-6 animate-fade-in-up animation-delay-600">
-              <div className="group p-6 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 hover:bg-white/10 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl">
+            <div className="space-y-4">
+              <div className="p-5 bg-gradient-to-r from-slate-700/60 to-slate-600/60 rounded-xl border border-slate-600/50 backdrop-blur-sm">
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-green-400 to-green-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <Zap className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                    <h3 className="font-semibold text-lg">Powerful Management</h3>
-                  <p className="text-blue-200 text-sm">Complete control over your business operations</p>
+                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-600 to-emerald-500 rounded-lg flex items-center justify-center shadow-sm">
+                    <Zap className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white text-lg">Powerful Management</h3>
+                    <p className="text-slate-300 text-sm">Complete control over your business operations</p>
                   </div>
                 </div>
               </div>
 
-              <div className="group p-6 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 hover:bg-white/10 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl">
+              <div className="group p-6 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 hover:bg-white/10 transition-all duration-500">
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-purple-400 to-purple-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <Globe className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-400 to-purple-500 rounded-xl flex items-center justify-center">
+                  <Users className="w-6 h-6 text-white" />
                 </div>
                 <div>
                     <h3 className="font-semibold text-lg">Global Access</h3>
@@ -236,9 +255,9 @@ const Login: React.FC = () => {
                 </div>
               </div>
 
-              <div className="group p-6 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 hover:bg-white/10 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl">
+              <div className="group p-6 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 hover:bg-white/10 transition-all duration-500">
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-blue-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-blue-500 rounded-xl flex items-center justify-center">
                   <Users className="w-6 h-6 text-white" />
                   </div>
                 <div>
@@ -255,107 +274,89 @@ const Login: React.FC = () => {
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="w-full max-w-md">
             {/* Mobile Logo */}
-            <div className="lg:hidden text-center mb-8 animate-fade-in-up">
-              <div className="w-40 h-40 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-3xl flex items-center justify-center shadow-xl mx-auto mb-6 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-gradient-shift"></div>
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer"></div>
+            <div className="lg:hidden text-center mb-8">
+              <div className="w-48 h-48 bg-gradient-to-br from-slate-700 to-slate-600 rounded-xl flex items-center justify-center shadow-xl mx-auto mb-6 border border-slate-600">
                 <div className="relative z-10">
-                  <LogoComponent className="w-28 h-28" />
+                  <LogoComponent className="w-36 h-36" />
                 </div>
               </div>
               <h2 className="text-3xl font-bold text-white mb-2">Dicel ERP</h2>
-              <p className="text-gray-300">Sign in to your account</p>
+              <p className="text-slate-300 font-medium">Sign in to your account</p>
             </div>
 
             {/* Enhanced Login Form */}
-            <div className="bg-white/10 backdrop-blur-2xl rounded-3xl shadow-2xl p-8 border border-white/20 animate-fade-in-up animation-delay-300">
+            <div className="bg-white rounded-xl shadow-xl p-8 border border-gray-200">
               <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
-                <p className="text-gray-300">Sign in to continue to your dashboard</p>
-                </div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-3">Welcome Back</h2>
+                <p className="text-gray-600 text-lg">Sign in to continue to your dashboard</p>
+              </div>
 
               <form className="space-y-6" onSubmit={handleSubmit}>
                 {error && (
-                  <div className="bg-red-500/20 border border-red-400/30 rounded-2xl p-4 animate-shake">
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                     <div className="flex items-center">
-                      <AlertCircle className="w-5 h-5 text-red-400 mr-3" />
-                      <span className="text-sm text-red-300 font-medium">{error}</span>
+                      <AlertCircle className="w-5 h-5 text-red-500 mr-3" />
+                      <span className="text-sm text-red-700 font-medium">{error}</span>
                     </div>
                   </div>
                 )}
 
-                {/* Enhanced Email Field */}
+                {/* Email Field */}
                 <div className="space-y-2">
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-300">
+                  <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
                     Email Address
                   </label>
-                  <div className="relative group">
-                    <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors duration-300 ${
-                      isFocused.email ? 'text-blue-400' : 'text-gray-400'
-                    }`}>
-                      <Mail className="h-5 w-5" />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Mail className="h-5 w-5 text-gray-400" />
                     </div>
-                      <input
-                        id="email"
-                        name="email"
+                    <input
+                      id="email"
+                      name="email"
                       type="email"
                       autoComplete="email"
-                        required
+                      required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      onFocus={() => setIsFocused({ ...isFocused, email: true })}
-                      onBlur={() => setIsFocused({ ...isFocused, email: false })}
-                      className={`w-full pl-12 pr-4 py-4 border rounded-2xl transition-all duration-300 bg-white/10 backdrop-blur-sm text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        isFocused.email 
-                          ? 'border-blue-400/50 bg-white/20' 
-                          : 'border-white/20 hover:border-white/30'
-                      }`}
-                        placeholder="Enter your email"
-                      />
-                    </div>
+                      className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors hover:border-gray-400"
+                      placeholder="Enter your email"
+                    />
                   </div>
+                </div>
 
-                {/* Enhanced Password Field */}
+                {/* Password Field */}
                 <div className="space-y-2">
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+                  <label htmlFor="password" className="block text-sm font-semibold text-gray-700">
                     Password
                   </label>
-                  <div className="relative group">
-                    <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors duration-300 ${
-                      isFocused.password ? 'text-blue-400' : 'text-gray-400'
-                    }`}>
-                      <Lock className="h-5 w-5" />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Lock className="h-5 w-5 text-gray-400" />
                     </div>
-                      <input
-                        id="password"
-                        name="password"
+                    <input
+                      id="password"
+                      name="password"
                       type={showPassword ? 'text' : 'password'}
                       autoComplete="current-password"
-                        required
+                      required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      onFocus={() => setIsFocused({ ...isFocused, password: true })}
-                      onBlur={() => setIsFocused({ ...isFocused, password: false })}
-                      className={`w-full pl-12 pr-12 py-4 border rounded-2xl transition-all duration-300 bg-white/10 backdrop-blur-sm text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        isFocused.password 
-                          ? 'border-blue-400/50 bg-white/20' 
-                          : 'border-white/20 hover:border-white/30'
-                      }`}
-                        placeholder="Enter your password"
-                      />
-                      <button
-                        type="button"
+                      className="w-full pl-12 pr-12 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors hover:border-gray-400"
+                      placeholder="Enter your password"
+                    />
+                    <button
+                      type="button"
                       className="absolute inset-y-0 right-0 pr-4 flex items-center"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
                       {showPassword ? (
-                        <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-300 transition-colors" />
+                        <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-500" />
                       ) : (
-                        <Eye className="h-5 w-5 text-gray-400 hover:text-gray-300 transition-colors" />
+                        <Eye className="h-5 w-5 text-gray-400 hover:text-gray-500" />
                       )}
-                      </button>
-                    </div>
+                    </button>
                   </div>
+                </div>
 
                 {/* Remember Me and Forgot Password */}
                 <div className="flex items-center justify-between">
@@ -377,32 +378,22 @@ const Login: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Enhanced Submit Button */}
+                {/* Submit Button */}
                 <div>
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className={`group relative w-full flex justify-center py-4 px-6 border border-transparent text-sm font-medium rounded-2xl text-white transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${
-                      animateSuccess 
-                        ? 'bg-gradient-to-r from-green-500 to-green-600' 
-                        : 'bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 hover:from-blue-700 hover:via-purple-700 hover:to-blue-800'
-                    } shadow-2xl`}
+                    className="w-full flex justify-center py-4 px-6 border border-transparent text-base font-semibold rounded-lg text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm bg-blue-600 hover:bg-blue-700 shadow-blue-200"
                   >
                     {isLoading ? (
                       <div className="flex items-center">
                         <div className="spinner mr-2"></div>
                         Signing in...
                       </div>
-                    ) : animateSuccess ? (
-                      <div className="flex items-center">
-                        <CheckCircle className="w-5 h-5 mr-2" />
-                        Success!
-                      </div>
                     ) : (
                       <div className="flex items-center">
                         <Shield className="w-5 h-5 mr-2" />
                         Sign in
-                        <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                       </div>
                     )}
                   </button>
@@ -413,10 +404,10 @@ const Login: React.FC = () => {
               <div className="mt-8">
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-white/20" />
+                    <div className="w-full border-t border-gray-300" />
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-white/10 text-gray-300 backdrop-blur-sm rounded-full">Quick Demo Access</span>
+                    <span className="px-6 bg-white text-gray-600 font-medium">Quick Demo Access</span>
                   </div>
                 </div>
               </div>
@@ -430,19 +421,18 @@ const Login: React.FC = () => {
                     <button
                       key={demo.id}
                       onClick={() => handleDemoLogin(demo)}
-                      className="w-full flex items-center justify-between px-6 py-4 border border-white/20 rounded-2xl shadow-lg bg-white/5 backdrop-blur-sm text-sm font-medium text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-300 transform hover:scale-105 group animate-fade-in-up"
-                      style={{ animationDelay: `${index * 100}ms` }}
+                      className="w-full flex items-center justify-between px-5 py-4 border border-gray-200 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-900 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
                     >
                       <div className="flex items-center">
-                        <div className={`w-10 h-10 rounded-xl bg-gradient-to-r ${demo.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300`}>
+                        <div className={`w-10 h-10 rounded-lg ${demo.color} flex items-center justify-center mr-4 shadow-sm`}>
                           <Icon className="w-5 h-5 text-white" />
                         </div>
                         <div className="text-left">
-                          <div className="font-semibold">{demo.name}</div>
-                          <div className="text-xs text-gray-300">{demo.description}</div>
+                          <div className="font-semibold text-gray-900">{demo.name}</div>
+                          <div className="text-xs text-gray-500">{demo.description}</div>
                         </div>
                       </div>
-                      <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-400 transition-colors" />
+                      <ArrowRight className="w-4 h-4 text-gray-400" />
                     </button>
                   );
                 })}
@@ -454,60 +444,57 @@ const Login: React.FC = () => {
                     <button
                       key={demo.id}
                       onClick={() => handleDemoLogin(demo)}
-                      className="w-full flex items-center justify-between px-6 py-4 border border-white/20 rounded-2xl shadow-lg bg-white/5 backdrop-blur-sm text-sm font-medium text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 transform hover:scale-105 group animate-fade-in-up"
-                      style={{ animationDelay: `${(index + 1) * 100}ms` }}
+                      className="w-full flex items-center justify-between px-5 py-4 border border-gray-200 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-900 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
                     >
                       <div className="flex items-center">
-                        <div className={`w-10 h-10 rounded-xl bg-gradient-to-r ${demo.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300`}>
+                        <div className={`w-10 h-10 rounded-lg ${demo.color} flex items-center justify-center mr-4 shadow-sm`}>
                           <Icon className="w-5 h-5 text-white" />
                         </div>
                         <div className="text-left">
-                          <div className="font-semibold">{demo.name}</div>
-                          <div className="text-xs text-gray-300">{demo.description}</div>
+                          <div className="font-semibold text-gray-900">{demo.name}</div>
+                          <div className="text-xs text-gray-500">{demo.description}</div>
                         </div>
                       </div>
-                      <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-400 transition-colors" />
+                      <ArrowRight className="w-4 h-4 text-gray-400" />
                     </button>
                   );
                 })}
 
-                {/* Show More Button */}
+                {/* Enhanced Show More Button */}
                 {!showAllDemos && (
                   <button
                     onClick={() => setShowAllDemos(true)}
-                    className="w-full flex items-center justify-center px-6 py-4 border border-white/20 rounded-2xl shadow-lg bg-white/5 backdrop-blur-sm text-sm font-medium text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300 transform hover:scale-105 group animate-fade-in-up"
-                    style={{ animationDelay: '300ms' }}
+                    className="w-full flex items-center justify-center px-5 py-4 border border-gray-200 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-900 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-200"
                   >
-                    <SparklesIcon className="w-5 h-5 mr-3 group-hover:rotate-180 transition-transform duration-300" />
+                    <Sparkles className="w-5 h-5 mr-3 text-emerald-600" />
                     Show All Departments
-                    <span className="ml-3 text-xs bg-green-500/20 text-green-300 px-3 py-1 rounded-full">+9 more</span>
+                    <span className="ml-3 text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-medium">+9 more</span>
                   </button>
                 )}
 
                 {/* All Departments (when expanded) */}
                 {showAllDemos && (
-                  <div className="space-y-3 animate-fade-in-up">
+                  <div className="space-y-3">
                     {/* Core Departments (remaining) */}
                     {coreDepartments.slice(2).map((demo, index) => {
                       const Icon = demo.icon;
                       return (
-                <button
+                        <button
                           key={demo.id}
                           onClick={() => handleDemoLogin(demo)}
-                          className="w-full flex items-center justify-between px-6 py-4 border border-white/20 rounded-2xl shadow-lg bg-white/5 backdrop-blur-sm text-sm font-medium text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 transform hover:scale-105 group"
-                          style={{ animationDelay: `${index * 50}ms` }}
-                >
+                          className="w-full flex items-center justify-between px-5 py-4 border border-gray-200 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-900 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
+                        >
                           <div className="flex items-center">
-                            <div className={`w-10 h-10 rounded-xl bg-gradient-to-r ${demo.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300`}>
+                            <div className={`w-10 h-10 rounded-lg ${demo.color} flex items-center justify-center mr-4 shadow-sm`}>
                               <Icon className="w-5 h-5 text-white" />
                             </div>
                             <div className="text-left">
-                              <div className="font-semibold">{demo.name}</div>
-                              <div className="text-xs text-gray-300">{demo.description}</div>
+                              <div className="font-semibold text-gray-900">{demo.name}</div>
+                              <div className="text-xs text-gray-500">{demo.description}</div>
                             </div>
                           </div>
-                          <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-400 transition-colors" />
-                </button>
+                          <ArrowRight className="w-4 h-4 text-gray-400" />
+                        </button>
                       );
                     })}
 
@@ -515,48 +502,47 @@ const Login: React.FC = () => {
                     {supportDepartments.map((demo, index) => {
                       const Icon = demo.icon;
                       return (
-                <button
+                        <button
                           key={demo.id}
                           onClick={() => handleDemoLogin(demo)}
-                          className="w-full flex items-center justify-between px-6 py-4 border border-white/20 rounded-2xl shadow-lg bg-white/5 backdrop-blur-sm text-sm font-medium text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-300 transform hover:scale-105 group"
-                          style={{ animationDelay: `${(index + coreDepartments.length - 2) * 50}ms` }}
-                >
+                          className="w-full flex items-center justify-between px-5 py-4 border border-gray-200 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-900 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-200"
+                        >
                           <div className="flex items-center">
-                            <div className={`w-10 h-10 rounded-xl bg-gradient-to-r ${demo.color} flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300`}>
+                            <div className={`w-10 h-10 rounded-lg ${demo.color} flex items-center justify-center mr-4 shadow-sm`}>
                               <Icon className="w-5 h-5 text-white" />
                             </div>
                             <div className="text-left">
-                              <div className="font-semibold">{demo.name}</div>
-                              <div className="text-xs text-gray-300">{demo.description}</div>
+                              <div className="font-semibold text-gray-900">{demo.name}</div>
+                              <div className="text-xs text-gray-500">{demo.description}</div>
                             </div>
                           </div>
-                          <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-green-400 transition-colors" />
-                </button>
+                          <ArrowRight className="w-4 h-4 text-gray-400" />
+                        </button>
                       );
                     })}
 
-                    {/* Hide Button */}
-                <button
+                    {/* Enhanced Hide Button */}
+                    <button
                       onClick={() => setShowAllDemos(false)}
-                      className="w-full flex items-center justify-center px-6 py-4 border border-white/20 rounded-2xl shadow-lg bg-white/5 backdrop-blur-sm text-sm font-medium text-gray-300 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-300 transform hover:scale-105"
-                >
+                      className="w-full flex items-center justify-center px-5 py-4 border border-gray-200 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
+                    >
                       <ChevronUp className="w-5 h-5 mr-3" />
                       Hide Departments
-                </button>
+                    </button>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Enhanced Footer */}
-            <div className="text-center mt-8 animate-fade-in-up animation-delay-800">
-              <p className="text-sm text-gray-300">
+            <div className="text-center mt-8">
+              <p className="text-sm text-gray-600">
                 Don't have an account?{' '}
-                <Link to="/register" className="font-medium text-blue-400 hover:text-blue-300 transition-colors">
+                <Link to="/register" className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
                   Sign up
                 </Link>
               </p>
-              <p className="mt-2 text-xs text-gray-400">
+              <p className="mt-3 text-xs text-gray-500">
                 © 2024 Dicel Security Company. All rights reserved.
               </p>
             </div>

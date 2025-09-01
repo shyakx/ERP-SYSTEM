@@ -243,7 +243,7 @@ const TimeClock: React.FC = () => {
             <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 card-hover">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-2">
-                  <div className={`p-2 rounded-full ${getStatusColor(todayEntry.status)} transition-all duration-200 hover:scale-110`}>
+                  <div className={`p-2 rounded-full ${getStatusColor(todayEntry.status)} transition-all duration-200`}>
                     {getStatusIcon(todayEntry.status)}
                   </div>
                   <div>
@@ -321,7 +321,7 @@ const TimeClock: React.FC = () => {
               <AnimatedButton
                 onClick={handleClockIn}
                 disabled={isClockingIn}
-                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-4 px-6 rounded-xl flex items-center justify-center space-x-3 disabled:opacity-50 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 btn-hover"
+                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-4 px-6 rounded-xl flex items-center justify-center space-x-3 disabled:opacity-50 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 btn-hover"
               >
                 {isClockingIn ? (
                   <div className="spinner"></div>
@@ -336,7 +336,7 @@ const TimeClock: React.FC = () => {
               <AnimatedButton
                 onClick={handleClockOut}
                 disabled={isClockingOut}
-                className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-4 px-6 rounded-xl flex items-center justify-center space-x-3 disabled:opacity-50 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 btn-hover"
+                className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-4 px-6 rounded-xl flex items-center justify-center space-x-3 disabled:opacity-50 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 btn-hover"
               >
                 {isClockingOut ? (
                   <div className="spinner"></div>
@@ -368,14 +368,14 @@ const TimeClock: React.FC = () => {
                 onClick={() => {}}
                 className="flex items-center justify-center space-x-2 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 transition-all duration-200 border border-blue-200 hover:border-blue-300 group btn-hover"
               >
-                <Calendar className="w-5 h-5 text-blue-600 group-hover:scale-110 transition-transform duration-200" />
+                <Calendar className="w-5 h-5 text-blue-600 transition-transform duration-200" />
                 <span className="text-sm font-medium text-gray-700">View History</span>
               </AnimatedButton>
               <AnimatedButton
                 onClick={() => {}}
                 className="flex items-center justify-center space-x-2 p-4 rounded-xl bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 transition-all duration-200 border border-purple-200 hover:border-purple-300 group btn-hover"
               >
-                <User className="w-5 h-5 text-purple-600 group-hover:scale-110 transition-transform duration-200" />
+                <User className="w-5 h-5 text-purple-600 transition-transform duration-200" />
                 <span className="text-sm font-medium text-gray-700">My Profile</span>
               </AnimatedButton>
             </div>

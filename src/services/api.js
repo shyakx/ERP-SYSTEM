@@ -9,10 +9,10 @@ const getApiUrl = () => {
       window.location.hostname.includes('apprunner.aws') ||
       window.location.hostname.includes('elasticbeanstalk.com')) {
     // Production backend URL - update this when deploying
-    return 'https://your-production-backend-url.com/api';
+    return 'https://your-production-backend-url.com/api/v1';
   }
   // Development - new local backend
-  return 'http://localhost:5000/api';
+  return 'http://localhost:5000/api/v1';
 };
 
 const API_BASE_URL = getApiUrl();
@@ -69,7 +69,7 @@ api.interceptors.response.use(
       const url = error.config?.url || '';
       
       // Return empty data for all endpoints
-      if (url.includes('/test/stats') || url.includes('/test')) {
+      if (url.includes('/stats') || url.includes('/employees') || url.includes('/departments')) {
         console.log('📊 Returning empty data for:', url);
         return Promise.resolve({
           data: {
@@ -77,8 +77,8 @@ api.interceptors.response.use(
             data: {
               items: [],
               total: 0,
-            page: 1,
-            limit: 10
+              page: 1,
+              limit: 10
             }
           }
         });

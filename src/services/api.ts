@@ -8,6 +8,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 5000, // 5 second timeout to prevent long waits
 });
 
 // Request interceptor to add auth token
@@ -28,10 +29,18 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Handle network errors (backend not available)
+    if (error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK' || error.response?.status === 0) {
+      console.warn('Backend server not available, authentication will use demo credentials');
+      return Promise.reject(new Error('Backend not available'));
+    }
+    
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       window.location.href = '/login';
     }
+    
     // Temporarily handle 403 errors gracefully
     if (error.response?.status === 403) {
       console.warn('Backend server not available, using fallback data');
@@ -44,6 +53,7 @@ api.interceptors.response.use(
         }
       });
     }
+    
     return Promise.reject(error);
   }
 );

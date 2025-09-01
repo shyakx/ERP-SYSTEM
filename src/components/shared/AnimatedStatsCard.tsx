@@ -57,7 +57,7 @@ const AnimatedStatsCard: React.FC<AnimatedStatsCardProps> = ({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-xl p-4 text-white shadow-xl transform transition-all duration-500 hover:scale-105 hover:shadow-2xl ${
+      className={`relative overflow-hidden rounded-xl p-4 text-white shadow-xl transition-all duration-500 hover:shadow-2xl ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
       }`}
       style={{

@@ -39,7 +39,7 @@ const AnimatedCard: React.FC<AnimatedCardProps> = ({
 
   return (
     <div
-      className={`relative bg-white rounded-xl shadow-lg overflow-hidden transform transition-all duration-500 hover:scale-105 hover:shadow-2xl cursor-pointer ${className}`}
+      className={`relative bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-500 hover:shadow-2xl cursor-pointer ${className}`}
       style={{
         animationDelay: `${delay}ms`,
         zIndex: 1
@@ -137,7 +137,7 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
 
   return (
     <button
-      className={`${getColorClasses(color)} ${getSizeClasses(size)} text-white font-medium rounded-lg shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      className={`${getColorClasses(color)} ${getSizeClasses(size)} text-white font-medium rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
       onClick={onClick}
       disabled={disabled}
       style={{ zIndex: 1 }}

@@ -307,10 +307,10 @@ What would you like to do?`;
         {/* Floating Action Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`fixed ${getPositionClasses()} w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 flex items-center justify-center group z-50`}
+          className={`fixed ${getPositionClasses()} w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group z-50`}
           title="AI Assistant"
         >
-          <Bot className="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-300" />
+          <Bot className="w-6 h-6 text-white transition-transform duration-300" />
           <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
         </button>
 

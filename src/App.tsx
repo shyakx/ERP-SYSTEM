@@ -43,26 +43,33 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 // Public Route Component
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, getDashboardRoute } = useAuth();
 
   if (user) {
     // Redirect based on user role
-    switch (user.role) {
-      case 'admin': return <Navigate to="/admin" replace />;
-      case 'hr': return <Navigate to="/hr" replace />;
-      case 'finance': return <Navigate to="/finance" replace />;
-      case 'it': return <Navigate to="/it" replace />;
-      case 'security': return <Navigate to="/security" replace />;
-      case 'compliance': return <Navigate to="/compliance" replace />;
-      case 'inventory': return <Navigate to="/inventory" replace />;
-      case 'client': return <Navigate to="/client" replace />;
-      case 'sales': return <Navigate to="/sales" replace />;
-      case 'cx': return <Navigate to="/cx" replace />;
-      case 'risk': return <Navigate to="/risk" replace />;
-      case 'recovery': return <Navigate to="/recovery" replace />;
-      case 'employee': return <Navigate to="/employee" replace />;
-      default: return <Navigate to="/hr" replace />;
-    }
+    const dashboardRoute = getDashboardRoute(user.role);
+    return <Navigate to={dashboardRoute} replace />;
+  }
+
+  return <>{children}</>;
+};
+
+// Role-based Route Component
+const RoleBasedRoute: React.FC<{ 
+  children: React.ReactNode; 
+  allowedRoles: string[];
+  fallbackRoute?: string;
+}> = ({ children, allowedRoles, fallbackRoute = '/login' }) => {
+  const { user, getDashboardRoute } = useAuth();
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!allowedRoles.includes(user.role)) {
+    // Redirect to user's appropriate dashboard
+    const dashboardRoute = getDashboardRoute(user.role);
+    return <Navigate to={dashboardRoute} replace />;
   }
 
   return <>{children}</>;
@@ -91,136 +98,136 @@ const App: React.FC = () => {
             <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
             
             {/* Admin Routes */}
-            <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-            <Route path="/admin/overview" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-            <Route path="/admin/departments" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-            <Route path="/admin/users" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-            <Route path="/admin/reports" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-            <Route path="/admin/analytics" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-            <Route path="/admin/settings" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin" element={<RoleBasedRoute allowedRoles={['admin']}><AdminDashboard /></RoleBasedRoute>} />
+            <Route path="/admin/overview" element={<RoleBasedRoute allowedRoles={['admin']}><AdminDashboard /></RoleBasedRoute>} />
+            <Route path="/admin/departments" element={<RoleBasedRoute allowedRoles={['admin']}><AdminDashboard /></RoleBasedRoute>} />
+            <Route path="/admin/users" element={<RoleBasedRoute allowedRoles={['admin']}><AdminDashboard /></RoleBasedRoute>} />
+            <Route path="/admin/reports" element={<RoleBasedRoute allowedRoles={['admin']}><AdminDashboard /></RoleBasedRoute>} />
+            <Route path="/admin/analytics" element={<RoleBasedRoute allowedRoles={['admin']}><AdminDashboard /></RoleBasedRoute>} />
+            <Route path="/admin/settings" element={<RoleBasedRoute allowedRoles={['admin']}><AdminDashboard /></RoleBasedRoute>} />
             
             {/* HR Routes */}
-            <Route path="/hr" element={<ProtectedRoute><HRDashboard /></ProtectedRoute>} />
-            <Route path="/hr/employees" element={<ProtectedRoute><HRDashboard /></ProtectedRoute>} />
-            <Route path="/hr/recruitment" element={<ProtectedRoute><HRDashboard /></ProtectedRoute>} />
-            <Route path="/hr/training" element={<ProtectedRoute><HRDashboard /></ProtectedRoute>} />
-            <Route path="/hr/payroll" element={<ProtectedRoute><HRDashboard /></ProtectedRoute>} />
-            <Route path="/hr/performance" element={<ProtectedRoute><HRDashboard /></ProtectedRoute>} />
-            <Route path="/hr/leave" element={<ProtectedRoute><HRDashboard /></ProtectedRoute>} />
-            <Route path="/hr/attendance" element={<ProtectedRoute><HRDashboard /></ProtectedRoute>} />
-            <Route path="/hr/benefits" element={<ProtectedRoute><HRDashboard /></ProtectedRoute>} />
-            <Route path="/hr/compliance" element={<ProtectedRoute><HRDashboard /></ProtectedRoute>} />
-            <Route path="/hr/reports" element={<ProtectedRoute><HRDashboard /></ProtectedRoute>} />
-            <Route path="/hr/settings" element={<ProtectedRoute><HRDashboard /></ProtectedRoute>} />
+            <Route path="/hr" element={<RoleBasedRoute allowedRoles={['admin', 'hr']}><HRDashboard /></RoleBasedRoute>} />
+            <Route path="/hr/employees" element={<RoleBasedRoute allowedRoles={['admin', 'hr']}><HRDashboard /></RoleBasedRoute>} />
+            <Route path="/hr/recruitment" element={<RoleBasedRoute allowedRoles={['admin', 'hr']}><HRDashboard /></RoleBasedRoute>} />
+            <Route path="/hr/training" element={<RoleBasedRoute allowedRoles={['admin', 'hr']}><HRDashboard /></RoleBasedRoute>} />
+            <Route path="/hr/payroll" element={<RoleBasedRoute allowedRoles={['admin', 'hr']}><HRDashboard /></RoleBasedRoute>} />
+            <Route path="/hr/performance" element={<RoleBasedRoute allowedRoles={['admin', 'hr']}><HRDashboard /></RoleBasedRoute>} />
+            <Route path="/hr/leave" element={<RoleBasedRoute allowedRoles={['admin', 'hr']}><HRDashboard /></RoleBasedRoute>} />
+            <Route path="/hr/attendance" element={<RoleBasedRoute allowedRoles={['admin', 'hr']}><HRDashboard /></RoleBasedRoute>} />
+            <Route path="/hr/benefits" element={<RoleBasedRoute allowedRoles={['admin', 'hr']}><HRDashboard /></RoleBasedRoute>} />
+            <Route path="/hr/compliance" element={<RoleBasedRoute allowedRoles={['admin', 'hr']}><HRDashboard /></RoleBasedRoute>} />
+            <Route path="/hr/reports" element={<RoleBasedRoute allowedRoles={['admin', 'hr']}><HRDashboard /></RoleBasedRoute>} />
+            <Route path="/hr/settings" element={<RoleBasedRoute allowedRoles={['admin', 'hr']}><HRDashboard /></RoleBasedRoute>} />
 
             {/* Finance Routes */}
-            <Route path="/finance" element={<ProtectedRoute><FinanceDashboard /></ProtectedRoute>} />
-            <Route path="/finance/overview" element={<ProtectedRoute><FinanceDashboard /></ProtectedRoute>} />
-            <Route path="/finance/payable" element={<ProtectedRoute><FinanceDashboard /></ProtectedRoute>} />
-            <Route path="/finance/receivable" element={<ProtectedRoute><FinanceDashboard /></ProtectedRoute>} />
-            <Route path="/finance/tax" element={<ProtectedRoute><FinanceDashboard /></ProtectedRoute>} />
-            <Route path="/finance/budgeting" element={<ProtectedRoute><FinanceDashboard /></ProtectedRoute>} />
-            <Route path="/finance/reports" element={<ProtectedRoute><FinanceDashboard /></ProtectedRoute>} />
-            <Route path="/finance/cash" element={<ProtectedRoute><FinanceDashboard /></ProtectedRoute>} />
-            <Route path="/finance/expenses" element={<ProtectedRoute><FinanceDashboard /></ProtectedRoute>} />
-            <Route path="/finance/planning" element={<ProtectedRoute><FinanceDashboard /></ProtectedRoute>} />
+            <Route path="/finance" element={<RoleBasedRoute allowedRoles={['admin', 'finance']}><FinanceDashboard /></RoleBasedRoute>} />
+            <Route path="/finance/overview" element={<RoleBasedRoute allowedRoles={['admin', 'finance']}><FinanceDashboard /></RoleBasedRoute>} />
+            <Route path="/finance/payable" element={<RoleBasedRoute allowedRoles={['admin', 'finance']}><FinanceDashboard /></RoleBasedRoute>} />
+            <Route path="/finance/receivable" element={<RoleBasedRoute allowedRoles={['admin', 'finance']}><FinanceDashboard /></RoleBasedRoute>} />
+            <Route path="/finance/tax" element={<RoleBasedRoute allowedRoles={['admin', 'finance']}><FinanceDashboard /></RoleBasedRoute>} />
+            <Route path="/finance/budgeting" element={<RoleBasedRoute allowedRoles={['admin', 'finance']}><FinanceDashboard /></RoleBasedRoute>} />
+            <Route path="/finance/reports" element={<RoleBasedRoute allowedRoles={['admin', 'finance']}><FinanceDashboard /></RoleBasedRoute>} />
+            <Route path="/finance/cash" element={<RoleBasedRoute allowedRoles={['admin', 'finance']}><FinanceDashboard /></RoleBasedRoute>} />
+            <Route path="/finance/expenses" element={<RoleBasedRoute allowedRoles={['admin', 'finance']}><FinanceDashboard /></RoleBasedRoute>} />
+            <Route path="/finance/planning" element={<RoleBasedRoute allowedRoles={['admin', 'finance']}><FinanceDashboard /></RoleBasedRoute>} />
 
             {/* IT Routes */}
-            <Route path="/it" element={<ProtectedRoute><ITDashboard /></ProtectedRoute>} />
-            <Route path="/it/overview" element={<ProtectedRoute><ITDashboard /></ProtectedRoute>} />
-            <Route path="/it/systems" element={<ProtectedRoute><ITDashboard /></ProtectedRoute>} />
-            <Route path="/it/support" element={<ProtectedRoute><ITDashboard /></ProtectedRoute>} />
-            <Route path="/it/network" element={<ProtectedRoute><ITDashboard /></ProtectedRoute>} />
-            <Route path="/it/security" element={<ProtectedRoute><ITDashboard /></ProtectedRoute>} />
-            <Route path="/it/maintenance" element={<ProtectedRoute><ITDashboard /></ProtectedRoute>} />
-            <Route path="/it/backup" element={<ProtectedRoute><ITDashboard /></ProtectedRoute>} />
-            <Route path="/it/software" element={<ProtectedRoute><ITDashboard /></ProtectedRoute>} />
-            <Route path="/it/reports" element={<ProtectedRoute><ITDashboard /></ProtectedRoute>} />
+            <Route path="/it" element={<RoleBasedRoute allowedRoles={['admin', 'it']}><ITDashboard /></RoleBasedRoute>} />
+            <Route path="/it/overview" element={<RoleBasedRoute allowedRoles={['admin', 'it']}><ITDashboard /></RoleBasedRoute>} />
+            <Route path="/it/systems" element={<RoleBasedRoute allowedRoles={['admin', 'it']}><ITDashboard /></RoleBasedRoute>} />
+            <Route path="/it/support" element={<RoleBasedRoute allowedRoles={['admin', 'it']}><ITDashboard /></RoleBasedRoute>} />
+            <Route path="/it/network" element={<RoleBasedRoute allowedRoles={['admin', 'it']}><ITDashboard /></RoleBasedRoute>} />
+            <Route path="/it/security" element={<RoleBasedRoute allowedRoles={['admin', 'it']}><ITDashboard /></RoleBasedRoute>} />
+            <Route path="/it/maintenance" element={<RoleBasedRoute allowedRoles={['admin', 'it']}><ITDashboard /></RoleBasedRoute>} />
+            <Route path="/it/backup" element={<RoleBasedRoute allowedRoles={['admin', 'it']}><ITDashboard /></RoleBasedRoute>} />
+            <Route path="/it/software" element={<RoleBasedRoute allowedRoles={['admin', 'it']}><ITDashboard /></RoleBasedRoute>} />
+            <Route path="/it/reports" element={<RoleBasedRoute allowedRoles={['admin', 'it']}><ITDashboard /></RoleBasedRoute>} />
 
             {/* Security Routes */}
-            <Route path="/security" element={<ProtectedRoute><SecurityDashboard /></ProtectedRoute>} />
-            <Route path="/security/overview" element={<ProtectedRoute><SecurityDashboard /></ProtectedRoute>} />
-            <Route path="/security/assignment" element={<ProtectedRoute><SecurityDashboard /></ProtectedRoute>} />
-            <Route path="/security/patrols" element={<ProtectedRoute><SecurityDashboard /></ProtectedRoute>} />
-            <Route path="/security/incidents" element={<ProtectedRoute><SecurityDashboard /></ProtectedRoute>} />
-            <Route path="/security/training" element={<ProtectedRoute><SecurityDashboard /></ProtectedRoute>} />
-            <Route path="/security/performance" element={<ProtectedRoute><SecurityDashboard /></ProtectedRoute>} />
-            <Route path="/security/equipment" element={<ProtectedRoute><SecurityDashboard /></ProtectedRoute>} />
-            <Route path="/security/reports" element={<ProtectedRoute><SecurityDashboard /></ProtectedRoute>} />
-            <Route path="/security/settings" element={<ProtectedRoute><SecurityDashboard /></ProtectedRoute>} />
+            <Route path="/security" element={<RoleBasedRoute allowedRoles={['admin', 'security']}><SecurityDashboard /></RoleBasedRoute>} />
+            <Route path="/security/overview" element={<RoleBasedRoute allowedRoles={['admin', 'security']}><SecurityDashboard /></RoleBasedRoute>} />
+            <Route path="/security/assignment" element={<RoleBasedRoute allowedRoles={['admin', 'security']}><SecurityDashboard /></RoleBasedRoute>} />
+            <Route path="/security/patrols" element={<RoleBasedRoute allowedRoles={['admin', 'security']}><SecurityDashboard /></RoleBasedRoute>} />
+            <Route path="/security/incidents" element={<RoleBasedRoute allowedRoles={['admin', 'security']}><SecurityDashboard /></RoleBasedRoute>} />
+            <Route path="/security/training" element={<RoleBasedRoute allowedRoles={['admin', 'security']}><SecurityDashboard /></RoleBasedRoute>} />
+            <Route path="/security/performance" element={<RoleBasedRoute allowedRoles={['admin', 'security']}><SecurityDashboard /></RoleBasedRoute>} />
+            <Route path="/security/equipment" element={<RoleBasedRoute allowedRoles={['admin', 'security']}><SecurityDashboard /></RoleBasedRoute>} />
+            <Route path="/security/reports" element={<RoleBasedRoute allowedRoles={['admin', 'security']}><SecurityDashboard /></RoleBasedRoute>} />
+            <Route path="/security/settings" element={<RoleBasedRoute allowedRoles={['admin', 'security']}><SecurityDashboard /></RoleBasedRoute>} />
 
             {/* Operations Routes */}
-            <Route path="/operations" element={<ProtectedRoute><OperationsDashboard /></ProtectedRoute>} />
-            <Route path="/operations/overview" element={<ProtectedRoute><OperationsDashboard /></ProtectedRoute>} />
-            <Route path="/operations/stock" element={<ProtectedRoute><OperationsDashboard /></ProtectedRoute>} />
-            <Route path="/operations/assets" element={<ProtectedRoute><OperationsDashboard /></ProtectedRoute>} />
-            <Route path="/operations/procurement" element={<ProtectedRoute><OperationsDashboard /></ProtectedRoute>} />
-            <Route path="/operations/maintenance" element={<ProtectedRoute><OperationsDashboard /></ProtectedRoute>} />
-            <Route path="/operations/warehouse" element={<ProtectedRoute><OperationsDashboard /></ProtectedRoute>} />
-            <Route path="/operations/quality" element={<ProtectedRoute><OperationsDashboard /></ProtectedRoute>} />
-            <Route path="/operations/reports" element={<ProtectedRoute><OperationsDashboard /></ProtectedRoute>} />
-            <Route path="/operations/analytics" element={<ProtectedRoute><OperationsDashboard /></ProtectedRoute>} />
+            <Route path="/operations" element={<RoleBasedRoute allowedRoles={['admin', 'inventory']}><OperationsDashboard /></RoleBasedRoute>} />
+            <Route path="/operations/overview" element={<RoleBasedRoute allowedRoles={['admin', 'inventory']}><OperationsDashboard /></RoleBasedRoute>} />
+            <Route path="/operations/stock" element={<RoleBasedRoute allowedRoles={['admin', 'inventory']}><OperationsDashboard /></RoleBasedRoute>} />
+            <Route path="/operations/assets" element={<RoleBasedRoute allowedRoles={['admin', 'inventory']}><OperationsDashboard /></RoleBasedRoute>} />
+            <Route path="/operations/procurement" element={<RoleBasedRoute allowedRoles={['admin', 'inventory']}><OperationsDashboard /></RoleBasedRoute>} />
+            <Route path="/operations/maintenance" element={<RoleBasedRoute allowedRoles={['admin', 'inventory']}><OperationsDashboard /></RoleBasedRoute>} />
+            <Route path="/operations/warehouse" element={<RoleBasedRoute allowedRoles={['admin', 'inventory']}><OperationsDashboard /></RoleBasedRoute>} />
+            <Route path="/operations/quality" element={<RoleBasedRoute allowedRoles={['admin', 'inventory']}><OperationsDashboard /></RoleBasedRoute>} />
+            <Route path="/operations/reports" element={<RoleBasedRoute allowedRoles={['admin', 'inventory']}><OperationsDashboard /></RoleBasedRoute>} />
+            <Route path="/operations/analytics" element={<RoleBasedRoute allowedRoles={['admin', 'inventory']}><OperationsDashboard /></RoleBasedRoute>} />
 
             {/* Inventory Routes */}
-            <Route path="/inventory" element={<ProtectedRoute><OperationsDashboard /></ProtectedRoute>} />
-            <Route path="/inventory/overview" element={<ProtectedRoute><OperationsDashboard /></ProtectedRoute>} />
-            <Route path="/inventory/stock" element={<ProtectedRoute><OperationsDashboard /></ProtectedRoute>} />
-            <Route path="/inventory/assets" element={<ProtectedRoute><OperationsDashboard /></ProtectedRoute>} />
-            <Route path="/inventory/procurement" element={<ProtectedRoute><OperationsDashboard /></ProtectedRoute>} />
-            <Route path="/inventory/maintenance" element={<ProtectedRoute><OperationsDashboard /></ProtectedRoute>} />
-            <Route path="/inventory/warehouse" element={<ProtectedRoute><OperationsDashboard /></ProtectedRoute>} />
-            <Route path="/inventory/quality" element={<ProtectedRoute><OperationsDashboard /></ProtectedRoute>} />
-            <Route path="/inventory/reports" element={<ProtectedRoute><OperationsDashboard /></ProtectedRoute>} />
-            <Route path="/inventory/analytics" element={<ProtectedRoute><OperationsDashboard /></ProtectedRoute>} />
+            <Route path="/inventory" element={<RoleBasedRoute allowedRoles={['admin', 'inventory']}><OperationsDashboard /></RoleBasedRoute>} />
+            <Route path="/inventory/overview" element={<RoleBasedRoute allowedRoles={['admin', 'inventory']}><OperationsDashboard /></RoleBasedRoute>} />
+            <Route path="/inventory/stock" element={<RoleBasedRoute allowedRoles={['admin', 'inventory']}><OperationsDashboard /></RoleBasedRoute>} />
+            <Route path="/inventory/assets" element={<RoleBasedRoute allowedRoles={['admin', 'inventory']}><OperationsDashboard /></RoleBasedRoute>} />
+            <Route path="/inventory/procurement" element={<RoleBasedRoute allowedRoles={['admin', 'inventory']}><OperationsDashboard /></RoleBasedRoute>} />
+            <Route path="/inventory/maintenance" element={<RoleBasedRoute allowedRoles={['admin', 'inventory']}><OperationsDashboard /></RoleBasedRoute>} />
+            <Route path="/inventory/warehouse" element={<RoleBasedRoute allowedRoles={['admin', 'inventory']}><OperationsDashboard /></RoleBasedRoute>} />
+            <Route path="/inventory/quality" element={<RoleBasedRoute allowedRoles={['admin', 'inventory']}><OperationsDashboard /></RoleBasedRoute>} />
+            <Route path="/inventory/reports" element={<RoleBasedRoute allowedRoles={['admin', 'inventory']}><OperationsDashboard /></RoleBasedRoute>} />
+            <Route path="/inventory/analytics" element={<RoleBasedRoute allowedRoles={['admin', 'inventory']}><OperationsDashboard /></RoleBasedRoute>} />
 
             {/* Sales & Marketing Routes */}
-            <Route path="/sales" element={<ProtectedRoute><SalesMarketingDashboard /></ProtectedRoute>} />
-            <Route path="/sales/overview" element={<ProtectedRoute><SalesMarketingDashboard /></ProtectedRoute>} />
-            <Route path="/sales/leads" element={<ProtectedRoute><SalesMarketingDashboard /></ProtectedRoute>} />
-            <Route path="/sales/pipeline" element={<ProtectedRoute><SalesMarketingDashboard /></ProtectedRoute>} />
-            <Route path="/sales/campaigns" element={<ProtectedRoute><SalesMarketingDashboard /></ProtectedRoute>} />
-            <Route path="/sales/opportunities" element={<ProtectedRoute><SalesMarketingDashboard /></ProtectedRoute>} />
-            <Route path="/sales/quotes" element={<ProtectedRoute><SalesMarketingDashboard /></ProtectedRoute>} />
-            <Route path="/sales/analytics" element={<ProtectedRoute><SalesMarketingDashboard /></ProtectedRoute>} />
-            <Route path="/sales/reports" element={<ProtectedRoute><SalesMarketingDashboard /></ProtectedRoute>} />
-            <Route path="/sales/settings" element={<ProtectedRoute><SalesMarketingDashboard /></ProtectedRoute>} />
+            <Route path="/sales" element={<RoleBasedRoute allowedRoles={['admin', 'sales']}><SalesMarketingDashboard /></RoleBasedRoute>} />
+            <Route path="/sales/overview" element={<RoleBasedRoute allowedRoles={['admin', 'sales']}><SalesMarketingDashboard /></RoleBasedRoute>} />
+            <Route path="/sales/leads" element={<RoleBasedRoute allowedRoles={['admin', 'sales']}><SalesMarketingDashboard /></RoleBasedRoute>} />
+            <Route path="/sales/pipeline" element={<RoleBasedRoute allowedRoles={['admin', 'sales']}><SalesMarketingDashboard /></RoleBasedRoute>} />
+            <Route path="/sales/campaigns" element={<RoleBasedRoute allowedRoles={['admin', 'sales']}><SalesMarketingDashboard /></RoleBasedRoute>} />
+            <Route path="/sales/opportunities" element={<RoleBasedRoute allowedRoles={['admin', 'sales']}><SalesMarketingDashboard /></RoleBasedRoute>} />
+            <Route path="/sales/quotes" element={<RoleBasedRoute allowedRoles={['admin', 'sales']}><SalesMarketingDashboard /></RoleBasedRoute>} />
+            <Route path="/sales/analytics" element={<RoleBasedRoute allowedRoles={['admin', 'sales']}><SalesMarketingDashboard /></RoleBasedRoute>} />
+            <Route path="/sales/reports" element={<RoleBasedRoute allowedRoles={['admin', 'sales']}><SalesMarketingDashboard /></RoleBasedRoute>} />
+            <Route path="/sales/settings" element={<RoleBasedRoute allowedRoles={['admin', 'sales']}><SalesMarketingDashboard /></RoleBasedRoute>} />
 
             {/* Customer Experience Routes */}
-            <Route path="/cx" element={<ProtectedRoute><CustomerExperienceDashboard /></ProtectedRoute>} />
-            <Route path="/cx/overview" element={<ProtectedRoute><CustomerExperienceDashboard /></ProtectedRoute>} />
-            <Route path="/cx/support" element={<ProtectedRoute><CustomerExperienceDashboard /></ProtectedRoute>} />
-            <Route path="/cx/feedback" element={<ProtectedRoute><CustomerExperienceDashboard /></ProtectedRoute>} />
-            <Route path="/cx/surveys" element={<ProtectedRoute><CustomerExperienceDashboard /></ProtectedRoute>} />
-            <Route path="/cx/quality" element={<ProtectedRoute><CustomerExperienceDashboard /></ProtectedRoute>} />
-            <Route path="/cx/tickets" element={<ProtectedRoute><CustomerExperienceDashboard /></ProtectedRoute>} />
-            <Route path="/cx/satisfaction" element={<ProtectedRoute><CustomerExperienceDashboard /></ProtectedRoute>} />
-            <Route path="/cx/communication" element={<ProtectedRoute><CustomerExperienceDashboard /></ProtectedRoute>} />
-            <Route path="/cx/reports" element={<ProtectedRoute><CustomerExperienceDashboard /></ProtectedRoute>} />
+            <Route path="/cx" element={<RoleBasedRoute allowedRoles={['admin', 'cx']}><CustomerExperienceDashboard /></RoleBasedRoute>} />
+            <Route path="/cx/overview" element={<RoleBasedRoute allowedRoles={['admin', 'cx']}><CustomerExperienceDashboard /></RoleBasedRoute>} />
+            <Route path="/cx/support" element={<RoleBasedRoute allowedRoles={['admin', 'cx']}><CustomerExperienceDashboard /></RoleBasedRoute>} />
+            <Route path="/cx/feedback" element={<RoleBasedRoute allowedRoles={['admin', 'cx']}><CustomerExperienceDashboard /></RoleBasedRoute>} />
+            <Route path="/cx/surveys" element={<RoleBasedRoute allowedRoles={['admin', 'cx']}><CustomerExperienceDashboard /></RoleBasedRoute>} />
+            <Route path="/cx/quality" element={<RoleBasedRoute allowedRoles={['admin', 'cx']}><CustomerExperienceDashboard /></RoleBasedRoute>} />
+            <Route path="/cx/tickets" element={<RoleBasedRoute allowedRoles={['admin', 'cx']}><CustomerExperienceDashboard /></RoleBasedRoute>} />
+            <Route path="/cx/satisfaction" element={<RoleBasedRoute allowedRoles={['admin', 'cx']}><CustomerExperienceDashboard /></RoleBasedRoute>} />
+            <Route path="/cx/communication" element={<RoleBasedRoute allowedRoles={['admin', 'cx']}><CustomerExperienceDashboard /></RoleBasedRoute>} />
+            <Route path="/cx/reports" element={<RoleBasedRoute allowedRoles={['admin', 'cx']}><CustomerExperienceDashboard /></RoleBasedRoute>} />
 
             {/* Risk Management Routes */}
-            <Route path="/risk" element={<ProtectedRoute><RiskDashboard /></ProtectedRoute>} />
-            <Route path="/risk/overview" element={<ProtectedRoute><RiskDashboard /></ProtectedRoute>} />
-            <Route path="/risk/assessment" element={<ProtectedRoute><RiskDashboard /></ProtectedRoute>} />
-            <Route path="/risk/threats" element={<ProtectedRoute><RiskDashboard /></ProtectedRoute>} />
-            <Route path="/risk/reports" element={<ProtectedRoute><RiskDashboard /></ProtectedRoute>} />
-            <Route path="/risk/mitigation" element={<ProtectedRoute><RiskDashboard /></ProtectedRoute>} />
-            <Route path="/risk/alerts" element={<ProtectedRoute><RiskDashboard /></ProtectedRoute>} />
-            <Route path="/risk/reporting" element={<ProtectedRoute><RiskDashboard /></ProtectedRoute>} />
-            <Route path="/risk/monitoring" element={<ProtectedRoute><RiskDashboard /></ProtectedRoute>} />
-            <Route path="/risk/incidents" element={<ProtectedRoute><RiskDashboard /></ProtectedRoute>} />
-            <Route path="/risk/compliance" element={<ProtectedRoute><RiskDashboard /></ProtectedRoute>} />
+            <Route path="/risk" element={<RoleBasedRoute allowedRoles={['admin', 'risk']}><RiskDashboard /></RoleBasedRoute>} />
+            <Route path="/risk/overview" element={<RoleBasedRoute allowedRoles={['admin', 'risk']}><RiskDashboard /></RoleBasedRoute>} />
+            <Route path="/risk/assessment" element={<RoleBasedRoute allowedRoles={['admin', 'risk']}><RiskDashboard /></RoleBasedRoute>} />
+            <Route path="/risk/threats" element={<RoleBasedRoute allowedRoles={['admin', 'risk']}><RiskDashboard /></RoleBasedRoute>} />
+            <Route path="/risk/reports" element={<RoleBasedRoute allowedRoles={['admin', 'risk']}><RiskDashboard /></RoleBasedRoute>} />
+            <Route path="/risk/mitigation" element={<RoleBasedRoute allowedRoles={['admin', 'risk']}><RiskDashboard /></RoleBasedRoute>} />
+            <Route path="/risk/alerts" element={<RoleBasedRoute allowedRoles={['admin', 'risk']}><RiskDashboard /></RoleBasedRoute>} />
+            <Route path="/risk/reporting" element={<RoleBasedRoute allowedRoles={['admin', 'risk']}><RiskDashboard /></RoleBasedRoute>} />
+            <Route path="/risk/monitoring" element={<RoleBasedRoute allowedRoles={['admin', 'risk']}><RiskDashboard /></RoleBasedRoute>} />
+            <Route path="/risk/incidents" element={<RoleBasedRoute allowedRoles={['admin', 'risk']}><RiskDashboard /></RoleBasedRoute>} />
+            <Route path="/risk/compliance" element={<RoleBasedRoute allowedRoles={['admin', 'risk']}><RiskDashboard /></RoleBasedRoute>} />
 
             {/* Recovery Routes */}
-            <Route path="/recovery" element={<ProtectedRoute><RecoveryDashboard /></ProtectedRoute>} />
-            <Route path="/recovery/overview" element={<ProtectedRoute><RecoveryDashboard /></ProtectedRoute>} />
-            <Route path="/recovery/investigation" element={<ProtectedRoute><RecoveryDashboard /></ProtectedRoute>} />
-            <Route path="/recovery/cases" element={<ProtectedRoute><RecoveryDashboard /></ProtectedRoute>} />
-            <Route path="/recovery/documentation" element={<ProtectedRoute><RecoveryDashboard /></ProtectedRoute>} />
-            <Route path="/recovery/legal" element={<ProtectedRoute><RecoveryDashboard /></ProtectedRoute>} />
-            <Route path="/recovery/reports" element={<ProtectedRoute><RecoveryDashboard /></ProtectedRoute>} />
-            <Route path="/recovery/assets" element={<ProtectedRoute><RecoveryDashboard /></ProtectedRoute>} />
-            <Route path="/recovery/forensics" element={<ProtectedRoute><RecoveryDashboard /></ProtectedRoute>} />
-            <Route path="/recovery/settings" element={<ProtectedRoute><RecoveryDashboard /></ProtectedRoute>} />
+            <Route path="/recovery" element={<RoleBasedRoute allowedRoles={['admin', 'recovery']}><RecoveryDashboard /></RoleBasedRoute>} />
+            <Route path="/recovery/overview" element={<RoleBasedRoute allowedRoles={['admin', 'recovery']}><RecoveryDashboard /></RoleBasedRoute>} />
+            <Route path="/recovery/investigation" element={<RoleBasedRoute allowedRoles={['admin', 'recovery']}><RecoveryDashboard /></RoleBasedRoute>} />
+            <Route path="/recovery/cases" element={<RoleBasedRoute allowedRoles={['admin', 'recovery']}><RecoveryDashboard /></RoleBasedRoute>} />
+            <Route path="/recovery/documentation" element={<RoleBasedRoute allowedRoles={['admin', 'recovery']}><RecoveryDashboard /></RoleBasedRoute>} />
+            <Route path="/recovery/legal" element={<RoleBasedRoute allowedRoles={['admin', 'recovery']}><RecoveryDashboard /></RoleBasedRoute>} />
+            <Route path="/recovery/reports" element={<RoleBasedRoute allowedRoles={['admin', 'recovery']}><RecoveryDashboard /></RoleBasedRoute>} />
+            <Route path="/recovery/assets" element={<RoleBasedRoute allowedRoles={['admin', 'recovery']}><RecoveryDashboard /></RoleBasedRoute>} />
+            <Route path="/recovery/forensics" element={<RoleBasedRoute allowedRoles={['admin', 'recovery']}><RecoveryDashboard /></RoleBasedRoute>} />
+            <Route path="/recovery/settings" element={<RoleBasedRoute allowedRoles={['admin', 'recovery']}><RecoveryDashboard /></RoleBasedRoute>} />
 
             {/* Internal Messaging */}
             <Route path="/messages" element={<ProtectedRoute><InternalMessaging /></ProtectedRoute>} />

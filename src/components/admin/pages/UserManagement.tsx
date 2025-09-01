@@ -4,416 +4,410 @@ import {
   UserPlus, 
   UserCheck, 
   UserX, 
-  Edit, 
-  Trash2, 
-  Search, 
-  Filter, 
-  MoreHorizontal,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  Shield,
-  Crown,
-  Star,
-  Eye,
+  Shield, 
+  Settings,
+  Search,
+  Filter,
+  MoreVertical,
+  Edit,
+  Trash2,
   Lock,
   Unlock,
-  Download,
-  Upload,
-  RefreshCw,
-  Plus,
-  Settings,
-  Bell,
-  CheckCircle,
-  AlertCircle,
-  Clock,
+  Eye,
+  Mail,
+  Phone,
+  Calendar,
+  MapPin,
   Building,
-  Award,
-  Target,
-  BarChart3
+  Crown,
+  CheckCircle,
+  XCircle,
+  Clock
 } from 'lucide-react';
+import AnimatedCard from '../../shared/AnimatedCard';
+import { AnimatedButton } from '../../shared/AnimatedCard';
+
+interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  department: string;
+  phone: string;
+  status: 'active' | 'inactive' | 'locked';
+  lastLogin: string;
+  createdAt: string;
+  permissions: string[];
+}
 
 const UserManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [filterRole, setFilterRole] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
   const [showAddUser, setShowAddUser] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
 
-  const users = [
+  // Mock user data
+  const users: User[] = [
     {
-      id: 1,
-      name: 'Marie Claire Niyonsaba',
-      email: 'marie.claire@dicel.com',
+      id: '1',
+      firstName: 'Jean',
+      lastName: 'Ndayisaba',
+      email: 'admin@dicel.co.rw',
       role: 'admin',
-      department: 'HR',
-      status: 'active',
-      lastLogin: '2 hours ago',
-      avatar: 'MC',
+      department: 'Administration',
       phone: '+250 788 123 456',
-      location: 'Kigali, Rwanda',
-      permissions: ['read', 'write', 'admin'],
-      joinDate: '2023-01-15',
-      performance: 95
-    },
-    {
-      id: 2,
-      name: 'Jean Pierre Uwimana',
-      email: 'jean.pierre@dicel.com',
-      role: 'manager',
-      department: 'Security',
       status: 'active',
-      lastLogin: '1 hour ago',
-      avatar: 'JU',
-      phone: '+250 789 123 456',
-      location: 'Huye, Rwanda',
-      permissions: ['read', 'write'],
-      joinDate: '2023-03-20',
-      performance: 92
+      lastLogin: '2024-02-15 10:30',
+      createdAt: '2024-01-15',
+      permissions: ['all']
     },
     {
-      id: 3,
-      name: 'Emmanuel Ndayisaba',
-      email: 'emmanuel@dicel.com',
-      role: 'employee',
+      id: '2',
+      firstName: 'Claudine',
+      lastName: 'Uwimana',
+      email: 'hr.manager@dicel.co.rw',
+      role: 'hr',
+      department: 'Human Resources',
+      phone: '+250 788 234 567',
+      status: 'active',
+      lastLogin: '2024-02-15 09:15',
+      createdAt: '2024-01-20',
+      permissions: ['hr_management', 'employee_management', 'payroll']
+    },
+    {
+      id: '3',
+      firstName: 'Emmanuel',
+      lastName: 'Rugamba',
+      email: 'finance.manager@dicel.co.rw',
+      role: 'finance',
       department: 'Finance',
-      status: 'inactive',
-      lastLogin: '2 days ago',
-      avatar: 'EN',
-      phone: '+250 787 123 456',
-      location: 'Butare, Rwanda',
-      permissions: ['read'],
-      joinDate: '2023-06-10',
-      performance: 78
-    },
-    {
-      id: 4,
-      name: 'Alice Mukamana',
-      email: 'alice@dicel.com',
-      role: 'manager',
-      department: 'IT',
+      phone: '+250 788 345 678',
       status: 'active',
-      lastLogin: '30 minutes ago',
-      avatar: 'AM',
-      phone: '+250 786 123 456',
-      location: 'Kigali, Rwanda',
-      permissions: ['read', 'write', 'admin'],
-      joinDate: '2023-02-28',
-      performance: 88
+      lastLogin: '2024-02-15 08:45',
+      createdAt: '2024-01-25',
+      permissions: ['finance_management', 'budget_approval', 'reports']
     },
     {
-      id: 5,
-      name: 'Patrick Niyongabo',
-      email: 'patrick@dicel.com',
-      role: 'manager',
-      department: 'Sales',
+      id: '4',
+      firstName: 'Eric',
+      lastName: 'Niyonsenga',
+      email: 'it.manager@dicel.co.rw',
+      role: 'it',
+      department: 'Information Technology',
+      phone: '+250 788 456 789',
       status: 'active',
-      lastLogin: '45 minutes ago',
-      avatar: 'PN',
-      phone: '+250 785 123 456',
-      location: 'Kigali, Rwanda',
-      permissions: ['read', 'write'],
-      joinDate: '2023-04-15',
-      performance: 90
+      lastLogin: '2024-02-14 17:30',
+      createdAt: '2024-02-01',
+      permissions: ['system_admin', 'user_management', 'security']
     },
     {
-      id: 6,
-      name: 'Sarah Uwamahoro',
-      email: 'sarah@dicel.com',
-      role: 'employee',
+      id: '5',
+      firstName: 'Patrick',
+      lastName: 'Mugisha',
+      email: 'security.manager@dicel.co.rw',
+      role: 'security',
+      department: 'Security',
+      phone: '+250 788 567 890',
+      status: 'active',
+      lastLogin: '2024-02-15 07:00',
+      createdAt: '2024-02-05',
+      permissions: ['security_management', 'access_control', 'monitoring']
+    },
+    {
+      id: '6',
+      firstName: 'Marie',
+      lastName: 'Mukamana',
+      email: 'operations.manager@dicel.co.rw',
+      role: 'inventory',
       department: 'Operations',
+      phone: '+250 788 678 901',
       status: 'active',
-      lastLogin: '3 hours ago',
-      avatar: 'SU',
-      phone: '+250 784 123 456',
-      location: 'Butare, Rwanda',
-      permissions: ['read'],
-      joinDate: '2023-07-22',
-      performance: 85
+      lastLogin: '2024-02-14 16:20',
+      createdAt: '2024-02-10',
+      permissions: ['inventory_management', 'procurement', 'logistics']
     }
   ];
 
-  const stats = [
-    {
-      title: 'Total Users',
-      value: '247',
-      change: '+12%',
-      icon: Users,
-      color: 'from-blue-500 to-blue-600'
-    },
-    {
-      title: 'Active Users',
-      value: '234',
-      change: '+8%',
-      icon: UserCheck,
-      color: 'from-green-500 to-green-600'
-    },
-    {
-      title: 'New This Month',
-      value: '15',
-      change: '+25%',
-      icon: UserPlus,
-      color: 'from-purple-500 to-purple-600'
-    },
-    {
-      title: 'Inactive Users',
-      value: '13',
-      change: '-5%',
-      icon: UserX,
-      color: 'from-red-500 to-red-600'
-    }
+  const roles = [
+    { value: 'admin', label: 'Administrator', color: 'slate' },
+    { value: 'hr', label: 'HR Manager', color: 'blue' },
+    { value: 'finance', label: 'Finance Manager', color: 'emerald' },
+    { value: 'it', label: 'IT Manager', color: 'indigo' },
+    { value: 'security', label: 'Security Manager', color: 'red' },
+    { value: 'inventory', label: 'Operations Manager', color: 'amber' },
+    { value: 'sales', label: 'Sales Manager', color: 'indigo' },
+    { value: 'risk', label: 'Risk Manager', color: 'amber' }
   ];
 
-  const quickActions = [
-    {
-      title: 'Add User',
-      description: 'Create new user account',
-      icon: UserPlus,
-      color: 'from-blue-500 to-blue-600'
-    },
-    {
-      title: 'Bulk Import',
-      description: 'Import users from file',
-      icon: Upload,
-      color: 'from-green-500 to-green-600'
-    },
-    {
-      title: 'Manage Permissions',
-      description: 'Configure user access',
-      icon: Shield,
-      color: 'from-purple-500 to-purple-600'
-    },
-    {
-      title: 'User Reports',
-      description: 'Generate user analytics',
-      icon: BarChart3,
-      color: 'from-orange-500 to-orange-600'
-    }
+  const departments = [
+    'Administration',
+    'Human Resources',
+    'Finance',
+    'Information Technology',
+    'Security',
+    'Operations',
+    'Sales & Marketing',
+    'Risk Management'
   ];
 
-  const getRoleBadge = (role: string) => {
-    const badges: { [key: string]: string } = {
-      admin: 'bg-purple-100 text-purple-800 border-purple-200',
-      manager: 'bg-blue-100 text-blue-800 border-blue-200',
-      employee: 'bg-green-100 text-green-800 border-green-200',
-      guest: 'bg-gray-100 text-gray-800 border-gray-200'
-    };
-    return badges[role] || badges.employee;
+  const getRoleColor = (role: string) => {
+    const roleData = roles.find(r => r.value === role);
+    return roleData ? roleData.color : 'gray';
   };
 
-  const getStatusBadge = (status: string) => {
-    return status === 'active' 
-      ? 'bg-green-100 text-green-800 border-green-200' 
-      : 'bg-red-100 text-red-800 border-red-200';
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'text-emerald-600 bg-emerald-100';
+      case 'inactive': return 'text-gray-600 bg-gray-100';
+      case 'locked': return 'text-red-600 bg-red-100';
+      default: return 'text-gray-600 bg-gray-100';
+    }
   };
 
-  const getPerformanceColor = (performance: number) => {
-    if (performance >= 90) return 'text-green-600';
-    if (performance >= 80) return 'text-yellow-600';
-    return 'text-red-600';
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'active': return CheckCircle;
+      case 'inactive': return Clock;
+      case 'locked': return Lock;
+      default: return Clock;
+    }
+  };
+
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = filterRole === 'all' || user.role === filterRole;
+    const matchesStatus = filterStatus === 'all' || user.status === filterStatus;
+    
+    return matchesSearch && matchesRole && matchesStatus;
+  });
+
+  const stats = {
+    total: users.length,
+    active: users.filter(u => u.status === 'active').length,
+    inactive: users.filter(u => u.status === 'inactive').length,
+    locked: users.filter(u => u.status === 'locked').length
   };
 
   return (
-    <div className="space-y-8 animate-fade-in bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 min-h-screen">
-      {/* Enhanced Header with Glassmorphism */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600 via-purple-700 to-purple-800"></div>
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="relative bg-gradient-to-r from-purple-600/90 to-purple-800/90 backdrop-blur-xl rounded-3xl p-8 text-white shadow-2xl border border-white/20">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">User & Role Management</h1>
+          <p className="text-gray-600">Manage users, roles, and permissions across the organization</p>
+        </div>
+        <AnimatedButton
+          onClick={() => setShowAddUser(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center space-x-2"
+        >
+          <UserPlus className="w-4 h-4" />
+          <span>Add User</span>
+        </AnimatedButton>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-5xl font-bold mb-3 flex items-center bg-gradient-to-r from-white to-purple-100 bg-clip-text text-transparent">
-                <Users className="w-10 h-10 mr-4 drop-shadow-lg" />
-                User Management
-              </h1>
-              <p className="text-purple-100 text-xl font-medium">Manage all system users and their permissions</p>
+              <p className="text-sm font-medium text-gray-600">Total Users</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
             </div>
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => setShowAddUser(true)}
-                className="group bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-all duration-300 px-6 py-3 rounded-2xl flex items-center space-x-3 border border-white/30 hover:border-white/50 hover:scale-105 shadow-lg"
-              >
-                <UserPlus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
-                <span className="font-medium">Add User</span>
-              </button>
-              <button className="group bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-all duration-300 px-6 py-3 rounded-2xl flex items-center space-x-3 border border-white/30 hover:border-white/50 hover:scale-105 shadow-lg">
-                <Download className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" />
-                <span className="font-medium">Export</span>
-              </button>
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+              <Users className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Active Users</p>
+              <p className="text-2xl font-bold text-green-600">{stats.active}</p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+              <UserCheck className="w-6 h-6 text-green-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Inactive Users</p>
+              <p className="text-2xl font-bold text-gray-600">{stats.inactive}</p>
+            </div>
+            <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
+              <Clock className="w-6 h-6 text-gray-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Locked Accounts</p>
+              <p className="text-2xl font-bold text-red-600">{stats.locked}</p>
+            </div>
+            <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+              <UserX className="w-6 h-6 text-red-600" />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Enhanced Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <div 
-              key={index} 
-              className="group relative bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-700 transform hover:scale-105 border border-white/50 overflow-hidden"
-              style={{ animationDelay: `${index * 150}ms` }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-10 transition-opacity duration-500 ${stat.color}"></div>
-              <div className="relative p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`p-4 rounded-2xl bg-gradient-to-r ${stat.color} shadow-xl group-hover:shadow-2xl transition-all duration-500 transform group-hover:scale-110`}>
-                    <Icon className="w-7 h-7 text-white" />
-                  </div>
-                  <div className="text-right">
-                    <span className={`text-sm font-bold px-3 py-1 rounded-full shadow-lg ${
-                      stat.change.startsWith('+') ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'
-                    }`}>
-                      {stat.change}
-                    </span>
-                  </div>
-                </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors duration-300">{stat.value}</h3>
-                <p className="text-sm font-semibold text-gray-600">{stat.title}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Enhanced Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {quickActions.map((action, index) => {
-          const Icon = action.icon;
-          return (
-            <button
-              key={index}
-              className="group p-6 bg-gradient-to-r from-gray-50/80 to-gray-100/80 hover:from-white hover:to-white border border-gray-200/50 hover:border-purple-300/50 rounded-3xl transition-all duration-500 transform hover:scale-110 hover:shadow-2xl backdrop-blur-sm"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <div className={`w-14 h-14 rounded-2xl bg-gradient-to-r ${action.color} flex items-center justify-center mb-4 group-hover:scale-125 transition-transform duration-500 shadow-lg group-hover:shadow-2xl`}>
-                <Icon className="w-7 h-7 text-white group-hover:rotate-12 transition-transform duration-300" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors duration-300">{action.title}</h3>
-              <p className="text-sm text-gray-600 group-hover:text-gray-700 transition-colors duration-300">{action.description}</p>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Enhanced Search and Filters */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/50 p-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search users..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 pr-6 py-3 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm"
-              />
-            </div>
-            <select
-              value={selectedFilter}
-              onChange={(e) => setSelectedFilter(e.target.value)}
-              className="px-6 py-3 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 bg-white/80 backdrop-blur-sm"
-            >
-              <option value="all">All Users</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="admin">Admins</option>
-              <option value="manager">Managers</option>
-            </select>
+      {/* Filters */}
+      <AnimatedCard title="Filters & Search">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
           </div>
-          <div className="flex items-center space-x-3">
-            <button className="p-3 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-2xl transition-all duration-300 hover:scale-110">
-              <Filter className="w-5 h-5" />
-            </button>
-            <button className="p-3 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-2xl transition-all duration-300 hover:scale-110">
-              <RefreshCw className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </div>
 
-      {/* Enhanced Users Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {users.map((user, index) => (
-          <div 
-            key={user.id} 
-            className="group bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/50 hover:shadow-2xl transition-all duration-700 transform hover:scale-105 overflow-hidden"
-            style={{ animationDelay: `${index * 150}ms` }}
+          <select
+            value={filterRole}
+            onChange={(e) => setFilterRole(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <div className="p-8">
-              <div className="flex items-start justify-between mb-6">
-                <div className="flex items-center space-x-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-purple-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-xl group-hover:scale-110 transition-transform duration-300">
-                    {user.avatar}
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 group-hover:text-purple-600 transition-colors duration-300">{user.name}</h3>
-                    <p className="text-sm text-gray-500">{user.email}</p>
-                  </div>
+            <option value="all">All Roles</option>
+            {roles.map(role => (
+              <option key={role.value} value={role.value}>{role.label}</option>
+            ))}
+          </select>
+
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="locked">Locked</option>
+          </select>
+
+          <AnimatedButton className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg flex items-center justify-center space-x-2">
+            <Filter className="w-4 h-4" />
+            <span>Clear Filters</span>
+          </AnimatedButton>
+        </div>
+      </AnimatedCard>
+
+      {/* Users Table */}
+      <AnimatedCard title={`Users (${filteredUsers.length})`}>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-left py-3 px-4 font-medium text-gray-900">User</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-900">Role</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-900">Department</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-900">Status</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-900">Last Login</th>
+                <th className="text-left py-3 px-4 font-medium text-gray-900">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.map((user) => {
+                const StatusIcon = getStatusIcon(user.status);
+                return (
+                  <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-4 px-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                          <span className="text-sm font-medium text-gray-700">
+                            {user.firstName[0]}{user.lastName[0]}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{user.firstName} {user.lastName}</p>
+                          <p className="text-sm text-gray-600">{user.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${getRoleColor(user.role)}-100 text-${getRoleColor(user.role)}-800`}>
+                        {roles.find(r => r.value === user.role)?.label || user.role}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center space-x-2">
+                        <Building className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-900">{user.department}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(user.status)}`}>
+                        <StatusIcon className="w-3 h-3 mr-1" />
+                        {user.status}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-900">{user.lastLogin}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center space-x-2">
+                        <button className="p-1 hover:bg-gray-100 rounded">
+                          <Eye className="w-4 h-4 text-gray-600" />
+                        </button>
+                        <button className="p-1 hover:bg-gray-100 rounded">
+                          <Edit className="w-4 h-4 text-blue-600" />
+                        </button>
+                        <button className="p-1 hover:bg-gray-100 rounded">
+                          <Settings className="w-4 h-4 text-gray-600" />
+                        </button>
+                        <button className="p-1 hover:bg-gray-100 rounded">
+                          <MoreVertical className="w-4 h-4 text-gray-600" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </AnimatedCard>
+
+      {/* Role Management */}
+      <AnimatedCard title="Role & Permission Management">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {roles.map((role) => (
+            <div key={role.value} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-3">
+                <div className={`w-8 h-8 bg-${role.color}-100 rounded-lg flex items-center justify-center`}>
+                  <Shield className={`w-4 h-4 text-${role.color}-600`} />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className={`inline-flex px-3 py-1 text-xs font-bold rounded-full border shadow-lg ${getStatusBadge(user.status)}`}>
-                    {user.status}
-                  </span>
-                </div>
+                <span className="text-sm text-gray-500">
+                  {users.filter(u => u.role === role.value).length} users
+                </span>
               </div>
-              
-              <div className="space-y-4 mb-6">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Role</span>
-                  <span className={`inline-flex px-3 py-1 text-xs font-bold rounded-full border ${getRoleBadge(user.role)}`}>
-                    {user.role}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Department</span>
-                  <span className="text-sm font-semibold text-gray-900">{user.department}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Performance</span>
-                  <span className={`text-sm font-bold ${getPerformanceColor(user.performance)}`}>
-                    {user.performance}%
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Last Login</span>
-                  <span className="text-sm text-gray-500">{user.lastLogin}</span>
-                </div>
-              </div>
-              
-              <div className="space-y-3 mb-6">
-                <div className="flex items-center space-x-3 text-xs text-gray-500">
-                  <MapPin className="w-4 h-4" />
-                  <span>{user.location}</span>
-                </div>
-                <div className="flex items-center space-x-3 text-xs text-gray-500">
-                  <Phone className="w-4 h-4" />
-                  <span>{user.phone}</span>
-                </div>
-                <div className="flex items-center space-x-3 text-xs text-gray-500">
-                  <Calendar className="w-4 h-4" />
-                  <span>Joined: {user.joinDate}</span>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-3">
-                <button className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-6 py-3 rounded-2xl transition-all duration-300 flex items-center justify-center space-x-2 hover:scale-105 shadow-lg">
-                  <Eye className="w-4 h-4" />
-                  <span className="font-medium">View</span>
+              <h3 className="font-medium text-gray-900 mb-1">{role.label}</h3>
+              <p className="text-sm text-gray-600 mb-3">Role description and permissions</p>
+              <div className="flex space-x-2">
+                <button className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200">
+                  Edit
                 </button>
-                <button className="p-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl transition-all duration-300 hover:scale-110">
-                  <Edit className="w-4 h-4" />
-                </button>
-                <button className="p-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-2xl transition-all duration-300 hover:scale-110">
-                  <Settings className="w-4 h-4" />
+                <button className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded hover:bg-gray-200">
+                  Permissions
                 </button>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </AnimatedCard>
     </div>
   );
 };

@@ -4,23 +4,23 @@ import DepartmentLayout from '../shared/DepartmentLayout';
 import { getColorScheme } from '../../utils/colorSchemes';
 
 // Admin Dashboard Pages
-import AdminOverview from './pages/AdminOverview';
-import DepartmentManagement from './pages/DepartmentManagement';
-import SystemSettings from './pages/SystemSettings';
+import AdminHome from './pages/AdminHome';
 import UserManagement from './pages/UserManagement';
-import Reports from './pages/Reports';
-import Analytics from './pages/Analytics';
+import DepartmentMiniDashboards from './pages/DepartmentMiniDashboards';
+import AuditLogs from './pages/AuditLogs';
+import ReportsAnalytics from './pages/ReportsAnalytics';
+import SystemSettings from './pages/SystemSettings';
 
 const AdminDashboard: React.FC = () => {
   const colorScheme = getColorScheme('admin');
   const location = useLocation();
 
   const sidebarItems = [
-    { name: 'Admin Dashboard', path: '/admin', icon: '🏠' },
-    { name: 'Department Management', path: '/admin/departments', icon: '🏢' },
-    { name: 'User Management', path: '/admin/users', icon: '👥' },
-    { name: 'System Reports', path: '/admin/reports', icon: '📊' },
-    { name: 'Analytics', path: '/admin/analytics', icon: '📈' },
+    { name: 'Control Center', path: '/admin', icon: '🏠' },
+    { name: 'User & Role Management', path: '/admin/users', icon: '👥' },
+    { name: 'Department Mini-Dashboards', path: '/admin/departments', icon: '🏢' },
+    { name: 'Audit & Logs', path: '/admin/audit', icon: '📋' },
+    { name: 'Reports & Analytics', path: '/admin/reports', icon: '📊' },
     { name: 'System Settings', path: '/admin/settings', icon: '⚙️' }
   ];
 
@@ -30,26 +30,26 @@ const AdminDashboard: React.FC = () => {
     
     switch (path) {
       case '/admin':
-      case '/admin/overview':
-        return <AdminOverview />;
-      case '/admin/departments':
-        return <DepartmentManagement />;
+      case '/admin/home':
+        return <AdminHome />;
       case '/admin/users':
         return <UserManagement />;
+      case '/admin/departments':
+        return <DepartmentMiniDashboards />;
+      case '/admin/audit':
+        return <AuditLogs />;
       case '/admin/reports':
-        return <Reports />;
-      case '/admin/analytics':
-        return <Analytics />;
+        return <ReportsAnalytics />;
       case '/admin/settings':
         return <SystemSettings />;
       default:
-        return <AdminOverview />;
+        return <AdminHome />;
     }
   };
 
   return (
     <DepartmentLayout
-      title="Admin Dashboard"
+      title="Admin Control Center"
       colorScheme={colorScheme}
       sidebarItems={sidebarItems}
     >
