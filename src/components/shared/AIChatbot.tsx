@@ -97,12 +97,12 @@ const AIChatbot: React.FC = () => {
           type: 'ai',
           content: `Hello! I'm your ERP AI Assistant. I can help you with:
 
-🎯 **System Navigation** - Find departments, pages, and features
-📊 **Data Analysis** - Generate reports and insights
-🔍 **Information Queries** - Get real-time data and status
-⚡ **Process Automation** - Streamline workflows
-🛡️ **Security Monitoring** - Check system health and alerts
-❓ **Help & Support** - Get assistance with any feature
+**System Navigation** - Find departments, pages, and features
+**Data Analysis** - Generate reports and insights
+**Information Queries** - Get real-time data and status
+**Process Automation** - Streamline workflows
+**Security Monitoring** - Check system health and alerts
+**Help & Support** - Get assistance with any feature
 
 What would you like to do today?`,
           timestamp: new Date()
@@ -132,11 +132,11 @@ What would you like to do today?`,
     if (lowerInput.includes('navigate') || lowerInput.includes('go to') || lowerInput.includes('find')) {
       return `I can help you navigate to different departments:
 
-🏢 **HR Department** - Employee management, recruitment, payroll
-💰 **Finance Department** - Budget, expenses, financial reports
-🛡️ **Security Department** - Guard management, incident reports
-📊 **Analytics Department** - Reports, insights, performance metrics
-⚙️ **System Settings** - Configuration, security, backup
+**HR Department** - Employee management, recruitment, payroll
+**Finance Department** - Budget, expenses, financial reports
+**Security Department** - Guard management, incident reports
+**Analytics Department** - Reports, insights, performance metrics
+**System Settings** - Configuration, security, backup
 
 Which department would you like to access?`;
     }
@@ -145,52 +145,52 @@ Which department would you like to access?`;
     if (lowerInput.includes('report') || lowerInput.includes('generate') || lowerInput.includes('analysis')) {
       return `Here are the available reports I can generate:
 
-📈 **Employee Report** - Current headcount, performance metrics
-💰 **Financial Report** - Revenue, expenses, budget status
-🛡️ **Security Report** - Incidents, guard deployment, alerts
-📊 **System Report** - Performance, uptime, health status
-🎯 **Custom Report** - Tailored to your specific needs
+**Employee Report** - Current headcount, performance metrics
+**Financial Report** - Revenue, expenses, budget status
+**Security Report** - Incidents, guard deployment, alerts
+**System Report** - Performance, uptime, health status
+**Custom Report** - Tailored to your specific needs
 
 What type of report would you like?`;
     }
     
     // System Status
     if (lowerInput.includes('status') || lowerInput.includes('health') || lowerInput.includes('system')) {
-      return `📊 **System Status Overview:**
+      return `**System Status Overview:**
 
-✅ **System Health**: ${erpData.systemHealth}% (Excellent)
-👥 **Active Users**: ${erpData.employees} employees
-🏢 **Departments**: ${erpData.departments} active
-💰 **Revenue**: ${erpData.revenue} (Q2 2024)
-🛡️ **Security**: ${erpData.securityIncidents} incidents this month
-⚡ **Performance**: All systems operational
+**System Health**: ${erpData.systemHealth}% (Excellent)
+**Active Users**: ${erpData.employees} employees
+**Departments**: ${erpData.departments} active
+**Revenue**: ${erpData.revenue} (Q2 2024)
+**Security**: ${erpData.securityIncidents} incidents this month
+**Performance**: All systems operational
 
 Everything looks good! Is there anything specific you'd like to check?`;
     }
     
     // Security
     if (lowerInput.includes('security') || lowerInput.includes('alert') || lowerInput.includes('incident')) {
-      return `🛡️ **Security Status:**
+      return ` **Security Status:**
 
-⚠️ **Active Alerts**: ${erpData.securityIncidents} incidents
-✅ **System Security**: All protocols active
-🔒 **Access Control**: Multi-factor authentication enabled
-📱 **Mobile Security**: All devices secured
-🌐 **Network Security**: Firewall and monitoring active
+ **Active Alerts**: ${erpData.securityIncidents} incidents
+ **System Security**: All protocols active
+ **Access Control**: Multi-factor authentication enabled
+ **Mobile Security**: All devices secured
+ **Network Security**: Firewall and monitoring active
 
 Recent security activities are being monitored. Would you like detailed incident reports?`;
     }
     
     // Help
     if (lowerInput.includes('help') || lowerInput.includes('support') || lowerInput.includes('assist')) {
-      return `❓ **How can I help you?**
+      return ` **How can I help you?**
 
 🎯 **Navigation**: "Take me to HR department"
-📊 **Reports**: "Generate employee report"
-🛡️ **Security**: "Check security status"
-⚡ **Automation**: "Show automated processes"
-📱 **Mobile**: "Access mobile features"
-🔧 **Settings**: "Open system settings"
+ **Reports**: "Generate employee report"
+ **Security**: "Check security status"
+ **Automation**: "Show automated processes"
+ **Mobile**: "Access mobile features"
+ **Settings**: "Open system settings"
 
 Just ask me anything about the ERP system!`;
     }
@@ -245,22 +245,22 @@ What would you like to do?`;
     
     switch (action) {
       case 'navigate':
-        response = "I can help you navigate to any department. Which one would you like to access?\n\n🏢 HR Department\n💰 Finance Department\n🛡️ Security Department\n📊 Analytics Department\n⚙️ System Settings";
+        response = "I can help you navigate to any department. Which one would you like to access?\n\n HR Department\n Finance Department\n Security Department\n Analytics Department\n System Settings";
         break;
       case 'reports':
-        response = "I can generate various reports for you:\n\n📈 Employee Reports\n💰 Financial Reports\n🛡️ Security Reports\n📊 System Reports\n🎯 Custom Reports\n\nWhat type of report do you need?";
+        response = "I can generate various reports for you:\n\n Employee Reports\n Financial Reports\n Security Reports\n System Reports\n🎯 Custom Reports\n\nWhat type of report do you need?";
         break;
       case 'data':
-        response = `Here's your current ERP data:\n\n👥 Employees: ${erpData.employees}\n🏢 Departments: ${erpData.departments}\n💰 Revenue: ${erpData.revenue}\n🛡️ Security Incidents: ${erpData.securityIncidents}\n⚡ System Health: ${erpData.systemHealth}%\n\nWhat specific data would you like to see?`;
+        response = `Here's your current ERP data:\n\n Employees: ${erpData.employees}\n Departments: ${erpData.departments}\n Revenue: ${erpData.revenue}\n Security Incidents: ${erpData.securityIncidents}\n System Health: ${erpData.systemHealth}%\n\nWhat specific data would you like to see?`;
         break;
       case 'automation':
-        response = "I can help you with process automation:\n\n⚡ Employee Onboarding\n📊 Financial Reporting\n🛡️ Security Monitoring\n💾 Data Backup\n📱 Mobile Sync\n\nWhich process would you like to automate?";
+        response = "I can help you with process automation:\n\n Employee Onboarding\n Financial Reporting\n Security Monitoring\n Data Backup\n Mobile Sync\n\nWhich process would you like to automate?";
         break;
       case 'security':
-        response = `🛡️ Security Status:\n\n✅ System Security: Active\n🔒 Access Control: Enabled\n📱 Mobile Security: Secured\n🌐 Network Security: Protected\n⚠️ Active Alerts: ${erpData.securityIncidents}\n\nEverything looks secure!`;
+        response = ` Security Status:\n\n System Security: Active\n Access Control: Enabled\n Mobile Security: Secured\n Network Security: Protected\n Active Alerts: ${erpData.securityIncidents}\n\nEverything looks secure!`;
         break;
       case 'help':
-        response = "I'm here to help! You can ask me about:\n\n🎯 Navigation and features\n📊 Reports and analytics\n🛡️ Security and monitoring\n⚡ Process automation\n📱 Mobile access\n🔧 System settings\n\nWhat do you need help with?";
+        response = "I'm here to help! You can ask me about:\n\n🎯 Navigation and features\n Reports and analytics\n Security and monitoring\n Process automation\n Mobile access\n System settings\n\nWhat do you need help with?";
         break;
       default:
         response = "I can help you with navigation, reports, data queries, automation, security, and support. What would you like to do?";
@@ -307,11 +307,11 @@ What would you like to do?`;
         {/* Floating Action Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`fixed ${getPositionClasses()} w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group z-50`}
+          className={`fixed ${getPositionClasses()} w-14 h-14 bg-blue-600 rounded-full shadow-lg hover:shadow-xl flex items-center justify-center group z-50`}
           title="AI Assistant"
         >
-          <Bot className="w-6 h-6 text-white transition-transform duration-300" />
-          <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+          <Bot className="w-6 h-6 text-white" />
+          <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full"></div>
         </button>
 
         {/* Position Selector (when open) */}
@@ -354,7 +354,7 @@ What would you like to do?`;
         {isOpen && (
           <div className={`fixed ${getPositionClasses()} w-[420px] h-[520px] bg-white rounded-xl shadow-2xl border border-gray-200 z-50 flex flex-col overflow-hidden`}>
             {/* Modern Header - Fixed */}
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-t-xl flex-shrink-0">
+            <div className="bg-blue-600 p-3 rounded-t-xl flex-shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
@@ -368,14 +368,14 @@ What would you like to do?`;
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={clearChat}
-                    className="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300"
+                    className="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-lg"
                     title="Clear chat"
                   >
                     <RotateCcw className="w-3 h-3" />
                   </button>
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300"
+                    className="p-1.5 text-white/80 hover:text-white hover:bg-white/10 rounded-lg"
                     title="Close"
                   >
                     <X className="w-3 h-3" />
@@ -394,7 +394,7 @@ What would you like to do?`;
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-medium transition-all duration-300 ${
+                    className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-medium ${
                       activeTab === tab.id
                         ? 'bg-white/20 text-white'
                         : 'text-white/70 hover:text-white hover:bg-white/10'
@@ -418,7 +418,7 @@ What would you like to do?`;
                         <button
                           key={action.id}
                           onClick={() => handleQuickAction(action.id)}
-                          className={`p-2 rounded-lg text-xs font-medium transition-all duration-300 flex items-center space-x-2 ${
+                          className={`p-2 rounded-lg text-xs font-medium flex items-center space-x-2 ${
                             action.color === 'blue' ? 'bg-blue-50 text-blue-700 hover:bg-blue-100' :
                             action.color === 'green' ? 'bg-green-50 text-green-700 hover:bg-green-100' :
                             action.color === 'purple' ? 'bg-purple-50 text-purple-700 hover:bg-purple-100' :
@@ -444,7 +444,7 @@ What would you like to do?`;
                         <div className={`max-w-[90%] ${message.type === 'user' ? 'order-2' : 'order-1'}`}>
                           <div className={`rounded-xl px-3 py-2 ${
                             message.type === 'user'
-                              ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+                              ? 'bg-blue-600 text-white'
                               : 'bg-gray-100 text-gray-900'
                           }`}>
                             <div className="flex items-start space-x-2">
@@ -466,19 +466,19 @@ What would you like to do?`;
                               <div className="flex items-center space-x-1">
                                 <button
                                   onClick={() => copyToClipboard(message.content)}
-                                  className="p-1 hover:bg-gray-200 rounded transition-colors"
+                                  className="p-1 hover:bg-gray-200 rounded"
                                   title="Copy message"
                                 >
                                   <Copy className="w-3 h-3" />
                                 </button>
                                 <button
-                                  className="p-1 hover:bg-gray-200 rounded transition-colors"
+                                  className="p-1 hover:bg-gray-200 rounded"
                                   title="Helpful"
                                 >
                                   <ThumbsUp className="w-3 h-3" />
                                 </button>
                                 <button
-                                  className="p-1 hover:bg-gray-200 rounded transition-colors"
+                                  className="p-1 hover:bg-gray-200 rounded"
                                   title="Not helpful"
                                 >
                                   <ThumbsDown className="w-3 h-3" />
@@ -497,9 +497,9 @@ What would you like to do?`;
                             <div className="flex items-center space-x-2">
                               <Bot className="w-3 h-3 text-blue-500" />
                               <div className="flex space-x-1">
-                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
                             </div>
                           </div>
                         </div>
@@ -523,7 +523,7 @@ What would you like to do?`;
                       <button
                         onClick={handleSendMessage}
                         disabled={!inputText.trim()}
-                        className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                        className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Send className="w-4 h-4" />
                       </button>
@@ -535,7 +535,7 @@ What would you like to do?`;
               {activeTab === 'data' && (
                 <div className="p-3">
                   <div className="space-y-3">
-                    <h3 className="text-sm font-semibold text-gray-900">📊 ERP Data Overview</h3>
+                    <h3 className="text-sm font-semibold text-gray-900"> ERP Data Overview</h3>
                     
                     <div className="grid grid-cols-2 gap-3">
                       <div className="bg-white border border-gray-200 rounded-xl p-3">
@@ -604,7 +604,7 @@ What would you like to do?`;
               {activeTab === 'automation' && (
                 <div className="p-3">
                   <div className="space-y-3">
-                    <h3 className="text-sm font-semibold text-gray-900">⚡ Process Automation</h3>
+                    <h3 className="text-sm font-semibold text-gray-900"> Process Automation</h3>
                     
                     <div className="grid grid-cols-1 gap-3">
                       {[
@@ -632,7 +632,7 @@ What would you like to do?`;
                               }`}>
                                 {process.status}
                               </span>
-                              <button className="p-1 hover:bg-gray-100 rounded transition-colors">
+                              <button className="p-1 hover:bg-gray-100 rounded">
                                 <MoreHorizontal className="w-3 h-3 text-gray-500" />
                               </button>
                             </div>
@@ -647,7 +647,7 @@ What would you like to do?`;
               {activeTab === 'help' && (
                 <div className="p-3">
                   <div className="space-y-3">
-                    <h3 className="text-sm font-semibold text-gray-900">❓ Help & Support</h3>
+                    <h3 className="text-sm font-semibold text-gray-900"> Help & Support</h3>
                     
                     <div className="space-y-3">
                       {[
@@ -656,7 +656,7 @@ What would you like to do?`;
                         { title: 'Report Generation', description: 'Create and customize reports for your needs', icon: BarChart3 },
                         { title: 'Security Protocols', description: 'Learn about security features and best practices', icon: Shield }
                       ].map((help) => (
-                        <div key={help.title} className="bg-white border border-gray-200 rounded-xl p-3 hover:shadow-md transition-shadow">
+                        <div key={help.title} className="bg-white border border-gray-200 rounded-xl p-3 hover:shadow-md">
                           <div className="flex items-center space-x-2">
                             <div className="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center">
                               <help.icon className="w-4 h-4 text-blue-600" />
@@ -665,7 +665,7 @@ What would you like to do?`;
                               <h4 className="font-semibold text-gray-900 text-sm">{help.title}</h4>
                               <p className="text-xs text-gray-600">{help.description}</p>
                             </div>
-                            <button className="p-1 hover:bg-gray-100 rounded transition-colors">
+                            <button className="p-1 hover:bg-gray-100 rounded">
                               <ChevronRight className="w-3 h-3 text-gray-500" />
                             </button>
                           </div>

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authenticateUser, getUsers, getUserById } from '../services/auth';
+import { authenticateUser, registerUser, getUsers, getUserById } from '../services/auth';
 
 export interface User {
   id: string;
@@ -46,26 +46,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const userData = JSON.parse(storedUser);
             setUser(userData);
           } else {
-            // Try to get user data from the backend
-            // For now, we'll use a simple approach since we don't have a /me endpoint
-            // In a real app, you'd call an endpoint like /api/v1/auth/me
-            const mockUser: User = {
-              id: '1',
-              email: 'admin@dicel.co.rw',
-              firstName: 'Admin',
-              lastName: 'User',
-              role: 'admin',
-              department: 'admin',
-              phone: '+250 788 123 456',
-              isActive: true,
-              lastLogin: new Date().toISOString(),
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
-            };
-            setUser(mockUser);
+            // For real tokens, we'll use the stored user data
+            // In a production app, you might want to validate the token with the backend
+            const userData = JSON.parse(storedUser);
+            setUser(userData);
           }
         } catch (error) {
-          // If backend call fails, remove token
+          // If parsing fails, remove token
           localStorage.removeItem('token');
           localStorage.removeItem('user');
         }
@@ -93,23 +80,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (userData: any) => {
     try {
-      // For now, we'll create a simple mock user
-      const mockUser: User = {
-        id: '2',
-        email: userData.email,
-        firstName: userData.firstName || 'New',
-        lastName: userData.lastName || 'User',
-        role: userData.role || 'employee',
-        department: userData.department,
-        phone: userData.phone,
-        isActive: true,
-        lastLogin: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      const token = 'mock-jwt-token-' + Date.now();
-      localStorage.setItem('token', token);
-      setUser(mockUser);
+      const newUser = await registerUser(userData);
+      if (newUser) {
+        setUser(newUser);
+      } else {
+        throw new Error('Registration failed');
+      }
     } catch (error) {
       throw error;
     }

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useLayout } from '../../contexts/LayoutContext';
 import AIChatbot from './AIChatbot';
 import TimeClock from './TimeClock';
 import PersonalLeave from './PersonalLeave';
-import InternalMessaging from './InternalMessaging';
-import { MessageSquare, Minimize2, Maximize2, X, Plus } from 'lucide-react';
+import SimpleChat from '../chat/SimpleChat';
 
 interface DepartmentLayoutProps {
   children: React.ReactNode;
@@ -31,15 +31,12 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
   colorScheme,
   sidebarItems
 }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Changed to true for desktop
+  const { sidebarOpen: isSidebarOpen, setSidebarOpen: setIsSidebarOpen } = useLayout();
   const [activeItem, setActiveItem] = useState('/');
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
-  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
-  const [isMessagingOpen, setIsMessagingOpen] = useState(false);
   const [isTimeClockOpen, setIsTimeClockOpen] = useState(false);
   const [isPersonalLeaveOpen, setIsPersonalLeaveOpen] = useState(false);
-  const [messagingTabs, setMessagingTabs] = useState<Array<{id: string, title: string, isActive: boolean}>>([]);
-  const [activeMessagingTab, setActiveMessagingTab] = useState<string | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
@@ -58,58 +55,6 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
     setActiveItem(path);
   };
 
-  const openMessagingTab = () => {
-    const newTabId = `messaging-${Date.now()}`;
-    const newTab = {
-      id: newTabId,
-      title: 'Team Chat',
-      isActive: true
-    };
-    
-    setMessagingTabs(prev => prev.map(tab => ({ ...tab, isActive: false })).concat(newTab));
-    setActiveMessagingTab(newTabId);
-    setIsMessagingOpen(true);
-  };
-
-  const closeMessagingTab = (tabId: string) => {
-    setMessagingTabs(prev => {
-      const filtered = prev.filter(tab => tab.id !== tabId);
-      if (filtered.length === 0) {
-        setIsMessagingOpen(false);
-        setActiveMessagingTab(null);
-      } else {
-        const lastTab = filtered[filtered.length - 1];
-        setActiveMessagingTab(lastTab.id);
-        setMessagingTabs(filtered.map(tab => ({ ...tab, isActive: tab.id === lastTab.id })));
-      }
-      return filtered;
-    });
-  };
-
-  const closeAllMessagingTabs = () => {
-    setMessagingTabs([]);
-    setActiveMessagingTab(null);
-    setIsMessagingOpen(false);
-  };
-
-  const switchMessagingTab = (tabId: string) => {
-    setMessagingTabs(prev => prev.map(tab => ({ ...tab, isActive: tab.id === tabId })));
-    setActiveMessagingTab(tabId);
-  };
-
-  const openMessagingInNewWindow = () => {
-    // Create a new window-like experience
-    const newTabId = `messaging-${Date.now()}`;
-    const newTab = {
-      id: newTabId,
-      title: 'Team Chat',
-      isActive: true
-    };
-    
-    setMessagingTabs(prev => prev.map(tab => ({ ...tab, isActive: false })).concat(newTab));
-    setActiveMessagingTab(newTabId);
-    setIsMessagingOpen(true);
-  };
 
   const getDefaultIcon = (name: string) => {
     const iconMap: { [key: string]: string } = {
@@ -335,54 +280,6 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
                 })}
               </div>
 
-              {/* Internal Messaging Link - Global Feature */}
-              <div className="mt-6 pt-4 border-t border-blue-400/30">
-                <button
-                  onClick={() => handleNavigation('/messages')}
-                  onMouseEnter={() => setHoveredItem('/messages')}
-                  onMouseLeave={() => setHoveredItem(null)}
-                  className={`w-full text-left px-3 py-2.5 rounded-lg transition-all duration-300 relative overflow-hidden group text-sm ${
-                    activeItem === '/messages'
-                      ? 'bg-green-400/20 text-white shadow-lg border border-green-400/50'
-                      : 'text-blue-200 hover:bg-green-400/10 hover:shadow-md'
-                  }`}
-                >
-                  {/* Animated Background */}
-                  <div className={`absolute inset-0 transition-all duration-300 ${
-                    activeItem === '/messages'
-                      ? 'bg-gradient-to-r from-green-400/30 to-green-500/30 opacity-100' 
-                      : hoveredItem === '/messages'
-                        ? 'bg-green-400/10 opacity-50' 
-                        : 'opacity-0'
-                  }`}></div>
-                  
-                  {/* Content */}
-                  <div className="relative z-10 flex items-center space-x-3">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 ${
-                      activeItem === '/messages'
-                        ? 'bg-green-400/20 text-white' 
-                        : 'bg-green-400/10 text-green-200 group-hover:bg-green-400/20'
-                    }`}>
-                      <span className="text-sm transform transition-transform duration-300 group-hover:scale-110">
-                        💬
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <span className="font-medium text-sm">Internal Messaging</span>
-                    </div>
-                    
-                    {/* Active Indicator */}
-                    {activeItem === '/messages' && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></div>
-                    )}
-                  </div>
-                  
-                  {/* Hover Effect */}
-                  <div className={`absolute inset-0 rounded-lg transition-all duration-300 ${
-                    hoveredItem === '/messages' && activeItem !== '/messages' ? 'bg-gradient-to-r from-green-400/10 to-green-500/10 opacity-50' : ''
-                  }`}></div>
-                </button>
-              </div>
             </nav>
 
             {/* User Profile and Logout - Professional Theme */}
@@ -487,24 +384,20 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
                     <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-purple-500 rounded-full animate-pulse border border-white"></div>
                   </button>
 
-                  {/* Internal Messaging */}
+                  {/* Internal Chat */}
                   <button
-                    onClick={openMessagingInNewWindow}
-                    className={`relative p-2.5 rounded-xl transition-all duration-300 group border z-10 ${
-                      isMessagingOpen 
-                        ? 'text-blue-700 bg-blue-100 border-blue-300 hover:bg-blue-200' 
-                        : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200/50 hover:border-blue-300'
-                    }`}
-                    title={`Internal Messaging ${isMessagingOpen ? '(Open)' : '(Closed)'}`}
-                    style={{ zIndex: 10 }}
+                    onClick={() => setIsChatOpen(!isChatOpen)}
+                    className="relative p-2.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-xl transition-all duration-300 group border border-blue-200/50 hover:border-blue-300"
+                    title="Internal Chat"
                   >
                     <svg className="w-5 h-5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                     </svg>
-                    <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full animate-pulse border border-white ${
-                      isMessagingOpen ? 'bg-blue-500' : 'bg-green-500'
-                    }`}></div>
+                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse border border-white">
+                      <span className="absolute inset-0 flex items-center justify-center text-xs text-white font-bold">3</span>
+                    </div>
                   </button>
+
                   
                   {/* Notifications */}
                   <button className="relative p-2.5 text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-xl transition-all duration-300 group border border-orange-200/50 hover:border-orange-300">
@@ -532,10 +425,16 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
             </div>
           </div>
 
-          {/* Floating Action Button for Internal Messaging */}
+          {/* Floating Action Button for AI Assistant */}
           <div className="fixed bottom-6 right-6 z-50">
             <AIChatbot />
           </div>
+
+          {/* Chat Interface Modal */}
+          <SimpleChat 
+            isOpen={isChatOpen} 
+            onClose={() => setIsChatOpen(false)} 
+          />
 
           {/* Floating Time Clock Panel */}
           {isTimeClockOpen && (
@@ -591,54 +490,6 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
             </div>
           )}
 
-          {/* Floating Internal Messaging Panel */}
-          {isMessagingOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-              <div className="w-full h-full mx-4 transition-all duration-300" style={{
-                maxWidth: isSidebarOpen ? 'calc(100vw - 20rem)' : 'calc(100vw - 2rem)',
-                marginLeft: isSidebarOpen ? '1rem' : '1rem',
-                marginRight: '1rem',
-                transform: isSidebarOpen ? 'translateX(8rem)' : 'translateX(0)'
-              }}>
-                <div className="relative h-full bg-white rounded-2xl shadow-2xl overflow-hidden">
-                  {/* Standalone Window Header - Always Visible */}
-                  <div className="absolute top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 p-4 shadow-lg">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                          <MessageSquare className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <h2 className="text-lg font-bold text-white">Team Chat</h2>
-                          <p className="text-blue-100 text-sm">New Window</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <button className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300" title="Minimize">
-                          <Minimize2 className="w-4 h-4" />
-                        </button>
-                        <button className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300" title="Maximize">
-                          <Maximize2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={closeAllMessagingTabs}
-                          className="p-2 text-white/80 hover:text-red-300 hover:bg-red-500/20 rounded-lg transition-all duration-300"
-                          title="Close Window"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Content Area with Top Padding for Header */}
-                  <div className="h-full pt-20">
-                    <InternalMessaging />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

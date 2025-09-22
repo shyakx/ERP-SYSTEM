@@ -162,24 +162,7 @@ const demoUsers = [
 export const authenticateUser = async (email: string, password: string): Promise<User | null> => {
   console.log('authenticateUser called with:', { email, password });
   
-  // First check demo credentials (since backend might not be available)
-  const demoUser = demoUsers.find(user => 
-    user.email === email && user.password === password
-  );
-
-  console.log('Demo user found:', demoUser ? demoUser.user.role : 'None');
-
-  if (demoUser) {
-    // Create a demo token
-    const demoToken = `demo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    localStorage.setItem('token', demoToken);
-    localStorage.setItem('user', JSON.stringify(demoUser.user));
-    
-    console.log(`Demo login successful for ${demoUser.user.role} user: ${demoUser.user.email}`);
-    return demoUser.user;
-  }
-
-  // If no demo user found, try backend authentication
+  // First try backend authentication
   try {
     const response = await api.post<LoginResponse>('/auth/login', {
       email,
@@ -187,14 +170,35 @@ export const authenticateUser = async (email: string, password: string): Promise
     });
 
     if (response.data.success) {
-      // Store token
+      // Store token and user data
       localStorage.setItem('token', response.data.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
+      
+      console.log(`Backend login successful for ${response.data.data.user.role} user: ${response.data.data.user.email}`);
       return response.data.data.user;
     }
 
     return null;
   } catch (error) {
-    console.error('Backend authentication failed:', error);
+    console.error('Backend authentication failed, trying demo credentials:', error);
+    
+    // Fallback to demo credentials if backend is not available
+    const demoUser = demoUsers.find(user => 
+      user.email === email && user.password === password
+    );
+
+    console.log('Demo user found:', demoUser ? demoUser.user.role : 'None');
+
+    if (demoUser) {
+      // Create a demo token
+      const demoToken = `demo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem('token', demoToken);
+      localStorage.setItem('user', JSON.stringify(demoUser.user));
+      
+      console.log(`Demo login successful for ${demoUser.user.role} user: ${demoUser.user.email}`);
+      return demoUser.user;
+    }
+
     return null;
   }
 };
@@ -211,8 +215,9 @@ export const registerUser = async (userData: {
     const response = await api.post<RegisterResponse>('/auth/register', userData);
 
     if (response.data.success) {
-      // Store token
+      // Store token and user data
       localStorage.setItem('token', response.data.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.data.user));
       return response.data.data.user;
     }
 

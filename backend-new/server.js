@@ -15,9 +15,27 @@ const User = require('./models/User');
 const Employee = require('./models/Employee');
 const Department = require('./models/Department');
 
+// Import chat models
+const Conversation = require('./models/Conversation');
+const Message = require('./models/Message');
+const ConversationMember = require('./models/ConversationMember');
+const MessageReaction = require('./models/MessageReaction');
+const TypingIndicator = require('./models/TypingIndicator');
+
 // Import and define associations
 const { defineAssociations } = require('./models/associations');
 defineAssociations();
+
+// Import routes
+const authRoutes = require('./routes/auth');
+const chatRoutes = require('./routes/chat');
+const auditRoutes = require('./routes/audit');
+const hrRoutes = require('./routes/hr');
+const financeRoutes = require('./routes/finance');
+const operationsRoutes = require('./routes/operations');
+const salesRoutes = require('./routes/sales');
+const itRoutes = require('./routes/it');
+const securityRoutes = require('./routes/security');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -26,7 +44,11 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dicel-erp-secret-key-2024';
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: [
+    process.env.FRONTEND_URL || 'http://localhost:3000',
+    'http://localhost:5173',
+    'http://localhost:3000'
+  ],
   credentials: true
 }));
 
@@ -117,6 +139,105 @@ const requireRole = (roles) => {
 };
 
 // API Routes
+
+// Auth routes
+app.use('/api/auth', authRoutes);
+
+// Chat routes
+app.use('/api/chat', chatRoutes);
+
+// Audit routes
+app.use('/api/audit', auditRoutes);
+
+// Department routes
+app.use('/api/v1/hr', hrRoutes);
+app.use('/api/v1/finance', financeRoutes);
+app.use('/api/v1/operations', operationsRoutes);
+app.use('/api/v1/sales', salesRoutes);
+app.use('/api/v1/it', itRoutes);
+app.use('/api/v1/security', securityRoutes);
+
+// Users routes
+app.get('/api/v1/users', authenticateToken, async (req, res) => {
+  try {
+    const { page = 1, limit = 50, search, role, department } = req.query;
+    const offset = (page - 1) * limit;
+
+    let whereClause = { is_active: true };
+    
+    if (search) {
+      whereClause = {
+        ...whereClause,
+        [sequelize.Op.or]: [
+          { first_name: { [sequelize.Op.iLike]: `%${search}%` } },
+          { last_name: { [sequelize.Op.iLike]: `%${search}%` } },
+          { email: { [sequelize.Op.iLike]: `%${search}%` } }
+        ]
+      };
+    }
+
+    if (role) {
+      whereClause.role = role;
+    }
+
+    if (department) {
+      whereClause.department_id = department;
+    }
+
+    const { count, rows: users } = await User.findAndCountAll({
+      where: whereClause,
+      attributes: [
+        'id', 
+        'email', 
+        'first_name', 
+        'last_name', 
+        'role', 
+        'department_id', 
+        'position',
+        'phone',
+        'profile_image',
+        'is_active',
+        'created_at'
+      ],
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      order: [['first_name', 'ASC']]
+    });
+
+    // Transform the data to camelCase for frontend
+    const transformedUsers = users.map(user => ({
+      id: user.id,
+      email: user.email,
+      firstName: user.first_name,
+      lastName: user.last_name,
+      role: user.role,
+      department_id: user.department_id,
+      position: user.position,
+      phone: user.phone,
+      avatar_url: user.profile_image,
+      isActive: user.is_active,
+      createdAt: user.created_at
+    }));
+
+    res.json({
+      success: true,
+      data: transformedUsers,
+      meta: {
+        total: count,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        totalPages: Math.ceil(count / limit)
+      }
+    });
+
+  } catch (error) {
+    console.error('Get users error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+});
 
 // Authentication routes
 app.post('/api/v1/auth/login', async (req, res) => {

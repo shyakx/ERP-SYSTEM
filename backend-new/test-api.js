@@ -1,96 +1,95 @@
 const axios = require('axios');
 
-const testAPI = async () => {
-  try {
-    console.log('🧪 Testing DICEL ERP API...\n');
+const BASE_URL = 'http://localhost:5000/api/v1';
 
-    // Test health endpoint
-    console.log('1. Testing Health Endpoint:');
+async function testAPI() {
+  console.log('🧪 Testing DICEL ERP Backend API...\n');
+
+  try {
+    // Test 1: Health Check
+    console.log('1. Testing Health Check...');
     const healthResponse = await axios.get('http://localhost:5000/health');
-    console.log('   ✅ Health:', healthResponse.data);
+    console.log('✅ Health Check:', healthResponse.data);
     console.log('');
 
-    // Test login to get token
-    console.log('2. Testing Authentication:');
-    const loginResponse = await axios.post('http://localhost:5000/api/v1/auth/login', {
-      email: 'admin@dicel.com',
+    // Test 2: Login
+    console.log('2. Testing Login...');
+    const loginResponse = await axios.post(`${BASE_URL}/auth/login`, {
+      email: 'admin@dicel.co.rw',
       password: 'admin123'
     });
-    
+    console.log('✅ Login Response:', loginResponse.data);
     const token = loginResponse.data.data.token;
-    console.log('   ✅ Login successful');
-    console.log('   👤 User:', loginResponse.data.data.user.firstName, loginResponse.data.data.user.lastName);
-    console.log('   🔑 Token received');
     console.log('');
 
-    // Test employees endpoint
-    console.log('3. Testing Employees API:');
-    const employeesResponse = await axios.get('http://localhost:5000/api/v1/employees', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+    // Test 3: Get Users
+    console.log('3. Testing Get Users...');
+    const usersResponse = await axios.get(`${BASE_URL}/users`, {
+      headers: { Authorization: `Bearer ${token}` }
     });
-    
-    console.log('   ✅ Employees API working');
-    console.log(`   📊 Total Employees: ${employeesResponse.data.data.total}`);
-    console.log(`   📄 Page: ${employeesResponse.data.data.page}`);
-    console.log(`   📋 Items per page: ${employeesResponse.data.data.limit}`);
+    console.log('✅ Users Response:', usersResponse.data);
     console.log('');
-    
-    if (employeesResponse.data.data.items.length > 0) {
-      console.log('   👥 Sample Employees from Database:');
-      employeesResponse.data.data.items.slice(0, 3).forEach((emp, index) => {
-        console.log(`   ${index + 1}. ${emp.first_name} ${emp.last_name}`);
-        console.log(`      Employee #: ${emp.employee_number}`);
-        console.log(`      Position: ${emp.position}`);
-        console.log(`      Department: ${emp.department?.name || 'N/A'}`);
-        console.log(`      Salary: RWF ${emp.salary?.toLocaleString() || 'N/A'}`);
-        console.log('');
-      });
-    }
 
-    // Test departments endpoint
-    console.log('4. Testing Departments API:');
-    const departmentsResponse = await axios.get('http://localhost:5000/api/v1/departments', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+    // Test 4: Get HR Stats
+    console.log('4. Testing HR Stats...');
+    const hrStatsResponse = await axios.get(`${BASE_URL}/hr/stats`, {
+      headers: { Authorization: `Bearer ${token}` }
     });
-    
-    console.log('   ✅ Departments API working');
-    console.log(`   📊 Total Departments: ${departmentsResponse.data.data.length}`);
+    console.log('✅ HR Stats Response:', hrStatsResponse.data);
     console.log('');
-    
-    if (departmentsResponse.data.data.length > 0) {
-      console.log('   🏢 Departments from Database:');
-      departmentsResponse.data.data.forEach((dept, index) => {
-        console.log(`   ${index + 1}. ${dept.name}`);
-      });
-      console.log('');
-    }
 
-    // Test dashboard stats
-    console.log('5. Testing Dashboard Stats API:');
-    const statsResponse = await axios.get('http://localhost:5000/api/v1/dashboard/stats', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+    // Test 5: Get Finance Stats
+    console.log('5. Testing Finance Stats...');
+    const financeStatsResponse = await axios.get(`${BASE_URL}/finance/stats`, {
+      headers: { Authorization: `Bearer ${token}` }
     });
-    
-    console.log('   ✅ Dashboard Stats API working');
-    console.log('   📊 Dashboard Statistics:');
-    console.log(`      Total Employees: ${statsResponse.data.data.totalEmployees}`);
-    console.log(`      Total Departments: ${statsResponse.data.data.totalDepartments}`);
-    console.log(`      Total Users: ${statsResponse.data.data.totalUsers}`);
-    console.log(`      Active Employees: ${statsResponse.data.data.activeEmployees}`);
+    console.log('✅ Finance Stats Response:', financeStatsResponse.data);
     console.log('');
 
-    console.log('🎉 All API tests passed! The frontend will receive real database data.');
-    console.log('🚀 Your DICEL ERP system is ready with 100% real data from PostgreSQL!');
+    // Test 6: Get Operations Stats
+    console.log('6. Testing Operations Stats...');
+    const operationsStatsResponse = await axios.get(`${BASE_URL}/operations/stats`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    console.log('✅ Operations Stats Response:', operationsStatsResponse.data);
+    console.log('');
+
+    // Test 7: Get Sales Stats
+    console.log('7. Testing Sales Stats...');
+    const salesStatsResponse = await axios.get(`${BASE_URL}/sales/stats`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    console.log('✅ Sales Stats Response:', salesStatsResponse.data);
+    console.log('');
+
+    // Test 8: Get IT Stats
+    console.log('8. Testing IT Stats...');
+    const itStatsResponse = await axios.get(`${BASE_URL}/it/stats`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    console.log('✅ IT Stats Response:', itStatsResponse.data);
+    console.log('');
+
+    // Test 9: Get Security Stats
+    console.log('9. Testing Security Stats...');
+    const securityStatsResponse = await axios.get(`${BASE_URL}/security/stats`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    console.log('✅ Security Stats Response:', securityStatsResponse.data);
+    console.log('');
+
+    console.log('🎉 All API tests passed successfully!');
 
   } catch (error) {
     console.error('❌ API Test Failed:', error.response?.data || error.message);
+    
+    if (error.code === 'ECONNREFUSED') {
+      console.log('\n💡 Make sure the backend server is running:');
+      console.log('   cd backend-new');
+      console.log('   npm run dev');
+    }
   }
-};
+}
 
-testAPI(); 
+// Run the test
+testAPI();

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 interface AnimatedCardProps {
   children: React.ReactNode;
@@ -18,46 +18,29 @@ const AnimatedCard: React.FC<AnimatedCardProps> = ({
   color = 'blue',
   icon,
   className = '',
-  onClick,
-  delay = 0
+  onClick
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
-
   const getColorClasses = (color: string) => {
     const colors = {
-      blue: 'from-blue-500 to-blue-600',
-      green: 'from-green-500 to-green-600',
-      purple: 'from-purple-500 to-purple-600',
-      red: 'from-red-500 to-red-600',
-      yellow: 'from-yellow-500 to-yellow-600',
-      indigo: 'from-indigo-500 to-indigo-600',
-      pink: 'from-pink-500 to-pink-600',
-      orange: 'from-orange-500 to-orange-600'
+      blue: 'bg-blue-600',
+      green: 'bg-green-600',
+      purple: 'bg-purple-600',
+      red: 'bg-red-600',
+      yellow: 'bg-yellow-600',
+      indigo: 'bg-indigo-600',
+      pink: 'bg-pink-600',
+      orange: 'bg-orange-600'
     };
     return colors[color as keyof typeof colors] || colors.blue;
   };
 
   return (
     <div
-      className={`relative bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-500 hover:shadow-2xl cursor-pointer ${className}`}
-      style={{
-        animationDelay: `${delay}ms`,
-        zIndex: 1
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className={`bg-white rounded-lg shadow-md border border-gray-200 cursor-pointer hover:shadow-lg ${className}`}
       onClick={onClick}
     >
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100 opacity-50"></div>
-      
-      {/* Animated Border */}
-      <div className={`absolute inset-0 rounded-xl border-2 border-transparent bg-gradient-to-r ${getColorClasses(color)} opacity-0 transition-opacity duration-300 ${
-        isHovered ? 'opacity-20' : ''
-      }`}></div>
-
       {/* Content */}
-      <div className="relative z-10 p-4">
+      <div className="p-4">
         {(title || icon) && (
           <div className="flex items-center justify-between mb-3">
             {title && (
@@ -69,32 +52,22 @@ const AnimatedCard: React.FC<AnimatedCardProps> = ({
               </div>
             )}
             {icon && (
-              <div className={`w-10 h-10 rounded-lg bg-gradient-to-r ${getColorClasses(color)} flex items-center justify-center shadow-lg transform transition-transform duration-200 ${
-                isHovered ? 'scale-110 rotate-12' : ''
-              }`}>
+              <div className={`w-10 h-10 rounded-lg ${getColorClasses(color)} flex items-center justify-center`}>
                 <span className="text-white text-lg">{icon}</span>
               </div>
             )}
           </div>
         )}
 
-        <div className="transform transition-transform duration-300">
+        <div>
           {children}
         </div>
       </div>
-
-      {/* Animated Shine Effect */}
-      <div className={`absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 transition-opacity duration-500 ${
-        isHovered ? 'opacity-20' : ''
-      }`} style={{
-        transform: 'translateX(-100%)',
-        animation: isHovered ? 'shine 1s ease-in-out' : 'none'
-      }}></div>
     </div>
   );
 };
 
-// Animated Button Component
+// Professional Button Component
 interface AnimatedButtonProps {
   children: React.ReactNode;
   onClick?: () => void;
@@ -114,14 +87,14 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
 }) => {
   const getColorClasses = (color: string) => {
     const colors = {
-      blue: 'bg-blue-500 hover:bg-blue-600',
-      green: 'bg-green-500 hover:bg-green-600',
-      purple: 'bg-purple-500 hover:bg-purple-600',
-      red: 'bg-red-500 hover:bg-red-600',
-      yellow: 'bg-yellow-500 hover:bg-yellow-600',
-      indigo: 'bg-indigo-500 hover:bg-indigo-600',
-      pink: 'bg-pink-500 hover:bg-pink-600',
-      orange: 'bg-orange-500 hover:bg-orange-600'
+      blue: 'bg-blue-600 hover:bg-blue-700',
+      green: 'bg-green-600 hover:bg-green-700',
+      purple: 'bg-purple-600 hover:bg-purple-700',
+      red: 'bg-red-600 hover:bg-red-700',
+      yellow: 'bg-yellow-600 hover:bg-yellow-700',
+      indigo: 'bg-indigo-600 hover:bg-indigo-700',
+      pink: 'bg-pink-600 hover:bg-pink-700',
+      orange: 'bg-orange-600 hover:bg-orange-700'
     };
     return colors[color as keyof typeof colors] || colors.blue;
   };
@@ -137,17 +110,16 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
 
   return (
     <button
-      className={`${getColorClasses(color)} ${getSizeClasses(size)} text-white font-medium rounded-lg shadow-lg transition-all duration-200 hover:shadow-xl active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      className={`${getColorClasses(color)} ${getSizeClasses(size)} text-white font-medium rounded-lg shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
       onClick={onClick}
       disabled={disabled}
-      style={{ zIndex: 1 }}
     >
       {children}
     </button>
   );
 };
 
-// Animated Progress Bar Component
+// Professional Progress Bar Component
 interface AnimatedProgressBarProps {
   progress: number;
   color?: string;
@@ -163,14 +135,14 @@ export const AnimatedProgressBar: React.FC<AnimatedProgressBarProps> = ({
 }) => {
   const getColorClasses = (color: string) => {
     const colors = {
-      blue: 'bg-blue-500',
-      green: 'bg-green-500',
-      purple: 'bg-purple-500',
-      red: 'bg-red-500',
-      yellow: 'bg-yellow-500',
-      indigo: 'bg-indigo-500',
-      pink: 'bg-pink-500',
-      orange: 'bg-orange-500'
+      blue: 'bg-blue-600',
+      green: 'bg-green-600',
+      purple: 'bg-purple-600',
+      red: 'bg-red-600',
+      yellow: 'bg-yellow-600',
+      indigo: 'bg-indigo-600',
+      pink: 'bg-pink-600',
+      orange: 'bg-orange-600'
     };
     return colors[color as keyof typeof colors] || colors.blue;
   };
@@ -185,7 +157,7 @@ export const AnimatedProgressBar: React.FC<AnimatedProgressBarProps> = ({
       )}
       <div className="w-full bg-gray-200 rounded-full overflow-hidden">
         <div
-          className={`${getColorClasses(color)} h-${height} rounded-full transition-all duration-1000 ease-out`}
+          className={`${getColorClasses(color)} h-${height} rounded-full`}
           style={{ width: `${progress}%` }}
         ></div>
       </div>

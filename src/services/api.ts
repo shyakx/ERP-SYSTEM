@@ -214,12 +214,231 @@ export const documentAPI = {
 
 // Chat API
 export const chatAPI = {
-  getAll: (params: any = {}) => api.get('/chat', { params }),
-  getById: (id: string) => api.get(`/chat/${id}`),
-  create: (data: any) => api.post('/chat', data),
-  update: (id: string, data: any) => api.put(`/chat/${id}`, data),
-  delete: (id: string) => api.delete(`/chat/${id}`),
+  // Conversations
+  getConversations: (params = {}) => api.get('/chat/conversations', { params }),
+  getConversationById: (id: string) => api.get(`/chat/conversations/${id}`),
+  createConversation: (data: any) => api.post('/chat/conversations', data),
+  updateConversation: (id: string, data: any) => api.put(`/chat/conversations/${id}`, data),
+  deleteConversation: (id: string) => api.delete(`/chat/conversations/${id}`),
+  
+  // Messages
+  getMessages: (conversationId: string, params = {}) => api.get(`/chat/conversations/${conversationId}/messages`, { params }),
+  sendMessage: (conversationId: string, data: any) => api.post(`/chat/conversations/${conversationId}/messages`, data),
+  updateMessage: (conversationId: string, messageId: string, data: any) => api.put(`/chat/conversations/${conversationId}/messages/${messageId}`, data),
+  deleteMessage: (conversationId: string, messageId: string) => api.delete(`/chat/conversations/${conversationId}/messages/${messageId}`),
+  
+  // Reactions
+  addReaction: (conversationId: string, messageId: string, reaction: string) => api.post(`/chat/conversations/${conversationId}/messages/${messageId}/reactions`, { reaction }),
+  removeReaction: (conversationId: string, messageId: string, reaction: string) => api.delete(`/chat/conversations/${conversationId}/messages/${messageId}/reactions/${reaction}`),
+  
+  // Typing Indicators
+  updateTypingIndicator: (conversationId: string, isTyping: boolean) => api.post(`/chat/conversations/${conversationId}/typing`, { is_typing: isTyping }),
+  getTypingUsers: (conversationId: string) => api.get(`/chat/conversations/${conversationId}/typing`),
+  
+  // Search
+  searchMessages: (query: string, params = {}) => api.get('/chat/search', { params: { q: query, ...params } }),
 };
+
+// HR API
+export const hrAPI = {
+  // Employees
+  getEmployees: (params = {}) => api.get('/hr/employees', { params }),
+  getEmployeeById: (id: string) => api.get(`/hr/employees/${id}`),
+  createEmployee: (data: any) => api.post('/hr/employees', data),
+  updateEmployee: (id: string, data: any) => api.put(`/hr/employees/${id}`, data),
+  deleteEmployee: (id: string) => api.delete(`/hr/employees/${id}`),
+  
+  // Leave Requests
+  getLeaveRequests: (params = {}) => api.get('/hr/leave-requests', { params }),
+  createLeaveRequest: (data: any) => api.post('/hr/leave-requests', data),
+  updateLeaveRequestStatus: (id: string, data: any) => api.put(`/hr/leave-requests/${id}/status`, data),
+  
+  // Attendance
+  getAttendance: (params = {}) => api.get('/hr/attendance', { params }),
+  recordAttendance: (data: any) => api.post('/hr/attendance', data),
+  
+  // Payroll
+  getPayroll: (params = {}) => api.get('/hr/payroll', { params }),
+  generatePayroll: (data: any) => api.post('/hr/payroll/generate', data),
+  
+  // Performance Reviews
+  getPerformanceReviews: (params = {}) => api.get('/hr/performance-reviews', { params }),
+  createPerformanceReview: (data: any) => api.post('/hr/performance-reviews', data),
+  
+  // Training
+  getTrainingPrograms: (params = {}) => api.get('/hr/training-programs', { params }),
+  createTrainingProgram: (data: any) => api.post('/hr/training-programs', data),
+  enrollInTraining: (data: any) => api.post('/hr/training-enrollments', data),
+  
+  // Recruitment
+  getJobPostings: (params = {}) => api.get('/hr/job-postings', { params }),
+  createJobPosting: (data: any) => api.post('/hr/job-postings', data),
+  getCandidates: (params = {}) => api.get('/hr/candidates', { params }),
+  createCandidate: (data: any) => api.post('/hr/candidates', data),
+  
+  // Statistics
+  getStats: () => api.get('/hr/stats'),
+};
+
+// Finance API
+export const financeAPI = {
+  // Transactions
+  getTransactions: (params = {}) => api.get('/finance/transactions', { params }),
+  createTransaction: (data: any) => api.post('/finance/transactions', data),
+  
+  // Accounts
+  getAccounts: (params = {}) => api.get('/finance/accounts', { params }),
+  createAccount: (data: any) => api.post('/finance/accounts', data),
+  
+  // Expenses
+  getExpenses: (params = {}) => api.get('/finance/expenses', { params }),
+  createExpense: (data: any) => api.post('/finance/expenses', data),
+  approveExpense: (id: string, data: any) => api.put(`/finance/expenses/${id}/approve`, data),
+  
+  // Budgets
+  getBudgets: (params = {}) => api.get('/finance/budgets', { params }),
+  createBudget: (data: any) => api.post('/finance/budgets', data),
+  
+  // Invoices
+  getInvoices: (params = {}) => api.get('/finance/invoices', { params }),
+  createInvoice: (data: any) => api.post('/finance/invoices', data),
+  
+  // Accounts Receivable
+  getAccountsReceivable: (params = {}) => api.get('/finance/accounts-receivable', { params }),
+  recordPayment: (id: string, data: any) => api.post(`/finance/accounts-receivable/${id}/payment`, data),
+  
+  // Accounts Payable
+  getAccountsPayable: (params = {}) => api.get('/finance/accounts-payable', { params }),
+  recordPaymentMade: (id: string, data: any) => api.post(`/finance/accounts-payable/${id}/payment`, data),
+  
+  // Reports
+  generateReport: (data: any) => api.post('/finance/reports/generate', data),
+  
+  // Statistics
+  getStats: () => api.get('/finance/stats'),
+};
+
+// Operations API
+export const operationsAPI = {
+  // Inventory Items
+  getInventoryItems: (params = {}) => api.get('/operations/inventory-items', { params }),
+  getInventoryItemById: (id: string) => api.get(`/operations/inventory-items/${id}`),
+  createInventoryItem: (data: any) => api.post('/operations/inventory-items', data),
+  updateInventoryItem: (id: string, data: any) => api.put(`/operations/inventory-items/${id}`, data),
+  
+  // Inventory Transactions
+  getInventoryTransactions: (params = {}) => api.get('/operations/inventory-transactions', { params }),
+  createInventoryTransaction: (data: any) => api.post('/operations/inventory-transactions', data),
+  
+  // Suppliers
+  getSuppliers: (params = {}) => api.get('/operations/suppliers', { params }),
+  createSupplier: (data: any) => api.post('/operations/suppliers', data),
+  
+  // Purchase Orders
+  getPurchaseOrders: (params = {}) => api.get('/operations/purchase-orders', { params }),
+  createPurchaseOrder: (data: any) => api.post('/operations/purchase-orders', data),
+  updatePurchaseOrderStatus: (id: string, data: any) => api.put(`/operations/purchase-orders/${id}/status`, data),
+  
+  // Warehouses
+  getWarehouses: (params = {}) => api.get('/operations/warehouses', { params }),
+  createWarehouse: (data: any) => api.post('/operations/warehouses', data),
+  
+  // Statistics
+  getStats: () => api.get('/operations/stats'),
+};
+
+// Sales API
+export const salesAPI = {
+  // Leads
+  getLeads: (params = {}) => api.get('/sales/leads', { params }),
+  getLeadById: (id: string) => api.get(`/sales/leads/${id}`),
+  createLead: (data: any) => api.post('/sales/leads', data),
+  updateLead: (id: string, data: any) => api.put(`/sales/leads/${id}`, data),
+  convertLead: (id: string, data: any) => api.post(`/sales/leads/${id}/convert`, data),
+  
+  // Opportunities
+  getOpportunities: (params = {}) => api.get('/sales/opportunities', { params }),
+  getOpportunityById: (id: string) => api.get(`/sales/opportunities/${id}`),
+  createOpportunity: (data: any) => api.post('/sales/opportunities', data),
+  updateOpportunity: (id: string, data: any) => api.put(`/sales/opportunities/${id}`, data),
+  updateOpportunityStage: (id: string, data: any) => api.put(`/sales/opportunities/${id}/stage`, data),
+  
+  // Quotes
+  getQuotes: (params = {}) => api.get('/sales/quotes', { params }),
+  createQuote: (data: any) => api.post('/sales/quotes', data),
+  updateQuoteStatus: (id: string, data: any) => api.put(`/sales/quotes/${id}/status`, data),
+  
+  // Clients
+  getClients: (params = {}) => api.get('/sales/clients', { params }),
+  createClient: (data: any) => api.post('/sales/clients', data),
+  
+  // Marketing Campaigns
+  getMarketingCampaigns: (params = {}) => api.get('/sales/marketing-campaigns', { params }),
+  createMarketingCampaign: (data: any) => api.post('/sales/marketing-campaigns', data),
+  
+  // Statistics
+  getStats: () => api.get('/sales/stats'),
+};
+
+// IT API
+export const itAPI = {
+  // Assets
+  getAssets: (params = {}) => api.get('/it/assets', { params }),
+  getAssetById: (id: string) => api.get(`/it/assets/${id}`),
+  createAsset: (data: any) => api.post('/it/assets', data),
+  updateAsset: (id: string, data: any) => api.put(`/it/assets/${id}`, data),
+  
+  // Support Tickets
+  getSupportTickets: (params = {}) => api.get('/it/support-tickets', { params }),
+  getSupportTicketById: (id: string) => api.get(`/it/support-tickets/${id}`),
+  createSupportTicket: (data: any) => api.post('/it/support-tickets', data),
+  updateSupportTicket: (id: string, data: any) => api.put(`/it/support-tickets/${id}`, data),
+  assignSupportTicket: (id: string, data: any) => api.put(`/it/support-tickets/${id}/assign`, data),
+  closeSupportTicket: (id: string, data: any) => api.put(`/it/support-tickets/${id}/close`, data),
+  
+  // Systems
+  getSystems: (params = {}) => api.get('/it/systems', { params }),
+  createSystem: (data: any) => api.post('/it/systems', data),
+  
+  // Network Devices
+  getNetworkDevices: (params = {}) => api.get('/it/network-devices', { params }),
+  createNetworkDevice: (data: any) => api.post('/it/network-devices', data),
+  
+  // Maintenance Schedules
+  getMaintenanceSchedules: (params = {}) => api.get('/it/maintenance-schedules', { params }),
+  createMaintenanceSchedule: (data: any) => api.post('/it/maintenance-schedules', data),
+  updateMaintenanceScheduleStatus: (id: string, data: any) => api.put(`/it/maintenance-schedules/${id}/status`, data),
+  
+  // Statistics
+  getStats: () => api.get('/it/stats'),
+};
+
+// Security API
+export const securityAPI = {
+  // Guards
+  getGuards: (params = {}) => api.get('/security/guards', { params }),
+  getGuardById: (id: string) => api.get(`/security/guards/${id}`),
+  createGuard: (data: any) => api.post('/security/guards', data),
+  updateGuard: (id: string, data: any) => api.put(`/security/guards/${id}`, data),
+  
+  // Incidents
+  getIncidents: (params = {}) => api.get('/security/incidents', { params }),
+  getIncidentById: (id: string) => api.get(`/security/incidents/${id}`),
+  createIncident: (data: any) => api.post('/security/incidents', data),
+  updateIncident: (id: string, data: any) => api.put(`/security/incidents/${id}`, data),
+  assignIncident: (id: string, data: any) => api.put(`/security/incidents/${id}/assign`, data),
+  closeIncident: (id: string, data: any) => api.put(`/security/incidents/${id}/close`, data),
+  
+  // Assignments
+  getAssignments: (params = {}) => api.get('/security/assignments', { params }),
+  createAssignment: (data: any) => api.post('/security/assignments', data),
+  updateAssignment: (id: string, data: any) => api.put(`/security/assignments/${id}`, data),
+  updateAssignmentStatus: (id: string, data: any) => api.put(`/security/assignments/${id}/status`, data),
+  
+  // Statistics
+  getStats: () => api.get('/security/stats'),
+};
+
 
 // User API
 export const userAPI = {
@@ -392,6 +611,12 @@ export const warehouseAPI = {
   update: (id: string, data: any) => api.put(`/warehouses/${id}`, data),
   delete: (id: string) => api.delete(`/warehouses/${id}`),
   getStats: () => api.get('/warehouses/test/stats'),
+};
+
+// Audit API
+export const auditAPI = {
+  getLogs: (params: any = {}) => api.get('/audit/logs', { params }),
+  getStats: (params: any = {}) => api.get('/audit/stats', { params }),
 };
 
 export default api;

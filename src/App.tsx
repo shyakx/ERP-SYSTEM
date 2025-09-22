@@ -1,10 +1,12 @@
-import React, { Suspense, lazy, useEffect } from "react";
+import React, { Suspense, lazy, useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import LoadingSpinner from "./components/shared/LoadingSpinner";
 import ErrorBoundary from "./components/shared/ErrorBoundary";
+import { NotificationProvider } from "./components/shared/NotificationSystem";
+import { LayoutProvider } from "./contexts/LayoutContext";
 
 // Lazy load components for better performance
 const AdminDashboard = lazy(() => import("./components/admin/AdminDashboard"));
@@ -17,11 +19,8 @@ const CustomerExperienceDashboard = lazy(() => import("./components/departments/
 const SalesMarketingDashboard = lazy(() => import("./components/departments/sales-marketing/SalesmarketingDashboard"));
 const RiskDashboard = lazy(() => import("./components/departments/risk/RiskDashboard"));
 const RecoveryDashboard = lazy(() => import("./components/departments/recovery/RecoveryDashboard"));
-const InternalMessaging = lazy(() => import("./components/shared/InternalMessaging"));
 const TimeClock = lazy(() => import("./components/shared/TimeClock"));
 const PersonalLeave = lazy(() => import("./components/shared/PersonalLeave"));
-const MessagingTest = lazy(() => import("./pages/MessagingTest"));
-const MessagingFullScreen = lazy(() => import("./pages/MessagingFullScreen"));
 
 // Loading component
 const PageLoader = () => (
@@ -76,6 +75,8 @@ const RoleBasedRoute: React.FC<{
 };
 
 const App: React.FC = () => {
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
   // Add resource management
   useEffect(() => {
     // Add a small delay to prevent resource exhaustion on initial load
@@ -90,6 +91,8 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
     <AuthProvider>
+    <NotificationProvider>
+    <LayoutProvider>
       <Router>
         <Suspense fallback={<PageLoader />}>
           <Routes>
@@ -102,6 +105,7 @@ const App: React.FC = () => {
             <Route path="/admin/overview" element={<RoleBasedRoute allowedRoles={['admin']}><AdminDashboard /></RoleBasedRoute>} />
             <Route path="/admin/departments" element={<RoleBasedRoute allowedRoles={['admin']}><AdminDashboard /></RoleBasedRoute>} />
             <Route path="/admin/users" element={<RoleBasedRoute allowedRoles={['admin']}><AdminDashboard /></RoleBasedRoute>} />
+            <Route path="/admin/audit" element={<RoleBasedRoute allowedRoles={['admin']}><AdminDashboard /></RoleBasedRoute>} />
             <Route path="/admin/reports" element={<RoleBasedRoute allowedRoles={['admin']}><AdminDashboard /></RoleBasedRoute>} />
             <Route path="/admin/analytics" element={<RoleBasedRoute allowedRoles={['admin']}><AdminDashboard /></RoleBasedRoute>} />
             <Route path="/admin/settings" element={<RoleBasedRoute allowedRoles={['admin']}><AdminDashboard /></RoleBasedRoute>} />
@@ -229,10 +233,6 @@ const App: React.FC = () => {
             <Route path="/recovery/forensics" element={<RoleBasedRoute allowedRoles={['admin', 'recovery']}><RecoveryDashboard /></RoleBasedRoute>} />
             <Route path="/recovery/settings" element={<RoleBasedRoute allowedRoles={['admin', 'recovery']}><RecoveryDashboard /></RoleBasedRoute>} />
 
-            {/* Internal Messaging */}
-            <Route path="/messages" element={<ProtectedRoute><InternalMessaging /></ProtectedRoute>} />
-            <Route path="/messages/test" element={<ProtectedRoute><MessagingTest /></ProtectedRoute>} />
-            <Route path="/messages/fullscreen" element={<ProtectedRoute><MessagingFullScreen /></ProtectedRoute>} />
 
             {/* Global User Features */}
             <Route path="/timeclock" element={<ProtectedRoute><TimeClock /></ProtectedRoute>} />
@@ -243,7 +243,11 @@ const App: React.FC = () => {
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </Suspense>
+        
+        {/* Global Chat Interface - Now handled by DepartmentLayout */}
       </Router>
+    </LayoutProvider>
+    </NotificationProvider>
     </AuthProvider>
     </ErrorBoundary>
   );

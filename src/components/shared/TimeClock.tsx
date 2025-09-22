@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, LogIn, LogOut, Calendar, User, MapPin, CheckCircle, AlertCircle, Play, Pause, RotateCcw, TrendingUp, Activity } from 'lucide-react';
+import { Clock, LogIn, LogOut, Calendar, User, MapPin, CheckCircle, AlertCircle, Play, Pause, Activity } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import AnimatedCard from './AnimatedCard';
-import { AnimatedButton } from './AnimatedCard';
 
 interface TimeEntry {
   id: string;
@@ -24,8 +22,6 @@ const TimeClock: React.FC = () => {
   const [location, setLocation] = useState('Kigali Office');
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-  const [isHoveringClock, setIsHoveringClock] = useState(false);
-  const [showTooltip, setShowTooltip] = useState(false);
 
   // Mock data for today's entry
   const mockTodayEntry: TimeEntry = {
@@ -68,7 +64,7 @@ const TimeClock: React.FC = () => {
     
     setTodayEntry(newEntry);
     setIsClockingIn(false);
-    setSuccessMessage('Successfully clocked in! 🎉');
+    setSuccessMessage('Successfully clocked in!');
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
   };
@@ -105,7 +101,7 @@ const TimeClock: React.FC = () => {
     }
     
     setIsClockingOut(false);
-    setSuccessMessage('Successfully clocked out! 👋');
+    setSuccessMessage('Successfully clocked out!');
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 3000);
   };
@@ -151,44 +147,32 @@ const TimeClock: React.FC = () => {
     <div className="max-w-lg mx-auto">
       {/* Success Notification */}
       {showSuccess && (
-        <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right duration-300">
-          <div className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2 border border-green-400">
+        <div className="fixed top-4 right-4 z-50">
+          <div className="bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2 border border-green-700">
             <CheckCircle className="w-5 h-5" />
             <span className="font-medium">{successMessage}</span>
           </div>
         </div>
       )}
 
-      <div className="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 rounded-2xl shadow-xl border border-gray-100/50 backdrop-blur-sm">
+      <div className="bg-white rounded-lg shadow-lg border border-gray-200">
         {/* Header */}
-        <div className="relative p-6 border-b border-gray-100">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-gradient-shift"></div>
-          
+        <div className="p-6 border-b border-gray-200">
           <div className="text-center">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">
               Time Clock
             </h1>
             <p className="text-gray-600 text-sm">
-              Welcome back, {user?.firstName || 'User'}! 👋
+              Welcome back, {user?.firstName || 'User'}!
             </p>
           </div>
         </div>
 
         {/* Current Time Display */}
         <div className="p-6 text-center">
-          <div 
-            className="relative inline-block cursor-pointer"
-            onMouseEnter={() => setIsHoveringClock(true)}
-            onMouseLeave={() => setIsHoveringClock(false)}
-            onClick={() => setShowTooltip(!showTooltip)}
-          >
-            <div className={`absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-xl opacity-20 transition-all duration-300 ${
-              isHoveringClock ? 'animate-pulse-glow' : 'animate-pulse'
-            }`}></div>
-            <div className={`relative bg-white rounded-full p-8 shadow-lg border border-gray-100 transition-all duration-300 ${
-              isHoveringClock ? 'scale-105 shadow-xl' : ''
-            }`}>
-              <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          <div className="relative inline-block">
+            <div className="bg-gray-50 rounded-lg p-8 border border-gray-200">
+              <div className="text-5xl font-bold text-blue-600 mb-2">
                 {currentTime.toLocaleTimeString('en-US', { 
                   hour: '2-digit', 
                   minute: '2-digit',
@@ -205,14 +189,6 @@ const TimeClock: React.FC = () => {
                 })}
               </div>
             </div>
-            
-            {/* Tooltip */}
-            {showTooltip && (
-              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-3 py-1 rounded-lg text-xs whitespace-nowrap z-10">
-                Click to refresh time
-                <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45"></div>
-              </div>
-            )}
           </div>
         </div>
 
@@ -229,7 +205,7 @@ const TimeClock: React.FC = () => {
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
-                  className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-500 ease-out"
+                  className="bg-blue-600 h-2 rounded-full"
                   style={{ width: `${getWorkProgress()}%` }}
                 ></div>
               </div>
@@ -240,10 +216,10 @@ const TimeClock: React.FC = () => {
         {/* Today's Status */}
         {todayEntry && (
           <div className="px-6 mb-6">
-            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 card-hover">
+            <div className="bg-white rounded-lg p-4 border border-gray-200">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-2">
-                  <div className={`p-2 rounded-full ${getStatusColor(todayEntry.status)} transition-all duration-200`}>
+                  <div className={`p-2 rounded-full ${getStatusColor(todayEntry.status)}`}>
                     {getStatusIcon(todayEntry.status)}
                   </div>
                   <div>
@@ -258,7 +234,7 @@ const TimeClock: React.FC = () => {
               </div>
               
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-2">
                     <Play className="w-4 h-4 text-green-600" />
                     <span className="text-sm font-medium text-gray-700">Clock In</span>
@@ -268,7 +244,7 @@ const TimeClock: React.FC = () => {
                   </span>
                 </div>
                 
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-2">
                     <Pause className="w-4 h-4 text-red-600" />
                     <span className="text-sm font-medium text-gray-700">Clock Out</span>
@@ -279,7 +255,7 @@ const TimeClock: React.FC = () => {
                 </div>
                 
                 {todayEntry.clockOut && (
-                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors duration-200">
+                  <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
                     <div className="flex items-center space-x-2">
                       <Clock className="w-4 h-4 text-blue-600" />
                       <span className="text-sm font-medium text-gray-700">Total Hours</span>
@@ -296,7 +272,7 @@ const TimeClock: React.FC = () => {
 
         {/* Location Selection */}
         <div className="px-6 mb-6">
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 card-hover">
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
             <label className="flex items-center space-x-2 text-sm font-semibold text-gray-700 mb-3">
               <MapPin className="w-4 h-4 text-gray-600" />
               <span>Work Location</span>
@@ -304,12 +280,12 @@ const TimeClock: React.FC = () => {
             <select
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 hover:bg-white focus-ring"
+              className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50"
             >
-              <option value="Kigali Office">🏢 Kigali Office</option>
-              <option value="Huye Branch">🏢 Huye Branch</option>
-              <option value="Musanze Branch">🏢 Musanze Branch</option>
-              <option value="Remote">🏠 Remote</option>
+              <option value="Kigali Office">Kigali Office</option>
+              <option value="Huye Branch">Huye Branch</option>
+              <option value="Musanze Branch">Musanze Branch</option>
+              <option value="Remote">Remote</option>
             </select>
           </div>
         </div>
@@ -318,37 +294,37 @@ const TimeClock: React.FC = () => {
         <div className="px-6 mb-6">
           <div className="space-y-3">
             {canClockIn && (
-              <AnimatedButton
+              <button
                 onClick={handleClockIn}
                 disabled={isClockingIn}
-                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-4 px-6 rounded-xl flex items-center justify-center space-x-3 disabled:opacity-50 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 btn-hover"
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-4 px-6 rounded-lg flex items-center justify-center space-x-3 disabled:opacity-50 text-lg font-semibold shadow-md"
               >
                 {isClockingIn ? (
-                  <div className="spinner"></div>
+                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 ) : (
                   <LogIn className="w-6 h-6" />
                 )}
                 <span>{isClockingIn ? 'Clocking In...' : 'Clock In'}</span>
-              </AnimatedButton>
+              </button>
             )}
 
             {canClockOut && (
-              <AnimatedButton
+              <button
                 onClick={handleClockOut}
                 disabled={isClockingOut}
-                className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-4 px-6 rounded-xl flex items-center justify-center space-x-3 disabled:opacity-50 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 btn-hover"
+                className="w-full bg-red-600 hover:bg-red-700 text-white py-4 px-6 rounded-lg flex items-center justify-center space-x-3 disabled:opacity-50 text-lg font-semibold shadow-md"
               >
                 {isClockingOut ? (
-                  <div className="spinner"></div>
+                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 ) : (
                   <LogOut className="w-6 h-6" />
                 )}
                 <span>{isClockingOut ? 'Clocking Out...' : 'Clock Out'}</span>
-              </AnimatedButton>
+              </button>
             )}
 
             {isCompleted && (
-              <div className="text-center py-8 animate-float">
+              <div className="text-center py-8">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
                   <CheckCircle className="w-8 h-8 text-green-600" />
                 </div>
@@ -361,23 +337,23 @@ const TimeClock: React.FC = () => {
 
         {/* Quick Actions */}
         <div className="px-6 pb-6">
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 card-hover">
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
             <h3 className="text-sm font-semibold text-gray-700 mb-3">Quick Actions</h3>
             <div className="grid grid-cols-2 gap-3">
-              <AnimatedButton
+              <button
                 onClick={() => {}}
-                className="flex items-center justify-center space-x-2 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 transition-all duration-200 border border-blue-200 hover:border-blue-300 group btn-hover"
+                className="flex items-center justify-center space-x-2 p-4 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200"
               >
-                <Calendar className="w-5 h-5 text-blue-600 transition-transform duration-200" />
+                <Calendar className="w-5 h-5 text-blue-600" />
                 <span className="text-sm font-medium text-gray-700">View History</span>
-              </AnimatedButton>
-              <AnimatedButton
+              </button>
+              <button
                 onClick={() => {}}
-                className="flex items-center justify-center space-x-2 p-4 rounded-xl bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 transition-all duration-200 border border-purple-200 hover:border-purple-300 group btn-hover"
+                className="flex items-center justify-center space-x-2 p-4 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200"
               >
-                <User className="w-5 h-5 text-purple-600 transition-transform duration-200" />
+                <User className="w-5 h-5 text-gray-600" />
                 <span className="text-sm font-medium text-gray-700">My Profile</span>
-              </AnimatedButton>
+              </button>
             </div>
           </div>
         </div>

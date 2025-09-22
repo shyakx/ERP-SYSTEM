@@ -25,8 +25,9 @@ import {
   ChevronUp
 } from 'lucide-react';
 
-// Import logo image
+// Import logo and background images
 import dicelLogo from '../../assets/images/dicel-logo.png';
+import loginBackground from '../../assets/images/login-background-image.jpg';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -193,76 +194,89 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden relative">
-      {/* Subtle Background Pattern */}
-      <div className="fixed inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"></div>
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:100px_100px]"></div>
-        </div>
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Full Page Background Image with Blur */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat animate-pulse-slow"
+        style={{ 
+          backgroundImage: `url(${loginBackground})`,
+          animation: 'backgroundFloat 20s ease-in-out infinite',
+          filter: 'blur(8px)'
+        }}
+      ></div>
+      
+      {/* Dark Overlay for better text readability */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900/85 via-slate-800/75 to-slate-900/85 animate-fade-in"></div>
+      
+      {/* Subtle floating particles effect */}
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-white rounded-full animate-float-slow"></div>
+        <div className="absolute top-1/3 right-1/3 w-1 h-1 bg-blue-300 rounded-full animate-float-medium"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-1.5 h-1.5 bg-slate-300 rounded-full animate-float-fast"></div>
+        <div className="absolute top-2/3 right-1/4 w-1 h-1 bg-white rounded-full animate-float-slow"></div>
+        <div className="absolute bottom-1/3 right-1/2 w-2 h-2 bg-blue-200 rounded-full animate-float-medium"></div>
       </div>
 
-      <div className="flex min-h-screen">
-        {/* Left Side - Enhanced Corporate Branding */}
-        <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-800"></div>
+      <div className="flex min-h-screen max-w-6xl mx-auto relative z-10">
+        {/* Left Side - Professional Corporate Branding */}
+        <div className="hidden lg:flex lg:w-1/2 relative items-center">
           
-          <div className="relative z-10 flex flex-col justify-center px-16 text-white">
-            <div className="mb-12">
-              {/* Enhanced Logo Container */}
-              <div className="relative mb-8">
-                <div className="w-48 h-48 bg-gradient-to-br from-slate-700 to-slate-600 rounded-xl flex items-center justify-center shadow-xl relative overflow-hidden border border-slate-600">
-                  {/* Subtle inner glow */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
+          <div className="relative z-10 flex flex-col justify-center px-8 text-white w-full">
+            <div className="mb-6">
+              {/* Professional Logo Container with Animation */}
+              <div className="relative mb-4 animate-fade-in">
+                <div className="w-28 h-28 bg-gradient-to-br from-slate-800 to-slate-700 rounded-xl flex items-center justify-center shadow-2xl relative overflow-hidden border border-slate-600 hover:scale-105 transition-transform duration-300">
+                  {/* Professional inner glow */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
                   {/* Logo */}
                   <div className="relative z-10">
-                    <LogoComponent className="w-36 h-36" />
+                    <LogoComponent className="w-20 h-20" />
                   </div>
                 </div>
               </div>
               
-              <h1 className="text-5xl font-bold mb-4 text-white">
+              <h1 className="text-3xl font-bold mb-2 text-white animate-fade-in" style={{ animationDelay: '0.2s' }}>
                 Dicel ERP
               </h1>
-              <p className="text-xl text-slate-300 mb-8 font-medium">
+              <p className="text-base text-slate-300 mb-4 font-medium animate-fade-in" style={{ animationDelay: '0.4s' }}>
                 Enterprise Resource Planning System
               </p>
             </div>
 
-            {/* Enhanced Feature Cards */}
-            <div className="space-y-4">
-              <div className="p-5 bg-gradient-to-r from-slate-700/60 to-slate-600/60 rounded-xl border border-slate-600/50 backdrop-blur-sm">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-600 to-emerald-500 rounded-lg flex items-center justify-center shadow-sm">
-                    <Zap className="w-6 h-6 text-white" />
+            {/* Professional Feature Cards with Animation */}
+            <div className="space-y-2">
+              <div className="p-3 bg-gradient-to-r from-slate-800/80 to-slate-700/80 rounded-lg border border-slate-600/50 backdrop-blur-sm animate-fade-in hover:scale-105 transition-all duration-300" style={{ animationDelay: '0.6s' }}>
+                <div className="flex items-center space-x-3">
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center shadow-sm">
+                    <Zap className="w-3.5 h-3.5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-white text-lg">Powerful Management</h3>
-                    <p className="text-slate-300 text-sm">Complete control over your business operations</p>
+                    <h3 className="font-semibold text-white text-sm">Enterprise Management</h3>
+                    <p className="text-slate-300 text-xs">Complete control over your business operations</p>
                   </div>
                 </div>
               </div>
 
-              <div className="group p-6 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 hover:bg-white/10 transition-all duration-500">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-purple-400 to-purple-500 rounded-xl flex items-center justify-center">
-                  <Users className="w-6 h-6 text-white" />
+              <div className="group p-3 bg-slate-800/60 backdrop-blur-xl rounded-lg border border-slate-600/30 hover:bg-slate-800/80 transition-all duration-300 animate-fade-in hover:scale-105" style={{ animationDelay: '0.8s' }}>
+                <div className="flex items-center space-x-3">
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-r from-slate-600 to-slate-500 flex items-center justify-center">
+                    <Users className="w-3.5 h-3.5 text-white" />
                 </div>
                 <div>
-                    <h3 className="font-semibold text-lg">Global Access</h3>
-                  <p className="text-blue-200 text-sm">Access your data from anywhere in the world</p>
+                    <h3 className="font-semibold text-sm">Global Access</h3>
+                    <p className="text-slate-300 text-xs">Access your data from anywhere in the world</p>
                   </div>
                 </div>
               </div>
 
-              <div className="group p-6 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 hover:bg-white/10 transition-all duration-500">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-blue-500 rounded-xl flex items-center justify-center">
-                  <Users className="w-6 h-6 text-white" />
+              <div className="group p-3 bg-slate-800/60 backdrop-blur-xl rounded-lg border border-slate-600/30 hover:bg-slate-800/80 transition-all duration-300 animate-fade-in hover:scale-105" style={{ animationDelay: '1.0s' }}>
+                <div className="flex items-center space-x-3">
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-r from-slate-600 to-slate-500 flex items-center justify-center">
+                    <Users className="w-3.5 h-3.5 text-white" />
                   </div>
                 <div>
-                    <h3 className="font-semibold text-lg">Team Collaboration</h3>
-                  <p className="text-blue-200 text-sm">Work together seamlessly across departments</p>
+                    <h3 className="font-semibold text-sm">Team Collaboration</h3>
+                    <p className="text-slate-300 text-xs">Work together seamlessly across departments</p>
                   </div>
                 </div>
               </div>
@@ -271,44 +285,44 @@ const Login: React.FC = () => {
         </div>
 
         {/* Right Side - Enhanced Login Form */}
-        <div className="flex-1 flex items-center justify-center p-8">
-          <div className="w-full max-w-md">
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="w-full max-w-sm">
             {/* Mobile Logo */}
-            <div className="lg:hidden text-center mb-8">
-              <div className="w-48 h-48 bg-gradient-to-br from-slate-700 to-slate-600 rounded-xl flex items-center justify-center shadow-xl mx-auto mb-6 border border-slate-600">
+            <div className="lg:hidden text-center mb-4">
+              <div className="w-24 h-24 bg-gradient-to-br from-slate-800 to-slate-700 rounded-xl flex items-center justify-center shadow-2xl mx-auto mb-3 border border-slate-600">
                 <div className="relative z-10">
-                  <LogoComponent className="w-36 h-36" />
+                  <LogoComponent className="w-16 h-16" />
                 </div>
               </div>
-              <h2 className="text-3xl font-bold text-white mb-2">Dicel ERP</h2>
-              <p className="text-slate-300 font-medium">Sign in to your account</p>
+              <h2 className="text-xl font-bold text-white mb-1">Dicel ERP</h2>
+              <p className="text-slate-300 text-sm">Sign in to your account</p>
             </div>
 
-            {/* Enhanced Login Form */}
-            <div className="bg-white rounded-xl shadow-xl p-8 border border-gray-200">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-900 mb-3">Welcome Back</h2>
-                <p className="text-gray-600 text-lg">Sign in to continue to your dashboard</p>
+            {/* Professional Login Form */}
+            <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl p-5 border border-white/20">
+              <div className="text-center mb-4">
+                <h2 className="text-xl font-bold text-slate-900 mb-1">Welcome Back</h2>
+                <p className="text-slate-600 text-sm">Sign in to continue to your dashboard</p>
               </div>
 
-              <form className="space-y-6" onSubmit={handleSubmit}>
+              <form className="space-y-3" onSubmit={handleSubmit}>
                 {error && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                     <div className="flex items-center">
-                      <AlertCircle className="w-5 h-5 text-red-500 mr-3" />
-                      <span className="text-sm text-red-700 font-medium">{error}</span>
+                      <AlertCircle className="w-4 h-4 text-red-500 mr-2" />
+                      <span className="text-xs text-red-700 font-medium">{error}</span>
                     </div>
                   </div>
                 )}
 
                 {/* Email Field */}
-                <div className="space-y-2">
-                  <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
+                <div className="space-y-1">
+                  <label htmlFor="email" className="block text-xs font-semibold text-slate-700">
                     Email Address
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <Mail className="h-5 w-5 text-gray-400" />
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Mail className="h-4 w-4 text-slate-400" />
                     </div>
                     <input
                       id="email"
@@ -318,20 +332,20 @@ const Login: React.FC = () => {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors hover:border-gray-400"
+                      className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-colors hover:border-slate-400"
                       placeholder="Enter your email"
                     />
                   </div>
                 </div>
 
                 {/* Password Field */}
-                <div className="space-y-2">
-                  <label htmlFor="password" className="block text-sm font-semibold text-gray-700">
+                <div className="space-y-1">
+                  <label htmlFor="password" className="block text-xs font-semibold text-slate-700">
                     Password
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <Lock className="h-5 w-5 text-gray-400" />
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Lock className="h-4 w-4 text-slate-400" />
                     </div>
                     <input
                       id="password"
@@ -341,18 +355,18 @@ const Login: React.FC = () => {
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-12 pr-12 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors hover:border-gray-400"
+                      className="w-full pl-10 pr-10 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-colors hover:border-slate-400"
                       placeholder="Enter your password"
                     />
                     <button
                       type="button"
-                      className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? (
-                        <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-500" />
+                        <EyeOff className="h-4 w-4 text-slate-400 hover:text-slate-500" />
                       ) : (
-                        <Eye className="h-5 w-5 text-gray-400 hover:text-gray-500" />
+                        <Eye className="h-4 w-4 text-slate-400 hover:text-slate-500" />
                       )}
                     </button>
                   </div>
@@ -365,14 +379,14 @@ const Login: React.FC = () => {
                       id="remember-me"
                       name="remember-me"
                       type="checkbox"
-                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded bg-white/10"
+                      className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-slate-300 rounded"
                     />
-                    <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-300">
+                    <label htmlFor="remember-me" className="ml-2 block text-xs text-slate-600">
                       Remember me
                     </label>
                   </div>
-                  <div className="text-sm">
-                    <a href="#" className="font-medium text-blue-400 hover:text-blue-300 transition-colors">
+                  <div className="text-xs">
+                    <a href="#" className="font-medium text-blue-600 hover:text-blue-700 transition-colors">
                       Forgot password?
                     </a>
                   </div>
@@ -383,7 +397,7 @@ const Login: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full flex justify-center py-4 px-6 border border-transparent text-base font-semibold rounded-lg text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm bg-blue-600 hover:bg-blue-700 shadow-blue-200"
+                    className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-lg text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg bg-blue-600 hover:bg-blue-700"
                   >
                     {isLoading ? (
                       <div className="flex items-center">
@@ -392,7 +406,7 @@ const Login: React.FC = () => {
                       </div>
                     ) : (
                       <div className="flex items-center">
-                        <Shield className="w-5 h-5 mr-2" />
+                        <Shield className="w-4 h-4 mr-2" />
                         Sign in
                       </div>
                     )}
@@ -400,20 +414,20 @@ const Login: React.FC = () => {
                 </div>
               </form>
 
-              {/* Enhanced Divider */}
-              <div className="mt-8">
+              {/* Professional Divider */}
+              <div className="mt-4">
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300" />
+                    <div className="w-full border-t border-slate-300" />
                   </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-6 bg-white text-gray-600 font-medium">Quick Demo Access</span>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="px-3 bg-white text-slate-600 font-medium">Quick Demo Access</span>
                   </div>
                 </div>
               </div>
 
               {/* Enhanced Demo Buttons */}
-              <div className="mt-6 space-y-3">
+              <div className="mt-3 space-y-1">
                 {/* Management */}
                 {managementDepartments.map((demo, index) => {
                   const Icon = demo.icon;
@@ -421,18 +435,18 @@ const Login: React.FC = () => {
                     <button
                       key={demo.id}
                       onClick={() => handleDemoLogin(demo)}
-                      className="w-full flex items-center justify-between px-5 py-4 border border-gray-200 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-900 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
+                      className="w-full flex items-center justify-between px-3 py-2 border border-slate-200 rounded-lg shadow-sm bg-white text-xs font-medium text-slate-900 hover:bg-slate-50 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 transition-all duration-200"
                     >
                       <div className="flex items-center">
-                        <div className={`w-10 h-10 rounded-lg ${demo.color} flex items-center justify-center mr-4 shadow-sm`}>
-                          <Icon className="w-5 h-5 text-white" />
+                        <div className={`w-6 h-6 rounded-lg ${demo.color} flex items-center justify-center mr-2 shadow-sm`}>
+                          <Icon className="w-3 h-3 text-white" />
                         </div>
                         <div className="text-left">
-                          <div className="font-semibold text-gray-900">{demo.name}</div>
-                          <div className="text-xs text-gray-500">{demo.description}</div>
+                          <div className="font-semibold text-slate-900 text-xs">{demo.name}</div>
+                          <div className="text-xs text-slate-500">{demo.description}</div>
                         </div>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-gray-400" />
+                      <ArrowRight className="w-3 h-3 text-slate-400" />
                     </button>
                   );
                 })}
@@ -444,18 +458,18 @@ const Login: React.FC = () => {
                     <button
                       key={demo.id}
                       onClick={() => handleDemoLogin(demo)}
-                      className="w-full flex items-center justify-between px-5 py-4 border border-gray-200 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-900 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
+                      className="w-full flex items-center justify-between px-3 py-2 border border-slate-200 rounded-lg shadow-sm bg-white text-xs font-medium text-slate-900 hover:bg-slate-50 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 transition-all duration-200"
                     >
                       <div className="flex items-center">
-                        <div className={`w-10 h-10 rounded-lg ${demo.color} flex items-center justify-center mr-4 shadow-sm`}>
-                          <Icon className="w-5 h-5 text-white" />
+                        <div className={`w-6 h-6 rounded-lg ${demo.color} flex items-center justify-center mr-2 shadow-sm`}>
+                          <Icon className="w-3 h-3 text-white" />
                         </div>
                         <div className="text-left">
-                          <div className="font-semibold text-gray-900">{demo.name}</div>
-                          <div className="text-xs text-gray-500">{demo.description}</div>
+                          <div className="font-semibold text-slate-900 text-xs">{demo.name}</div>
+                          <div className="text-xs text-slate-500">{demo.description}</div>
                         </div>
                       </div>
-                      <ArrowRight className="w-4 h-4 text-gray-400" />
+                      <ArrowRight className="w-3 h-3 text-slate-400" />
                     </button>
                   );
                 })}
@@ -464,17 +478,17 @@ const Login: React.FC = () => {
                 {!showAllDemos && (
                   <button
                     onClick={() => setShowAllDemos(true)}
-                    className="w-full flex items-center justify-center px-5 py-4 border border-gray-200 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-900 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-200"
+                    className="w-full flex items-center justify-center px-3 py-2 border border-slate-200 rounded-lg shadow-sm bg-white text-xs font-medium text-slate-900 hover:bg-slate-50 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 transition-all duration-200"
                   >
-                    <Sparkles className="w-5 h-5 mr-3 text-emerald-600" />
+                    <Sparkles className="w-3 h-3 mr-1 text-blue-600" />
                     Show All Departments
-                    <span className="ml-3 text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-medium">+9 more</span>
+                    <span className="ml-1 text-xs bg-blue-100 text-blue-700 px-1 py-0.5 rounded-full font-medium">+9 more</span>
                   </button>
                 )}
 
                 {/* All Departments (when expanded) */}
                 {showAllDemos && (
-                  <div className="space-y-3">
+                  <div className="space-y-1">
                     {/* Core Departments (remaining) */}
                     {coreDepartments.slice(2).map((demo, index) => {
                       const Icon = demo.icon;
@@ -482,18 +496,18 @@ const Login: React.FC = () => {
                         <button
                           key={demo.id}
                           onClick={() => handleDemoLogin(demo)}
-                          className="w-full flex items-center justify-between px-5 py-4 border border-gray-200 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-900 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
+                          className="w-full flex items-center justify-between px-3 py-2 border border-slate-200 rounded-lg shadow-sm bg-white text-xs font-medium text-slate-900 hover:bg-slate-50 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 transition-all duration-200"
                         >
                           <div className="flex items-center">
-                            <div className={`w-10 h-10 rounded-lg ${demo.color} flex items-center justify-center mr-4 shadow-sm`}>
-                              <Icon className="w-5 h-5 text-white" />
+                            <div className={`w-6 h-6 rounded-lg ${demo.color} flex items-center justify-center mr-2 shadow-sm`}>
+                              <Icon className="w-3 h-3 text-white" />
                             </div>
                             <div className="text-left">
-                              <div className="font-semibold text-gray-900">{demo.name}</div>
+                              <div className="font-semibold text-gray-900 text-xs">{demo.name}</div>
                               <div className="text-xs text-gray-500">{demo.description}</div>
                             </div>
                           </div>
-                          <ArrowRight className="w-4 h-4 text-gray-400" />
+                          <ArrowRight className="w-3 h-3 text-slate-400" />
                         </button>
                       );
                     })}
@@ -505,18 +519,18 @@ const Login: React.FC = () => {
                         <button
                           key={demo.id}
                           onClick={() => handleDemoLogin(demo)}
-                          className="w-full flex items-center justify-between px-5 py-4 border border-gray-200 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-900 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all duration-200"
+                          className="w-full flex items-center justify-between px-3 py-2 border border-slate-200 rounded-lg shadow-sm bg-white text-xs font-medium text-slate-900 hover:bg-slate-50 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 transition-all duration-200"
                         >
                           <div className="flex items-center">
-                            <div className={`w-10 h-10 rounded-lg ${demo.color} flex items-center justify-center mr-4 shadow-sm`}>
-                              <Icon className="w-5 h-5 text-white" />
+                            <div className={`w-6 h-6 rounded-lg ${demo.color} flex items-center justify-center mr-2 shadow-sm`}>
+                              <Icon className="w-3 h-3 text-white" />
                             </div>
                             <div className="text-left">
-                              <div className="font-semibold text-gray-900">{demo.name}</div>
+                              <div className="font-semibold text-gray-900 text-xs">{demo.name}</div>
                               <div className="text-xs text-gray-500">{demo.description}</div>
                             </div>
                           </div>
-                          <ArrowRight className="w-4 h-4 text-gray-400" />
+                          <ArrowRight className="w-3 h-3 text-slate-400" />
                         </button>
                       );
                     })}
@@ -524,9 +538,9 @@ const Login: React.FC = () => {
                     {/* Enhanced Hide Button */}
                     <button
                       onClick={() => setShowAllDemos(false)}
-                      className="w-full flex items-center justify-center px-5 py-4 border border-gray-200 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-all duration-200"
+                      className="w-full flex items-center justify-center px-3 py-2 border border-slate-200 rounded-lg shadow-sm bg-white text-xs font-medium text-slate-500 hover:bg-slate-50 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-all duration-200"
                     >
-                      <ChevronUp className="w-5 h-5 mr-3" />
+                      <ChevronUp className="w-3 h-3 mr-1" />
                       Hide Departments
                     </button>
                   </div>
@@ -534,15 +548,15 @@ const Login: React.FC = () => {
               </div>
             </div>
 
-            {/* Enhanced Footer */}
-            <div className="text-center mt-8">
-              <p className="text-sm text-gray-600">
+            {/* Professional Footer */}
+            <div className="text-center mt-4">
+              <p className="text-xs text-slate-600">
                 Don't have an account?{' '}
                 <Link to="/register" className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
                   Sign up
                 </Link>
               </p>
-              <p className="mt-3 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-slate-500">
                 © 2024 Dicel Security Company. All rights reserved.
               </p>
             </div>
