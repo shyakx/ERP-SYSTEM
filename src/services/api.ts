@@ -726,14 +726,47 @@ const generateMockStats = () => ({
   growth: (Math.random() * 20 - 10).toFixed(1) + '%'
 });
 
-const generateMockList = (count: number = 10) => {
+// Realistic employee names for demo
+const employeeNames = [
+  'Jean Ndayisaba', 'Claudine Uwimana', 'Pierre Nkurunziza', 'Marie Mukamana', 'Paul Kagame',
+  'Grace Uwase', 'David Nkurunziza', 'Alice Mukamana', 'John Ndayisaba', 'Sarah Uwimana',
+  'Peter Kagame', 'Ruth Mukamana', 'Joseph Nkurunziza', 'Esther Uwase', 'Daniel Ndayisaba',
+  'Hannah Uwimana', 'Samuel Kagame', 'Rebecca Mukamana', 'Isaac Nkurunziza', 'Miriam Uwase'
+];
+
+const positions = [
+  'Software Engineer', 'HR Manager', 'Finance Director', 'Sales Representative', 'Operations Manager',
+  'IT Support Specialist', 'Marketing Coordinator', 'Project Manager', 'Accountant', 'Security Guard',
+  'Customer Service Rep', 'Data Analyst', 'Business Analyst', 'Quality Assurance', 'Network Administrator'
+];
+
+const departments = ['HR', 'Finance', 'IT', 'Sales', 'Operations', 'Security', 'Marketing', 'Administration'];
+
+const generateMockEmployee = (id: number) => ({
+  id: id,
+  name: employeeNames[id % employeeNames.length],
+  email: `${employeeNames[id % employeeNames.length].toLowerCase().replace(' ', '.')}@dicel.co.rw`,
+  position: positions[id % positions.length],
+  department: departments[id % departments.length],
+  status: ['active', 'pending', 'on-leave'][Math.floor(Math.random() * 3)],
+  phone: `+250 ${Math.floor(Math.random() * 900) + 100} ${Math.floor(Math.random() * 900) + 100} ${Math.floor(Math.random() * 900) + 100}`,
+  hireDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+  salary: Math.floor(Math.random() * 5000000) + 500000,
+  avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(employeeNames[id % employeeNames.length])}&background=random`
+});
+
+const generateMockList = (count: number = 10, type: string = 'generic') => {
+  if (type === 'employee') {
+    return Array.from({ length: count }, (_, i) => generateMockEmployee(i + 1));
+  }
+  
   return Array.from({ length: count }, (_, i) => ({
     id: i + 1,
     name: `Demo Item ${i + 1}`,
     status: ['active', 'pending', 'completed'][Math.floor(Math.random() * 3)],
     date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     amount: Math.floor(Math.random() * 10000) + 1000,
-    department: ['HR', 'Finance', 'IT', 'Sales', 'Operations'][Math.floor(Math.random() * 5)]
+    department: departments[Math.floor(Math.random() * departments.length)]
   }));
 };
 
@@ -748,6 +781,30 @@ const generateMockDashboard = () => ({
     users: Array.from({ length: 7 }, (_, i) => ({
       day: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i],
       value: Math.floor(Math.random() * 100) + 20
+    }))
+  }
+});
+
+const generateHRDashboard = () => ({
+  stats: {
+    totalEmployees: 150,
+    activeEmployees: 142,
+    onLeave: 8,
+    newHires: 12,
+    totalDepartments: 8,
+    averageSalary: 2500000,
+    turnoverRate: 5.2,
+    satisfactionScore: 4.3
+  },
+  recentActivity: generateMockList(5, 'employee'),
+  charts: {
+    employeesByDepartment: departments.map(dept => ({
+      department: dept,
+      count: Math.floor(Math.random() * 30) + 10
+    })),
+    monthlyHires: Array.from({ length: 12 }, (_, i) => ({
+      month: new Date(2024, i).toLocaleDateString('en-US', { month: 'short' }),
+      hires: Math.floor(Math.random() * 10) + 1
     }))
   }
 });
@@ -770,10 +827,10 @@ const mockAPI = {
   }),
 
   // HR APIs
-  hrStats: () => Promise.resolve({ data: generateMockDashboard() }),
+  hrStats: () => Promise.resolve({ data: generateHRDashboard() }),
   employees: (params: any = {}) => Promise.resolve({ 
     data: { 
-      employees: generateMockList(20),
+      employees: generateMockList(20, 'employee'),
       total: 150,
       page: params.page || 1,
       limit: params.limit || 10
@@ -781,7 +838,13 @@ const mockAPI = {
   }),
   jobPostings: (params: any = {}) => Promise.resolve({ 
     data: { 
-      jobPostings: generateMockList(15),
+      jobPostings: [
+        { id: 1, title: 'Senior Software Engineer', department: 'IT', location: 'Kigali', status: 'active', applicants: 25, postedDate: '2024-09-15' },
+        { id: 2, title: 'HR Manager', department: 'HR', location: 'Kigali', status: 'active', applicants: 18, postedDate: '2024-09-10' },
+        { id: 3, title: 'Finance Analyst', department: 'Finance', location: 'Kigali', status: 'closed', applicants: 32, postedDate: '2024-09-05' },
+        { id: 4, title: 'Sales Representative', department: 'Sales', location: 'Kigali', status: 'active', applicants: 15, postedDate: '2024-09-12' },
+        { id: 5, title: 'Operations Manager', department: 'Operations', location: 'Kigali', status: 'active', applicants: 22, postedDate: '2024-09-08' }
+      ],
       total: 45,
       page: params.page || 1,
       limit: params.limit || 10
@@ -789,7 +852,13 @@ const mockAPI = {
   }),
   candidates: (params: any = {}) => Promise.resolve({ 
     data: { 
-      candidates: generateMockList(25),
+      candidates: [
+        { id: 1, name: 'Alice Mukamana', position: 'Software Engineer', status: 'interviewed', experience: '3 years', appliedDate: '2024-09-15' },
+        { id: 2, name: 'David Nkurunziza', position: 'HR Manager', status: 'shortlisted', experience: '5 years', appliedDate: '2024-09-12' },
+        { id: 3, name: 'Ruth Mukamana', position: 'Finance Analyst', status: 'hired', experience: '2 years', appliedDate: '2024-09-10' },
+        { id: 4, name: 'Samuel Kagame', position: 'Sales Rep', status: 'pending', experience: '1 year', appliedDate: '2024-09-14' },
+        { id: 5, name: 'Esther Uwase', position: 'Operations Manager', status: 'rejected', experience: '4 years', appliedDate: '2024-09-08' }
+      ],
       total: 120,
       page: params.page || 1,
       limit: params.limit || 10
@@ -797,7 +866,13 @@ const mockAPI = {
   }),
   training: (params: any = {}) => Promise.resolve({ 
     data: { 
-      enrollments: generateMockList(18),
+      enrollments: [
+        { id: 1, employeeName: 'Jean Ndayisaba', courseName: 'Leadership Development', status: 'completed', progress: 100, enrolledDate: '2024-09-01' },
+        { id: 2, employeeName: 'Claudine Uwimana', courseName: 'Project Management', status: 'in-progress', progress: 65, enrolledDate: '2024-09-05' },
+        { id: 3, employeeName: 'Pierre Nkurunziza', courseName: 'Financial Analysis', status: 'enrolled', progress: 0, enrolledDate: '2024-09-10' },
+        { id: 4, employeeName: 'Marie Mukamana', courseName: 'Customer Service Excellence', status: 'completed', progress: 100, enrolledDate: '2024-08-15' },
+        { id: 5, employeeName: 'Paul Kagame', courseName: 'Digital Marketing', status: 'in-progress', progress: 40, enrolledDate: '2024-09-08' }
+      ],
       total: 85,
       page: params.page || 1,
       limit: params.limit || 10
@@ -805,7 +880,13 @@ const mockAPI = {
   }),
   payroll: (params: any = {}) => Promise.resolve({ 
     data: { 
-      payroll: generateMockList(30),
+      payroll: [
+        { id: 1, employeeName: 'Jean Ndayisaba', position: 'Software Engineer', basicSalary: 2500000, allowances: 500000, deductions: 200000, netSalary: 2800000, status: 'paid' },
+        { id: 2, employeeName: 'Claudine Uwimana', position: 'HR Manager', basicSalary: 3000000, allowances: 600000, deductions: 250000, netSalary: 3350000, status: 'paid' },
+        { id: 3, employeeName: 'Pierre Nkurunziza', position: 'Finance Director', basicSalary: 4000000, allowances: 800000, deductions: 350000, netSalary: 4450000, status: 'pending' },
+        { id: 4, employeeName: 'Marie Mukamana', position: 'Sales Rep', basicSalary: 2000000, allowances: 300000, deductions: 150000, netSalary: 2150000, status: 'paid' },
+        { id: 5, employeeName: 'Paul Kagame', position: 'Operations Manager', basicSalary: 3500000, allowances: 700000, deductions: 300000, netSalary: 3900000, status: 'paid' }
+      ],
       total: 200,
       page: params.page || 1,
       limit: params.limit || 10
@@ -813,7 +894,13 @@ const mockAPI = {
   }),
   performance: (params: any = {}) => Promise.resolve({ 
     data: { 
-      reviews: generateMockList(12),
+      reviews: [
+        { id: 1, employeeName: 'Jean Ndayisaba', position: 'Software Engineer', rating: 4.5, goals: 8, achievements: 7, status: 'completed', reviewDate: '2024-09-15' },
+        { id: 2, employeeName: 'Claudine Uwimana', position: 'HR Manager', rating: 4.8, goals: 9, achievements: 8, status: 'completed', reviewDate: '2024-09-10' },
+        { id: 3, employeeName: 'Pierre Nkurunziza', position: 'Finance Director', rating: 4.2, goals: 7, achievements: 6, status: 'in-progress', reviewDate: '2024-09-20' },
+        { id: 4, employeeName: 'Marie Mukamana', position: 'Sales Rep', rating: 4.6, goals: 8, achievements: 7, status: 'completed', reviewDate: '2024-09-12' },
+        { id: 5, employeeName: 'Paul Kagame', position: 'Operations Manager', rating: 4.3, goals: 7, achievements: 6, status: 'pending', reviewDate: '2024-09-25' }
+      ],
       total: 75,
       page: params.page || 1,
       limit: params.limit || 10
@@ -821,7 +908,13 @@ const mockAPI = {
   }),
   leave: (params: any = {}) => Promise.resolve({ 
     data: { 
-      requests: generateMockList(22),
+      requests: [
+        { id: 1, employeeName: 'Jean Ndayisaba', leaveType: 'Annual Leave', startDate: '2024-10-01', endDate: '2024-10-05', days: 5, status: 'approved', reason: 'Family vacation' },
+        { id: 2, employeeName: 'Claudine Uwimana', leaveType: 'Sick Leave', startDate: '2024-09-20', endDate: '2024-09-22', days: 3, status: 'approved', reason: 'Medical appointment' },
+        { id: 3, employeeName: 'Pierre Nkurunziza', leaveType: 'Emergency Leave', startDate: '2024-09-25', endDate: '2024-09-26', days: 2, status: 'pending', reason: 'Family emergency' },
+        { id: 4, employeeName: 'Marie Mukamana', leaveType: 'Maternity Leave', startDate: '2024-11-01', endDate: '2025-01-30', days: 90, status: 'approved', reason: 'Maternity leave' },
+        { id: 5, employeeName: 'Paul Kagame', leaveType: 'Study Leave', startDate: '2024-10-15', endDate: '2024-10-17', days: 3, status: 'pending', reason: 'Professional development course' }
+      ],
       total: 95,
       page: params.page || 1,
       limit: params.limit || 10
@@ -1001,6 +1094,34 @@ const mockAPI = {
       page: params.page || 1,
       limit: params.limit || 10
     }
+  }),
+
+  // Additional specific endpoints
+  trainingCourses: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      courses: [
+        { id: 1, name: 'Leadership Development', instructor: 'Dr. Sarah Uwimana', duration: '5 days', status: 'active', enrolled: 25 },
+        { id: 2, name: 'Project Management', instructor: 'Jean Ndayisaba', duration: '3 days', status: 'active', enrolled: 18 },
+        { id: 3, name: 'Financial Analysis', instructor: 'Marie Mukamana', duration: '4 days', status: 'completed', enrolled: 12 },
+        { id: 4, name: 'Customer Service Excellence', instructor: 'Paul Kagame', duration: '2 days', status: 'active', enrolled: 30 },
+        { id: 5, name: 'Digital Marketing', instructor: 'Grace Uwase', duration: '3 days', status: 'upcoming', enrolled: 15 }
+      ],
+      total: 30,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+  leaveTypes: () => Promise.resolve({ 
+    data: { 
+      types: [
+        { id: 1, name: 'Annual Leave', days: 21, description: 'Paid annual vacation leave' },
+        { id: 2, name: 'Sick Leave', days: 10, description: 'Medical leave for illness' },
+        { id: 3, name: 'Maternity Leave', days: 90, description: 'Maternity leave for new mothers' },
+        { id: 4, name: 'Paternity Leave', days: 14, description: 'Paternity leave for new fathers' },
+        { id: 5, name: 'Emergency Leave', days: 5, description: 'Emergency personal leave' },
+        { id: 6, name: 'Study Leave', days: 7, description: 'Leave for educational purposes' }
+      ]
+    }
   })
 };
 
@@ -1015,47 +1136,79 @@ if (DEMO_MODE) {
   jobPostingAPI.getAll = mockAPI.jobPostings;
   candidateAPI.getAll = mockAPI.candidates;
   trainingAPI.getAll = mockAPI.training;
+  trainingAPI.getStats = mockAPI.training;
+  trainingAPI.getAllCourses = mockAPI.trainingCourses;
+  trainingAPI.getAllEnrollments = mockAPI.training;
   payrollAPI.getAll = mockAPI.payroll;
   performanceAPI.getAll = mockAPI.performance;
   leaveAPI.getAll = mockAPI.leave;
+  leaveAPI.getStats = mockAPI.leave;
+  leaveAPI.getAllTypes = mockAPI.leaveTypes;
+  leaveAPI.getAllRequests = mockAPI.leave;
   attendanceAPI.getAll = mockAPI.attendance;
+  attendanceAPI.getStats = mockAPI.attendance;
   benefitsAPI.getAll = mockAPI.benefits;
   benefitsAPI.getStats = mockAPI.benefits;
   complianceAPI.getAll = mockAPI.compliance;
+  complianceAPI.getStats = mockAPI.compliance;
 
   // Override Finance APIs
   financeAPI.getStats = mockAPI.financeStats;
   invoiceAPI.getAll = mockAPI.invoices;
+  invoiceAPI.getStats = mockAPI.invoices;
   transactionAPI.getAll = mockAPI.transactions;
+  transactionAPI.getStats = mockAPI.transactions;
   budgetAPI.getAll = mockAPI.budgets;
+  budgetAPI.getStats = mockAPI.budgets;
 
   // Override Sales APIs
   salesAPI.getStats = mockAPI.salesStats;
   leadAPI.getAll = mockAPI.leads;
+  leadAPI.getStats = mockAPI.leads;
   opportunityAPI.getAll = mockAPI.opportunities;
+  opportunityAPI.getStats = mockAPI.opportunities;
   quoteAPI.getAll = mockAPI.quotes;
+  quoteAPI.getStats = mockAPI.quotes;
 
   // Override Operations APIs
   operationsAPI.getStats = mockAPI.operationsStats;
   projectAPI.getAll = mockAPI.projects;
-  inventoryAPI.getAll = mockAPI.inventory;
+  projectAPI.getStats = mockAPI.projects;
+  inventoryItemAPI.getAll = mockAPI.inventory;
+  inventoryItemAPI.getStats = mockAPI.inventory;
   supplierAPI.getAll = mockAPI.suppliers;
+  supplierAPI.getStats = mockAPI.suppliers;
 
   // Override IT APIs
   itAPI.getStats = mockAPI.itStats;
   supportTicketAPI.getAll = mockAPI.tickets;
+  supportTicketAPI.getStats = mockAPI.tickets;
   itAssetAPI.getAll = mockAPI.assets;
+  itAssetAPI.getStats = mockAPI.assets;
 
   // Override Security APIs
   securityAPI.getStats = mockAPI.securityStats;
   securityGuardAPI.getAll = mockAPI.guards;
+  securityGuardAPI.getStats = mockAPI.guards;
   securityIncidentAPI.getAll = mockAPI.incidents;
+  securityIncidentAPI.getStats = mockAPI.incidents;
 
   // Override Chat API
   chatAPI.getConversations = mockAPI.conversations;
 
   // Override Reports API
   reportAPI.getAll = mockAPI.reports;
+  reportAPI.getStats = mockAPI.reports;
+  reportsAPI.getAll = mockAPI.reports;
+  reportsAPI.getStats = mockAPI.reports;
+
+  // Override Settings API
+  settingsAPI.getAll = mockAPI.reports;
+  settingsAPI.getStats = mockAPI.reports;
+
+  // Override Audit API
+  auditAPI.getLogs = mockAPI.reports;
+  auditAPI.getStats = mockAPI.reports;
 
   console.log('🎭 DEMO MODE ENABLED - Using mock data for all API calls');
 }
