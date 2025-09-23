@@ -43,16 +43,16 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dicel-erp-secret-key-2024';
 
 // Security middleware
 app.use(helmet());
-app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL || 'http://localhost:3000',
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://dicel-erp.vercel.app',
-    'https://dicel-dmadnu6t7-steven-shyakas-projects.vercel.app'
-  ],
-  credentials: true
-}));
+// CORS configuration - temporarily allowing all origins for testing
+const corsOptions = {
+  origin: true, // Allow all origins temporarily
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 
 // Rate limiting
 const limiter = rateLimit({
