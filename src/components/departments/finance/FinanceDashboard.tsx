@@ -11,7 +11,28 @@ import {
   DollarSign, 
   BarChart3,
   Receipt,
-  Zap
+  Zap,
+  TrendingUp,
+  TrendingDown,
+  CreditCard,
+  Home,
+  Eye,
+  FileText,
+  ArrowUpDown,
+  Calculator,
+  PieChart,
+  PiggyBank,
+  Receipt as ReceiptIcon,
+  Target,
+  LayoutDashboard,
+  Building2,
+  HandCoins,
+  Scale,
+  Wallet,
+  Banknote,
+  Coins,
+  TrendingUp as TrendingUpIcon,
+  BarChart
 } from 'lucide-react';
 
 // Finance Department Pages
@@ -43,6 +64,37 @@ interface Account {
   currentBalance: number;
   currency: string;
 }
+
+// Icon mapping function
+const getIconComponent = (iconName: string) => {
+  const iconMap: { [key: string]: React.ComponentType<any> } = {
+    'dollar-sign': DollarSign,
+    'trending-up': TrendingUp,
+    'trending-down': TrendingDown,
+    'credit-card': CreditCard,
+    'receipt': ReceiptIcon,
+    'bar-chart': BarChart3,
+    'home': Home,
+    'eye': Eye,
+    'file-text': FileText,
+    'arrow-up-down': ArrowUpDown,
+    'calculator': Calculator,
+    'pie-chart': PieChart,
+    'piggy-bank': PiggyBank,
+    'target': Target,
+    'layout-dashboard': LayoutDashboard,
+    'building2': Building2,
+    'hand-coins': HandCoins,
+    'scale': Scale,
+    'wallet': Wallet,
+    'banknote': Banknote,
+    'coins': Coins,
+    'trending-up-icon': TrendingUpIcon,
+    'bar-chart-alt': BarChart
+  };
+  
+  return iconMap[iconName] || DollarSign; // Default fallback
+};
 
 const FinanceDashboard: React.FC = () => {
   const colorScheme = getColorScheme('finance');
@@ -109,7 +161,7 @@ const FinanceDashboard: React.FC = () => {
           value: formatCurrency(apiStats.totalReceivables || 0), 
           subtitle: 'Outstanding', 
           color: 'orange', 
-          icon: '💳', 
+          icon: 'credit-card', 
           trend: { value: '-5%', isPositive: true }, 
           delay: 300 
         }
@@ -205,7 +257,7 @@ const FinanceDashboard: React.FC = () => {
             value: formatCurrency(totalCashFlow), 
             subtitle: 'Available', 
             color: 'orange', 
-            icon: '💳', 
+            icon: 'credit-card', 
             trend: { value: '+5%', isPositive: true }, 
             delay: 300 
           }
@@ -246,16 +298,16 @@ const FinanceDashboard: React.FC = () => {
   };
 
   const sidebarItems = [
-    { name: 'Dashboard', path: '/finance', icon: 'H' },
-    { name: 'Overview', path: '/finance/overview', icon: 'O' },
-    { name: 'Payable', path: '/finance/payable', icon: 'P' },
-    { name: 'Receivable', path: '/finance/receivable', icon: 'R' },
-    { name: 'Tax Management', path: '/finance/tax', icon: 'T' },
-    { name: 'Budgeting', path: '/finance/budgeting', icon: 'B' },
-    { name: 'Reports', path: '/finance/reports', icon: 'R' },
-    { name: 'Cash Management', path: '/finance/cash', icon: 'C' },
-    { name: 'Expenses', path: '/finance/expenses', icon: 'E' },
-    { name: 'Financial Planning', path: '/finance/planning', icon: 'F' }
+    { name: 'Dashboard', path: '/finance', icon: Home },
+    { name: 'Overview', path: '/finance/overview', icon: Eye },
+    { name: 'Payable', path: '/finance/payable', icon: HandCoins },
+    { name: 'Receivable', path: '/finance/receivable', icon: Wallet },
+    { name: 'Tax Management', path: '/finance/tax', icon: Calculator },
+    { name: 'Budgeting', path: '/finance/budgeting', icon: PieChart },
+    { name: 'Reports', path: '/finance/reports', icon: FileText },
+    { name: 'Cash Management', path: '/finance/cash', icon: Banknote },
+    { name: 'Expenses', path: '/finance/expenses', icon: ReceiptIcon },
+    { name: 'Financial Planning', path: '/finance/planning', icon: Target }
   ];
 
   // Main Dashboard Content
@@ -284,7 +336,12 @@ const FinanceDashboard: React.FC = () => {
                 <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
                 <p className="text-xs text-gray-500">{stat.subtitle}</p>
               </div>
-              <div className="text-2xl">{stat.icon}</div>
+              <div className="text-2xl">
+                {React.createElement(getIconComponent(stat.icon), { 
+                  size: 24, 
+                  className: `text-${stat.color}-600` 
+                })}
+              </div>
             </div>
             {stat.trend && (
               <div className={`flex items-center mt-2 text-xs ${

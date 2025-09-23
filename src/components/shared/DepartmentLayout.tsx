@@ -6,6 +6,8 @@ import AIChatbot from './AIChatbot';
 import TimeClock from './TimeClock';
 import PersonalLeave from './PersonalLeave';
 import SimpleChat from '../chat/SimpleChat';
+import NotificationCenter from './NotificationCenter';
+import { useNotifications } from '../../hooks/useNotifications';
 
 interface DepartmentLayoutProps {
   children: React.ReactNode;
@@ -21,7 +23,7 @@ interface DepartmentLayoutProps {
   sidebarItems: {
     name: string;
     path: string;
-    icon?: string;
+    icon?: string | React.ComponentType<any>;
   }[];
 }
 
@@ -37,9 +39,11 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
   const [isTimeClockOpen, setIsTimeClockOpen] = useState(false);
   const [isPersonalLeaveOpen, setIsPersonalLeaveOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { unreadCount } = useNotifications();
 
   useEffect(() => {
     setActiveItem(location.pathname);
@@ -258,7 +262,13 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
                             : 'bg-blue-400/10 text-blue-200 group-hover:bg-blue-400/20'
                         }`}>
                           <span className="text-sm transition-transform duration-300">
-                            {icon}
+                            {typeof icon === 'string' ? (
+                              icon
+                            ) : icon ? (
+                              React.createElement(icon, { size: 16 })
+                            ) : (
+                              getDefaultIcon(item.name)
+                            )}
                           </span>
                         </div>
                         <div className="flex-1">
@@ -401,17 +411,20 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
                   
                   {/* Notifications */}
                   <button 
-                    onClick={() => {
-                      // Show notifications modal or panel
-                      alert('Notifications feature coming soon! You have 3 new notifications.');
-                    }}
+                    onClick={() => setIsNotificationCenterOpen(true)}
                     className="relative p-2.5 text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-xl transition-all duration-300 group border border-orange-200/50 hover:border-orange-300"
-                    title="Notifications (3 new)"
+                    title={`Notifications ${unreadCount > 0 ? `(${unreadCount} new)` : ''}`}
                   >
                     <svg className="w-5 h-5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.19 4H20c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4.19C3.45 20 2.8 19.55 2.61 18.85L1.39 13.15C1.2 12.45 1.85 12 2.61 12H4v-2c0-1.1.9-2 2-2h2c1.1 0 2 .9 2 2v2h2c1.1 0 2 .9 2 2v2h2c1.1 0 2 .9 2 2v2h2c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2H4.19z" />
                     </svg>
-                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse border border-white"></div>
+                    {unreadCount > 0 && (
+                      <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse border border-white">
+                        <span className="absolute inset-0 flex items-center justify-center text-xs text-white font-bold">
+                          {unreadCount > 9 ? '9+' : unreadCount}
+                        </span>
+                      </div>
+                    )}
                   </button>
                   
                   {/* Settings */}
@@ -515,6 +528,12 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
           style={{ zIndex: 9998 }}
         ></div>
       )}
+
+      {/* Notification Center */}
+      <NotificationCenter 
+        isOpen={isNotificationCenterOpen} 
+        onClose={() => setIsNotificationCenterOpen(false)} 
+      />
     </div>
   );
 };

@@ -771,6 +771,48 @@ const generateMockList = (count: number = 10, type: string = 'generic') => {
 };
 
 const generateMockDashboard = () => ({
+  monthlyRevenue: 12500000,
+  monthlyExpenses: 8500000,
+  monthlyProfit: 4000000,
+  totalReceivables: 3200000,
+  recentTransactions: [
+    {
+      id: '1',
+      type: 'income',
+      description: 'Software License Sales',
+      amount: 2500000,
+      transactionDate: '2024-09-20',
+      status: 'completed',
+      category: 'Sales'
+    },
+    {
+      id: '2',
+      type: 'expense',
+      description: 'Office Rent',
+      amount: 800000,
+      transactionDate: '2024-09-18',
+      status: 'completed',
+      category: 'Operations'
+    },
+    {
+      id: '3',
+      type: 'income',
+      description: 'Consulting Services',
+      amount: 1800000,
+      transactionDate: '2024-09-15',
+      status: 'completed',
+      category: 'Services'
+    },
+    {
+      id: '4',
+      type: 'expense',
+      description: 'Employee Salaries',
+      amount: 4200000,
+      transactionDate: '2024-09-10',
+      status: 'completed',
+      category: 'Payroll'
+    }
+  ],
   stats: generateMockStats(),
   recentActivity: generateMockList(5),
   charts: {
@@ -957,16 +999,112 @@ const mockAPI = {
   }),
   transactions: (params: any = {}) => Promise.resolve({ 
     data: { 
-      transactions: generateMockList(25),
-      total: 300,
+      items: [
+        {
+          id: '1',
+          transactionNumber: 'TXN-001',
+          type: 'income',
+          description: 'Software License Sales',
+          amount: 2500000,
+          transactionDate: '2024-09-20',
+          status: 'completed',
+          category: 'Sales'
+        },
+        {
+          id: '2',
+          transactionNumber: 'TXN-002',
+          type: 'expense',
+          description: 'Office Rent',
+          amount: 800000,
+          transactionDate: '2024-09-18',
+          status: 'completed',
+          category: 'Operations'
+        },
+        {
+          id: '3',
+          transactionNumber: 'TXN-003',
+          type: 'income',
+          description: 'Consulting Services',
+          amount: 1800000,
+          transactionDate: '2024-09-15',
+          status: 'completed',
+          category: 'Services'
+        },
+        {
+          id: '4',
+          transactionNumber: 'TXN-004',
+          type: 'expense',
+          description: 'Employee Salaries',
+          amount: 4200000,
+          transactionDate: '2024-09-10',
+          status: 'completed',
+          category: 'Payroll'
+        },
+        {
+          id: '5',
+          transactionNumber: 'TXN-005',
+          type: 'income',
+          description: 'Product Sales',
+          amount: 3200000,
+          transactionDate: '2024-09-08',
+          status: 'completed',
+          category: 'Sales'
+        },
+        {
+          id: '6',
+          transactionNumber: 'TXN-006',
+          type: 'expense',
+          description: 'Marketing Campaign',
+          amount: 650000,
+          transactionDate: '2024-09-05',
+          status: 'completed',
+          category: 'Marketing'
+        }
+      ],
+      total: 25,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+  accounts: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      items: [
+        {
+          id: '1',
+          name: 'Main Checking Account',
+          type: 'checking',
+          currentBalance: 8500000
+        },
+        {
+          id: '2',
+          name: 'Business Savings',
+          type: 'savings',
+          currentBalance: 3200000
+        },
+        {
+          id: '3',
+          name: 'Petty Cash',
+          type: 'cash',
+          currentBalance: 250000
+        }
+      ],
+      total: 3,
       page: params.page || 1,
       limit: params.limit || 10
     }
   }),
   budgets: (params: any = {}) => Promise.resolve({ 
     data: { 
-      budgets: generateMockList(12),
-      total: 50,
+      items: [
+        {
+          id: '1',
+          name: 'Q4 2024 Budget',
+          amount: 15000000,
+          spent: 8500000,
+          category: 'Operations'
+        }
+      ],
+      total: 5,
       page: params.page || 1,
       limit: params.limit || 10
     }
@@ -1067,22 +1205,303 @@ const mockAPI = {
   // Chat API
   conversations: () => Promise.resolve({ 
     data: { 
-      conversations: [
-        {
-          id: 1,
-          name: 'General Discussion',
-          lastMessage: 'Welcome to DICEL ERP!',
-          timestamp: new Date().toISOString(),
-          unreadCount: 0
+      success: true,
+      data: {
+        items: [
+          {
+            id: '1',
+            name: 'HR Team Chat',
+            type: 'group',
+            description: 'HR department discussions',
+            lastMessage: {
+              id: '101',
+              content: 'The new employee onboarding process is ready for review',
+              sender_id: '2',
+              sender: {
+                id: '2',
+                firstName: 'Claudine',
+                lastName: 'Uwimana',
+                avatar_url: 'https://ui-avatars.com/api/?name=Claudine+Uwimana&background=random'
+              },
+              created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+              message_type: 'text'
+            },
+            participants: [
+              {
+                id: '1',
+                user_id: '1',
+                user: {
+                  id: '1',
+                  firstName: 'Jean',
+                  lastName: 'Ndayisaba',
+                  email: 'jean.ndayisaba@dicel.co.rw',
+                  avatar_url: 'https://ui-avatars.com/api/?name=Jean+Ndayisaba&background=random'
+                }
+              },
+              {
+                id: '2',
+                user_id: '2',
+                user: {
+                  id: '2',
+                  firstName: 'Claudine',
+                  lastName: 'Uwimana',
+                  email: 'claudine.uwimana@dicel.co.rw',
+                  avatar_url: 'https://ui-avatars.com/api/?name=Claudine+Uwimana&background=random'
+                }
+              }
+            ],
+            unreadCount: 3,
+            createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+            updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: '2',
+            name: 'Finance Updates',
+            type: 'group',
+            description: 'Financial reports and updates',
+            lastMessage: {
+              id: '102',
+              content: 'Monthly financial report has been generated',
+              sender_id: '3',
+              sender: {
+                id: '3',
+                firstName: 'Pierre',
+                lastName: 'Nkurunziza',
+                avatar_url: 'https://ui-avatars.com/api/?name=Pierre+Nkurunziza&background=random'
+              },
+              created_at: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+              message_type: 'text'
+            },
+            participants: [
+              {
+                id: '3',
+                user_id: '3',
+                user: {
+                  id: '3',
+                  firstName: 'Pierre',
+                  lastName: 'Nkurunziza',
+                  email: 'pierre.nkurunziza@dicel.co.rw',
+                  avatar_url: 'https://ui-avatars.com/api/?name=Pierre+Nkurunziza&background=random'
+                }
+              },
+              {
+                id: '1',
+                user_id: '1',
+                user: {
+                  id: '1',
+                  firstName: 'Jean',
+                  lastName: 'Ndayisaba',
+                  email: 'jean.ndayisaba@dicel.co.rw',
+                  avatar_url: 'https://ui-avatars.com/api/?name=Jean+Ndayisaba&background=random'
+                }
+              }
+            ],
+            unreadCount: 1,
+            createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+            updatedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: '3',
+            name: 'Marie Mukamana',
+            type: 'direct',
+            description: 'Direct message with Marie',
+            lastMessage: {
+              id: '103',
+              content: 'Thanks for the update on the project timeline',
+              sender_id: '4',
+              sender: {
+                id: '4',
+                firstName: 'Marie',
+                lastName: 'Mukamana',
+                avatar_url: 'https://ui-avatars.com/api/?name=Marie+Mukamana&background=random'
+              },
+              created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+              message_type: 'text'
+            },
+            participants: [
+              {
+                id: '4',
+                user_id: '4',
+                user: {
+                  id: '4',
+                  firstName: 'Marie',
+                  lastName: 'Mukamana',
+                  email: 'marie.mukamana@dicel.co.rw',
+                  avatar_url: 'https://ui-avatars.com/api/?name=Marie+Mukamana&background=random'
+                }
+              },
+              {
+                id: '1',
+                user_id: '1',
+                user: {
+                  id: '1',
+                  firstName: 'Jean',
+                  lastName: 'Ndayisaba',
+                  email: 'jean.ndayisaba@dicel.co.rw',
+                  avatar_url: 'https://ui-avatars.com/api/?name=Jean+Ndayisaba&background=random'
+                }
+              }
+            ],
+            unreadCount: 0,
+            createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+            updatedAt: new Date(Date.now() - 30 * 60 * 1000).toISOString()
+          },
+          {
+            id: '4',
+            name: 'IT Support',
+            type: 'group',
+            description: 'Technical support and IT issues',
+            lastMessage: {
+              id: '104',
+              content: 'The server maintenance has been completed successfully',
+              sender_id: '5',
+              sender: {
+                id: '5',
+                firstName: 'Paul',
+                lastName: 'Kagame',
+                avatar_url: 'https://ui-avatars.com/api/?name=Paul+Kagame&background=random'
+              },
+              created_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+              message_type: 'text'
+            },
+            participants: [
+              {
+                id: '5',
+                user_id: '5',
+                user: {
+                  id: '5',
+                  firstName: 'Paul',
+                  lastName: 'Kagame',
+                  email: 'paul.kagame@dicel.co.rw',
+                  avatar_url: 'https://ui-avatars.com/api/?name=Paul+Kagame&background=random'
+                }
+              },
+              {
+                id: '1',
+                user_id: '1',
+                user: {
+                  id: '1',
+                  firstName: 'Jean',
+                  lastName: 'Ndayisaba',
+                  email: 'jean.ndayisaba@dicel.co.rw',
+                  avatar_url: 'https://ui-avatars.com/api/?name=Jean+Ndayisaba&background=random'
+                }
+              }
+            ],
+            unreadCount: 2,
+            createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+            updatedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
+          }
+        ]
+      }
+    }
+  }),
+  
+  messages: (conversationId: string) => Promise.resolve({
+    data: {
+      success: true,
+      data: {
+        items: conversationId === '1' ? [
+          {
+            id: '101',
+            content: 'The new employee onboarding process is ready for review',
+            sender_id: '2',
+            sender: {
+              id: '2',
+              firstName: 'Claudine',
+              lastName: 'Uwimana',
+              avatar_url: 'https://ui-avatars.com/api/?name=Claudine+Uwimana&background=random'
+            },
+            created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+            message_type: 'text'
+          },
+          {
+            id: '102',
+            content: 'Great work! I\'ll review it this afternoon',
+            sender_id: '1',
+            sender: {
+              id: '1',
+              firstName: 'Jean',
+              lastName: 'Ndayisaba',
+              avatar_url: 'https://ui-avatars.com/api/?name=Jean+Ndayisaba&background=random'
+            },
+            created_at: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toISOString(),
+            message_type: 'text'
+          },
+          {
+            id: '103',
+            content: 'The training materials are also updated',
+            sender_id: '2',
+            sender: {
+              id: '2',
+              firstName: 'Claudine',
+              lastName: 'Uwimana',
+              avatar_url: 'https://ui-avatars.com/api/?name=Claudine+Uwimana&background=random'
+            },
+            created_at: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+            message_type: 'text'
+          }
+        ] : [
+          {
+            id: '201',
+            content: 'Welcome to the team!',
+            sender_id: '1',
+            sender: {
+              id: '1',
+              firstName: 'Jean',
+              lastName: 'Ndayisaba',
+              avatar_url: 'https://ui-avatars.com/api/?name=Jean+Ndayisaba&background=random'
+            },
+            created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+            message_type: 'text'
+          }
+        ]
+      }
+    }
+  }),
+  
+  sendMessage: (conversationId: string, messageData: any) => Promise.resolve({
+    data: {
+      success: true,
+      data: {
+        id: Date.now().toString(),
+        content: messageData.content,
+        sender_id: '1',
+        sender: {
+          id: '1',
+          firstName: 'Jean',
+          lastName: 'Ndayisaba',
+          avatar_url: 'https://ui-avatars.com/api/?name=Jean+Ndayisaba&background=random'
         },
-        {
-          id: 2,
-          name: 'HR Team',
-          lastMessage: 'New employee onboarding scheduled',
-          timestamp: new Date(Date.now() - 3600000).toISOString(),
-          unreadCount: 2
-        }
-      ]
+        created_at: new Date().toISOString(),
+        message_type: messageData.message_type || 'text'
+      }
+    }
+  }),
+  
+  createConversation: (conversationData: any) => Promise.resolve({
+    data: {
+      success: true,
+      data: {
+        id: Date.now().toString(),
+        name: conversationData.name || 'New Conversation',
+        type: conversationData.type || 'direct',
+        description: conversationData.description,
+        participants: conversationData.participantIds.map((id: string, index: number) => ({
+          id: (index + 1).toString(),
+          user_id: id,
+          user: {
+            id: id,
+            firstName: ['Alice', 'Bob', 'Charlie'][index] || 'User',
+            lastName: ['Smith', 'Johnson', 'Brown'][index] || 'Name',
+            email: `user${id}@dicel.co.rw`,
+            avatar_url: `https://ui-avatars.com/api/?name=User+${id}&background=random`
+          }
+        })),
+        unreadCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
     }
   }),
 
@@ -1154,6 +1573,9 @@ if (DEMO_MODE) {
 
   // Override Finance APIs
   financeAPI.getStats = mockAPI.financeStats;
+  financeAPI.getTransactions = mockAPI.transactions;
+  financeAPI.getAccounts = mockAPI.accounts;
+  financeAPI.getBudgets = mockAPI.budgets;
   invoiceAPI.getAll = mockAPI.invoices;
   invoiceAPI.getStats = mockAPI.invoices;
   transactionAPI.getAll = mockAPI.transactions;
@@ -1195,6 +1617,9 @@ if (DEMO_MODE) {
 
   // Override Chat API
   chatAPI.getConversations = mockAPI.conversations;
+  chatAPI.getMessages = mockAPI.messages;
+  chatAPI.sendMessage = mockAPI.sendMessage;
+  chatAPI.createConversation = mockAPI.createConversation;
 
   // Override Reports API
   reportAPI.getAll = mockAPI.reports;

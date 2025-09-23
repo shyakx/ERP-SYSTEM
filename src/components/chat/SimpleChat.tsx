@@ -8,10 +8,23 @@ import {
   Search,
   MoreVertical,
   Smile,
-  Paperclip
+  Paperclip,
+  Image,
+  FileText,
+  Download,
+  ThumbsUp,
+  Reply,
+  Edit,
+  Trash2,
+  Clock,
+  Check,
+  CheckCheck,
+  Pin,
+  Archive
 } from 'lucide-react';
 import { useChat } from '../../hooks/useChat';
 import { useAuth } from '../../contexts/AuthContext';
+import { useMessageDrafts } from '../../hooks/useMessageDrafts';
 
 interface SimpleChatProps {
   isOpen: boolean;
@@ -25,11 +38,9 @@ const SimpleChat: React.FC<SimpleChatProps> = ({ isOpen, onClose }) => {
     currentConversation,
     messages,
     loading,
-    error,
     sendMessage,
     selectConversation,
-    createConversation,
-    refreshConversations
+    createConversation
   } = useChat();
 
   const [messageInput, setMessageInput] = useState('');
@@ -38,6 +49,23 @@ const SimpleChat: React.FC<SimpleChatProps> = ({ isOpen, onClose }) => {
   const [newChatParticipants, setNewChatParticipants] = useState<string[]>([]);
   const [newChatName, setNewChatName] = useState('');
   const [newChatType, setNewChatType] = useState<'direct' | 'group'>('direct');
+  
+  // Enhanced features
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [replyToMessage, setReplyToMessage] = useState<any>(null);
+  const [editingMessage, setEditingMessage] = useState<any>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showMessageMenu, setShowMessageMenu] = useState<string | null>(null);
+  const [messageSearchQuery, setMessageSearchQuery] = useState('');
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduledTime, setScheduledTime] = useState('');
+  
+  const { 
+    saveDraft, 
+    getDraftForConversation, 
+    deleteDraft,
+    scheduleMessage
+  } = useMessageDrafts();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -54,16 +82,126 @@ const SimpleChat: React.FC<SimpleChatProps> = ({ isOpen, onClose }) => {
     }
   }, [isOpen, currentConversation]);
 
+  // Load draft when conversation changes
+  useEffect(() => {
+    if (currentConversation) {
+      const draft = getDraftForConversation(currentConversation.id);
+      if (draft) {
+        setMessageInput(draft.content);
+        setSelectedFiles(draft.attachments || []);
+        if (draft.replyToMessageId) {
+          // You'd need to find the actual message object here
+          setReplyToMessage({ id: draft.replyToMessageId });
+        }
+      } else {
+        setMessageInput('');
+        setSelectedFiles([]);
+        setReplyToMessage(null);
+      }
+    }
+  }, [currentConversation, getDraftForConversation]);
+
+  // Auto-save draft when typing
+  useEffect(() => {
+    if (currentConversation && (messageInput.trim() || selectedFiles.length > 0)) {
+      const timeoutId = setTimeout(() => {
+        saveDraft(currentConversation.id, messageInput, selectedFiles, replyToMessage?.id);
+      }, 1000); // Save after 1 second of no typing
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [messageInput, selectedFiles, replyToMessage, currentConversation, saveDraft]);
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!messageInput.trim() || !currentConversation) return;
+    if ((!messageInput.trim() && selectedFiles.length === 0) || !currentConversation) return;
 
     try {
-      await sendMessage(messageInput.trim());
+      // Handle file uploads
+      const attachments = await Promise.all(
+        selectedFiles.map(async (file) => {
+          // In a real app, you'd upload to a file service
+          return {
+            id: Date.now().toString(),
+            name: file.name,
+            url: URL.createObjectURL(file),
+            type: file.type,
+            size: file.size
+          };
+        })
+      );
+
+      await sendMessage(
+        messageInput.trim(),
+        'text',
+        replyToMessage?.id,
+        attachments
+      );
+      
       setMessageInput('');
+      setSelectedFiles([]);
+      setReplyToMessage(null);
+      setEditingMessage(null);
+      
+      // Clear draft after successful send
+      if (currentConversation) {
+        deleteDraft(currentConversation.id);
+      }
     } catch (error) {
       console.error('Failed to send message:', error);
     }
+  };
+
+  const handleScheduleMessage = () => {
+    if (currentConversation && scheduledTime) {
+      scheduleMessage(
+        currentConversation.id,
+        messageInput,
+        scheduledTime,
+        selectedFiles,
+        replyToMessage?.id
+      );
+      
+      setMessageInput('');
+      setSelectedFiles([]);
+      setReplyToMessage(null);
+      setShowScheduleModal(false);
+      setScheduledTime('');
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setSelectedFiles(prev => [...prev, ...files]);
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleReply = (message: any) => {
+    setReplyToMessage(message);
+    inputRef.current?.focus();
+  };
+
+  const handleEditMessage = (message: any) => {
+    setEditingMessage(message);
+    setMessageInput(message.content);
+    inputRef.current?.focus();
+  };
+
+  const handleReaction = async (messageId: string, emoji: string) => {
+    // In a real app, you'd call the API to add reaction
+    console.log(`Adding ${emoji} reaction to message ${messageId}`);
+  };
+
+  const getMessageStatus = (message: any) => {
+    if (message.sender_id === user?.id) {
+      if (message.read_at) return <CheckCheck className="w-3 h-3 text-blue-500" />;
+      if (message.delivered_at) return <Check className="w-3 h-3 text-gray-400" />;
+      return <Clock className="w-3 h-3 text-gray-300" />;
+    }
+    return null;
   };
 
   const handleCreateConversation = async (e: React.FormEvent) => {
@@ -91,20 +229,6 @@ const SimpleChat: React.FC<SimpleChatProps> = ({ isOpen, onClose }) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
-    } else {
-      return date.toLocaleDateString();
-    }
-  };
 
 
   const filteredConversations = (conversations || []).filter(conv =>
@@ -242,6 +366,20 @@ const SimpleChat: React.FC<SimpleChatProps> = ({ isOpen, onClose }) => {
                   </button>
                 </div>
 
+                {/* Message Search */}
+                <div className="p-3 border-b">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search messages..."
+                      value={messageSearchQuery}
+                      onChange={(e) => setMessageSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    />
+                  </div>
+                </div>
+
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
                   {loading ? (
@@ -249,12 +387,35 @@ const SimpleChat: React.FC<SimpleChatProps> = ({ isOpen, onClose }) => {
                   ) : messages.length === 0 ? (
                     <div className="text-center text-gray-500">No messages yet. Start the conversation!</div>
                   ) : (
-                    messages.map((message) => (
+                    messages
+                      .filter(message => 
+                        !messageSearchQuery || 
+                        message.content.toLowerCase().includes(messageSearchQuery.toLowerCase())
+                      )
+                      .map((message) => (
                       <div
                         key={message.id}
-                        className={`flex ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
+                        className={`flex ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'} group`}
                       >
-                        <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                        <div className={`max-w-xs lg:max-w-md relative ${
+                          message.sender_id === user?.id ? 'flex flex-col items-end' : 'flex flex-col items-start'
+                        }`}>
+                          {/* Reply Context */}
+                          {message.replyTo && (
+                            <div className={`mb-2 p-2 bg-gray-100 rounded-lg border-l-4 border-blue-500 max-w-full ${
+                              message.sender_id === user?.id ? 'ml-auto' : 'mr-auto'
+                            }`}>
+                              <div className="text-xs text-gray-600 font-medium">
+                                Replying to {message.replyTo.sender.firstName}
+                              </div>
+                              <div className="text-xs text-gray-700 truncate">
+                                {message.replyTo.content}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Message Content */}
+                          <div className={`px-4 py-2 rounded-lg relative group-hover:shadow-md transition-shadow ${
                           message.sender_id === user?.id 
                             ? 'bg-blue-600 text-white' 
                             : 'bg-gray-200 text-gray-900'
@@ -264,12 +425,90 @@ const SimpleChat: React.FC<SimpleChatProps> = ({ isOpen, onClose }) => {
                               {message.sender.firstName} {message.sender.lastName}
                             </div>
                           )}
+                            
+                            {/* Message Text */}
                           <p className="text-sm">{message.content}</p>
-                          <div className={`text-xs mt-1 ${
+                            
+                            {/* Attachments */}
+                            {message.attachments && message.attachments.length > 0 && (
+                              <div className="mt-2 space-y-2">
+                                {message.attachments.map((attachment: any, index: number) => (
+                                  <div key={index} className="flex items-center space-x-2 p-2 bg-white/20 rounded">
+                                    {attachment.type.startsWith('image/') ? (
+                                      <Image className="w-4 h-4" />
+                                    ) : (
+                                      <FileText className="w-4 h-4" />
+                                    )}
+                                    <span className="text-xs truncate">{attachment.name}</span>
+                                    <button className="hover:bg-white/20 p-1 rounded">
+                                      <Download className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Message Actions */}
+                            <div className={`absolute top-1 ${message.sender_id === user?.id ? 'left-0' : 'right-0'} opacity-0 group-hover:opacity-100 transition-opacity`}>
+                              <div className={`flex space-x-1 ${message.sender_id === user?.id ? '-translate-x-full' : 'translate-x-full'}`}>
+                                <button
+                                  onClick={() => handleReply(message)}
+                                  className="p-1 hover:bg-white/20 rounded"
+                                  title="Reply"
+                                >
+                                  <Reply className="w-3 h-3" />
+                                </button>
+                                {message.sender_id === user?.id && (
+                                  <button
+                                    onClick={() => handleEditMessage(message)}
+                                    className="p-1 hover:bg-white/20 rounded"
+                                    title="Edit"
+                                  >
+                                    <Edit className="w-3 h-3" />
+                                  </button>
+                                )}
+                                <button
+                                  onClick={() => handleReaction(message.id, '👍')}
+                                  className="p-1 hover:bg-white/20 rounded"
+                                  title="React"
+                                >
+                                  <ThumbsUp className="w-3 h-3" />
+                                </button>
+                                <button
+                                  onClick={() => setShowMessageMenu(showMessageMenu === message.id ? null : message.id)}
+                                  className="p-1 hover:bg-white/20 rounded"
+                                  title="More"
+                                >
+                                  <MoreVertical className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Message Footer */}
+                            <div className={`flex items-center justify-between mt-1 text-xs ${
                             message.sender_id === user?.id ? 'text-blue-100' : 'text-gray-500'
                           }`}>
-                            {formatTime(message.created_at)}
+                              <span>{formatTime(message.created_at)}</span>
+                              <div className="flex items-center space-x-1">
+                                {getMessageStatus(message)}
                           </div>
+                            </div>
+                          </div>
+
+                          {/* Reactions */}
+                          {message.reactions && message.reactions.length > 0 && (
+                            <div className={`mt-1 flex flex-wrap gap-1 ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}>
+                              {message.reactions.map((reaction: any, index: number) => (
+                                <span
+                                  key={index}
+                                  className="px-2 py-1 bg-white/20 rounded-full text-xs cursor-pointer hover:bg-white/30"
+                                  onClick={() => handleReaction(message.id, reaction.emoji)}
+                                >
+                                  {reaction.emoji} {reaction.count || 1}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))
@@ -277,36 +516,152 @@ const SimpleChat: React.FC<SimpleChatProps> = ({ isOpen, onClose }) => {
                   <div ref={messagesEndRef} />
                 </div>
 
+                {/* Reply Context */}
+                {replyToMessage && (
+                  <div className="p-3 border-t bg-gray-50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Reply className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm text-gray-600">
+                          Replying to {replyToMessage.sender.firstName}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => setReplyToMessage(null)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="text-sm text-gray-700 truncate mt-1">
+                      {replyToMessage.content}
+                    </div>
+                  </div>
+                )}
+
+                {/* Selected Files Preview */}
+                {selectedFiles.length > 0 && (
+                  <div className="p-3 border-t bg-gray-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-600">Attachments ({selectedFiles.length})</span>
+                      <button
+                        onClick={() => setSelectedFiles([])}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedFiles.map((file, index) => (
+                        <div key={index} className="flex items-center space-x-2 bg-white p-2 rounded border">
+                          {file.type.startsWith('image/') ? (
+                            <Image className="w-4 h-4 text-blue-500" />
+                          ) : (
+                            <FileText className="w-4 h-4 text-gray-500" />
+                          )}
+                          <span className="text-sm truncate max-w-32">{file.name}</span>
+                          <button
+                            onClick={() => removeFile(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Message Input */}
                 <div className="p-4 border-t">
-                  <form onSubmit={handleSendMessage} className="flex items-center space-x-2">
+                  <form onSubmit={handleSendMessage} className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <label className="cursor-pointer">
+                        <input
+                          type="file"
+                          multiple
+                          onChange={handleFileSelect}
+                          className="hidden"
+                          accept="image/*,.pdf,.doc,.docx,.txt"
+                        />
                     <button
                       type="button"
                       className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                          title="Attach files"
                     >
                       <Paperclip className="w-5 h-5 text-gray-500" />
                     </button>
+                      </label>
+                      
+                      <div className="flex-1 relative">
                     <input
                       ref={inputRef}
                       type="text"
                       value={messageInput}
                       onChange={(e) => setMessageInput(e.target.value)}
-                      placeholder="Type a message..."
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                          placeholder={
+                            editingMessage 
+                              ? "Edit message..." 
+                              : replyToMessage 
+                                ? "Reply to message..." 
+                                : "Type a message..."
+                          }
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        {editingMessage && (
+                          <button
+                            onClick={() => {
+                              setEditingMessage(null);
+                              setMessageInput('');
+                            }}
+                            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                      
                     <button
                       type="button"
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                       className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                        title="Add emoji"
                     >
                       <Smile className="w-5 h-5 text-gray-500" />
                     </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowScheduleModal(true)}
+                        disabled={!messageInput.trim() && selectedFiles.length === 0}
+                        className="p-2 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Schedule message"
+                      >
+                        <Clock className="w-5 h-5 text-gray-500" />
+                      </button>
+                      
                     <button
                       type="submit"
-                      disabled={!messageInput.trim()}
+                        disabled={!messageInput.trim() && selectedFiles.length === 0}
                       className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        title={editingMessage ? "Update message" : "Send message"}
                     >
                       <Send className="w-5 h-5" />
                     </button>
+                    </div>
+
+                    {/* Quick Actions */}
+                    <div className="flex items-center space-x-4 text-xs text-gray-500">
+                      <span>Press Enter to send</span>
+                      <span>•</span>
+                      <span>Shift + Enter for new line</span>
+                      {editingMessage && (
+                        <>
+                          <span>•</span>
+                          <span className="text-blue-600">Editing message</span>
+                        </>
+                      )}
+                    </div>
                   </form>
                 </div>
               </>
@@ -386,6 +741,127 @@ const SimpleChat: React.FC<SimpleChatProps> = ({ isOpen, onClose }) => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Emoji Picker */}
+        {showEmojiPicker && (
+          <div className="fixed bottom-20 right-6 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50">
+            <div className="grid grid-cols-6 gap-2">
+              {['😀', '😂', '😍', '🥰', '😎', '🤔', '👍', '👎', '❤️', '🔥', '🎉', '👏', '💯', '✨', '🚀', '💪'].map(emoji => (
+                <button
+                  key={emoji}
+                  onClick={() => {
+                    setMessageInput(prev => prev + emoji);
+                    setShowEmojiPicker(false);
+                  }}
+                  className="p-2 hover:bg-gray-100 rounded text-lg"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Message Menu */}
+        {showMessageMenu && (
+          <div className="fixed bg-white border border-gray-200 rounded-lg shadow-lg p-2 z-50">
+            <button
+              onClick={() => {
+                setShowMessageMenu(null);
+                // Pin message functionality
+              }}
+              className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded text-sm flex items-center space-x-2"
+            >
+              <Pin className="w-4 h-4" />
+              <span>Pin Message</span>
+            </button>
+            <button
+              onClick={() => {
+                setShowMessageMenu(null);
+                // Copy message functionality
+                navigator.clipboard.writeText(messages.find(m => m.id === showMessageMenu)?.content || '');
+              }}
+              className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded text-sm flex items-center space-x-2"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Copy Text</span>
+            </button>
+            <button
+              onClick={() => {
+                setShowMessageMenu(null);
+                // Archive message functionality
+              }}
+              className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded text-sm flex items-center space-x-2"
+            >
+              <Archive className="w-4 h-4" />
+              <span>Archive</span>
+            </button>
+            {messages.find(m => m.id === showMessageMenu)?.sender_id === user?.id && (
+              <button
+                onClick={() => {
+                  setShowMessageMenu(null);
+                  // Delete message functionality
+                }}
+                className="w-full text-left px-3 py-2 hover:bg-red-50 text-red-600 rounded text-sm flex items-center space-x-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Delete</span>
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Schedule Message Modal */}
+        {showScheduleModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex: 10003 }}>
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+              <h3 className="text-lg font-semibold mb-4">Schedule Message</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Schedule for
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={scheduledTime}
+                    onChange={(e) => setScheduledTime(e.target.value)}
+                    min={new Date().toISOString().slice(0, 16)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <div className="text-sm text-gray-600 mb-1">Message Preview:</div>
+                  <div className="text-sm">
+                    {messageInput || <span className="text-gray-400 italic">No message content</span>}
+                  </div>
+                  {selectedFiles.length > 0 && (
+                    <div className="text-xs text-gray-500 mt-1">
+                      + {selectedFiles.length} attachment{selectedFiles.length !== 1 ? 's' : ''}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={() => setShowScheduleModal(false)}
+                    className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleScheduleMessage}
+                    disabled={!scheduledTime}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Schedule Message
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}

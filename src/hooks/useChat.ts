@@ -15,6 +15,7 @@ interface Message {
   created_at: string;
   message_type: string;
   reply_to_message_id?: string;
+  replyTo?: Message;
   attachments?: Array<{
     id: string;
     name: string;
@@ -25,12 +26,18 @@ interface Message {
   reactions?: Array<{
     id: string;
     emoji: string;
+    count?: number;
     user: {
       id: string;
       firstName: string;
       lastName: string;
     };
   }>;
+  delivered_at?: string;
+  read_at?: string;
+  is_pinned?: boolean;
+  is_edited?: boolean;
+  edited_at?: string;
 }
 
 interface Conversation {
@@ -68,6 +75,14 @@ interface UseChatReturn {
   refreshConversations: () => Promise<void>;
   isTyping: boolean;
   setIsTyping: (typing: boolean) => void;
+  typingUsers: string[];
+  onlineUsers: string[];
+  updateTypingIndicator: (conversationId: string, isTyping: boolean) => Promise<void>;
+  addReaction: (messageId: string, emoji: string) => Promise<void>;
+  editMessage: (messageId: string, content: string) => Promise<void>;
+  deleteMessage: (messageId: string) => Promise<void>;
+  pinMessage: (messageId: string) => Promise<void>;
+  searchMessages: (query: string, conversationId?: string) => Promise<Message[]>;
 }
 
 export const useChat = (): UseChatReturn => {
@@ -78,6 +93,8 @@ export const useChat = (): UseChatReturn => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -230,6 +247,89 @@ export const useChat = (): UseChatReturn => {
     }
   }, []);
 
+  // Update typing indicator
+  const updateTypingIndicator = useCallback(async (conversationId: string, isTyping: boolean) => {
+    try {
+      await chatAPI.updateTypingIndicator(conversationId, isTyping);
+    } catch (error) {
+      console.error('Failed to update typing indicator:', error);
+    }
+  }, []);
+
+  // Add reaction to message
+  const addReaction = useCallback(async (messageId: string, emoji: string) => {
+    if (!currentConversation) return;
+    
+    try {
+      await chatAPI.addReaction(currentConversation.id, messageId, emoji);
+      // Refresh messages to show updated reactions
+      await loadMessages(currentConversation.id);
+    } catch (error) {
+      console.error('Failed to add reaction:', error);
+    }
+  }, [currentConversation, loadMessages]);
+
+  // Edit message
+  const editMessage = useCallback(async (messageId: string, content: string) => {
+    if (!currentConversation) return;
+    
+    try {
+      await chatAPI.updateMessage(currentConversation.id, messageId, { content });
+      // Update local messages
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId 
+          ? { ...msg, content, is_edited: true, edited_at: new Date().toISOString() }
+          : msg
+      ));
+    } catch (error) {
+      console.error('Failed to edit message:', error);
+    }
+  }, [currentConversation]);
+
+  // Delete message
+  const deleteMessage = useCallback(async (messageId: string) => {
+    if (!currentConversation) return;
+    
+    try {
+      await chatAPI.deleteMessage(currentConversation.id, messageId);
+      // Remove from local messages
+      setMessages(prev => prev.filter(msg => msg.id !== messageId));
+    } catch (error) {
+      console.error('Failed to delete message:', error);
+    }
+  }, [currentConversation]);
+
+  // Pin message
+  const pinMessage = useCallback(async (messageId: string) => {
+    if (!currentConversation) return;
+    
+    try {
+      // This would be a custom API endpoint for pinning messages
+      console.log('Pinning message:', messageId);
+      // Update local messages
+      setMessages(prev => prev.map(msg => 
+        msg.id === messageId 
+          ? { ...msg, is_pinned: true }
+          : msg
+      ));
+    } catch (error) {
+      console.error('Failed to pin message:', error);
+    }
+  }, [currentConversation]);
+
+  // Search messages
+  const searchMessages = useCallback(async (query: string, conversationId?: string) => {
+    try {
+      const response = await chatAPI.searchMessages(query, { 
+        conversationId: conversationId || currentConversation?.id 
+      });
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Failed to search messages:', error);
+      return [];
+    }
+  }, [currentConversation]);
+
   // Load conversations on mount
   useEffect(() => {
     if (user) {
@@ -258,6 +358,14 @@ export const useChat = (): UseChatReturn => {
     selectConversation,
     refreshConversations,
     isTyping,
-    setIsTyping: handleTyping
+    setIsTyping: handleTyping,
+    typingUsers,
+    onlineUsers,
+    updateTypingIndicator,
+    addReaction,
+    editMessage,
+    deleteMessage,
+    pinMessage,
+    searchMessages
   };
 };

@@ -123,10 +123,23 @@ const AccountsPayable: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Page Header */}
+      <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-lg shadow-lg p-6 text-white">
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+            <AlertCircle className="w-8 h-8" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold">Accounts Payable</h1>
+            <p className="text-red-100">Manage vendor payments and outstanding invoices</p>
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Accounts Payable</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Vendor Management</h1>
           <p className="text-gray-600 mt-1">Manage vendor payments and outstanding bills</p>
         </div>
         <AnimatedButton

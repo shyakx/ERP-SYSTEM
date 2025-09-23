@@ -200,10 +200,23 @@ const FinanceOverview: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* Page Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-6 text-white">
+        <div className="flex items-center space-x-3">
+          <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+            <BarChart3 className="w-8 h-8" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold">Finance Overview</h1>
+            <p className="text-blue-100">Comprehensive financial dashboard and analytics</p>
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Finance Dashboard</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Financial Analytics</h1>
           <p className="text-gray-600 mt-1">Monitor financial performance and manage company finances.</p>
         </div>
         <div className="flex items-center space-x-3">
