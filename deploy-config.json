@@ -1,0 +1,27 @@
+{
+  "name": "dicel-erp-deployment",
+  "version": "1.0.0",
+  "description": "DICEL ERP System Deployment Configuration",
+  "frontend": {
+    "build": "dist",
+    "platforms": ["vercel", "netlify", "github-pages"],
+    "recommended": "vercel"
+  },
+  "backend": {
+    "platforms": ["railway", "render", "heroku", "digitalocean"],
+    "recommended": "render",
+    "requirements": {
+      "node": ">=16.0.0",
+      "database": "postgresql"
+    }
+  },
+  "database": {
+    "platforms": ["supabase", "railway", "render", "elephantsql"],
+    "recommended": "render"
+  },
+  "deployment": {
+    "frontend_url": "https://your-frontend-domain.com",
+    "backend_url": "https://your-backend-domain.com",
+    "database_url": "postgresql://user:password@host:port/database"
+  }
+}

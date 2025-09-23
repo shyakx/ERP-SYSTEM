@@ -227,7 +227,6 @@ npm run preview
 - **Vercel:** Recommended for React apps
 - **Netlify:** Great for static sites
 - **GitHub Pages:** Free hosting option
-- **AWS S3 + CloudFront:** Enterprise solution
 
 ## 📁 File Structure Details
 
