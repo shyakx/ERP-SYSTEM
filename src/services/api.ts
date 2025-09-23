@@ -2,6 +2,9 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+// DEMO MODE: Set to true to use mock data for pitching
+const DEMO_MODE = true;
+
 // Create axios instance with default config
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -618,5 +621,352 @@ export const auditAPI = {
   getLogs: (params: any = {}) => api.get('/audit/logs', { params }),
   getStats: (params: any = {}) => api.get('/audit/stats', { params }),
 };
+
+// ============================================================================
+// MOCK DATA FOR DEMO MODE
+// ============================================================================
+
+// Mock data generators
+const generateMockStats = () => ({
+  total: Math.floor(Math.random() * 1000) + 100,
+  active: Math.floor(Math.random() * 500) + 50,
+  pending: Math.floor(Math.random() * 100) + 10,
+  completed: Math.floor(Math.random() * 300) + 20,
+  revenue: Math.floor(Math.random() * 1000000) + 100000,
+  growth: (Math.random() * 20 - 10).toFixed(1) + '%'
+});
+
+const generateMockList = (count: number = 10) => {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i + 1,
+    name: `Demo Item ${i + 1}`,
+    status: ['active', 'pending', 'completed'][Math.floor(Math.random() * 3)],
+    date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    amount: Math.floor(Math.random() * 10000) + 1000,
+    department: ['HR', 'Finance', 'IT', 'Sales', 'Operations'][Math.floor(Math.random() * 5)]
+  }));
+};
+
+const generateMockDashboard = () => ({
+  stats: generateMockStats(),
+  recentActivity: generateMockList(5),
+  charts: {
+    revenue: Array.from({ length: 12 }, (_, i) => ({
+      month: new Date(2024, i).toLocaleDateString('en-US', { month: 'short' }),
+      value: Math.floor(Math.random() * 100000) + 50000
+    })),
+    users: Array.from({ length: 7 }, (_, i) => ({
+      day: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i],
+      value: Math.floor(Math.random() * 100) + 20
+    }))
+  }
+});
+
+// Mock API functions
+const mockAPI = {
+  // Auth
+  login: () => Promise.resolve({
+    data: {
+      success: true,
+      token: 'demo-token-12345',
+      user: {
+        id: 1,
+        name: 'Demo User',
+        email: 'demo@dicel.com',
+        role: 'admin',
+        department: 'Management'
+      }
+    }
+  }),
+
+  // HR APIs
+  hrStats: () => Promise.resolve({ data: generateMockDashboard() }),
+  employees: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      employees: generateMockList(20),
+      total: 150,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+  jobPostings: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      jobPostings: generateMockList(15),
+      total: 45,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+  candidates: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      candidates: generateMockList(25),
+      total: 120,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+  training: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      enrollments: generateMockList(18),
+      total: 85,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+  payroll: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      payroll: generateMockList(30),
+      total: 200,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+  performance: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      reviews: generateMockList(12),
+      total: 75,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+  leave: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      requests: generateMockList(22),
+      total: 95,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+  attendance: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      records: generateMockList(35),
+      total: 250,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+  benefits: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      benefits: generateMockList(8),
+      total: 25,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+  compliance: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      policies: generateMockList(15),
+      total: 40,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+
+  // Finance APIs
+  financeStats: () => Promise.resolve({ data: generateMockDashboard() }),
+  invoices: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      invoices: generateMockList(20),
+      total: 180,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+  transactions: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      transactions: generateMockList(25),
+      total: 300,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+  budgets: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      budgets: generateMockList(12),
+      total: 50,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+
+  // Sales APIs
+  salesStats: () => Promise.resolve({ data: generateMockDashboard() }),
+  leads: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      leads: generateMockList(30),
+      total: 200,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+  opportunities: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      opportunities: generateMockList(18),
+      total: 120,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+  quotes: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      quotes: generateMockList(15),
+      total: 80,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+
+  // Operations APIs
+  operationsStats: () => Promise.resolve({ data: generateMockDashboard() }),
+  projects: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      projects: generateMockList(20),
+      total: 150,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+  inventory: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      items: generateMockList(25),
+      total: 200,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+  suppliers: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      suppliers: generateMockList(15),
+      total: 60,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+
+  // IT APIs
+  itStats: () => Promise.resolve({ data: generateMockDashboard() }),
+  tickets: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      tickets: generateMockList(20),
+      total: 100,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+  assets: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      assets: generateMockList(18),
+      total: 80,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+
+  // Security APIs
+  securityStats: () => Promise.resolve({ data: generateMockDashboard() }),
+  guards: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      guards: generateMockList(12),
+      total: 25,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+  incidents: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      incidents: generateMockList(8),
+      total: 15,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  }),
+
+  // Chat API
+  conversations: () => Promise.resolve({ 
+    data: { 
+      conversations: [
+        {
+          id: 1,
+          name: 'General Discussion',
+          lastMessage: 'Welcome to DICEL ERP!',
+          timestamp: new Date().toISOString(),
+          unreadCount: 0
+        },
+        {
+          id: 2,
+          name: 'HR Team',
+          lastMessage: 'New employee onboarding scheduled',
+          timestamp: new Date(Date.now() - 3600000).toISOString(),
+          unreadCount: 2
+        }
+      ]
+    }
+  }),
+
+  // Reports API
+  reports: (params: any = {}) => Promise.resolve({ 
+    data: { 
+      reports: generateMockList(10),
+      total: 35,
+      page: params.page || 1,
+      limit: params.limit || 10
+    }
+  })
+};
+
+// Override API functions when in demo mode
+if (DEMO_MODE) {
+  // Override auth API
+  authAPI.login = mockAPI.login;
+
+  // Override HR APIs
+  hrAPI.getStats = mockAPI.hrStats;
+  employeeAPI.getAll = mockAPI.employees;
+  jobPostingAPI.getAll = mockAPI.jobPostings;
+  candidateAPI.getAll = mockAPI.candidates;
+  trainingAPI.getAll = mockAPI.training;
+  payrollAPI.getAll = mockAPI.payroll;
+  performanceAPI.getAll = mockAPI.performance;
+  leaveAPI.getAll = mockAPI.leave;
+  attendanceAPI.getAll = mockAPI.attendance;
+  benefitAPI.getAll = mockAPI.benefits;
+  complianceAPI.getAll = mockAPI.compliance;
+
+  // Override Finance APIs
+  financeAPI.getStats = mockAPI.financeStats;
+  invoiceAPI.getAll = mockAPI.invoices;
+  transactionAPI.getAll = mockAPI.transactions;
+  budgetAPI.getAll = mockAPI.budgets;
+
+  // Override Sales APIs
+  salesAPI.getStats = mockAPI.salesStats;
+  leadAPI.getAll = mockAPI.leads;
+  opportunityAPI.getAll = mockAPI.opportunities;
+  quoteAPI.getAll = mockAPI.quotes;
+
+  // Override Operations APIs
+  operationsAPI.getStats = mockAPI.operationsStats;
+  projectAPI.getAll = mockAPI.projects;
+  inventoryAPI.getAll = mockAPI.inventory;
+  supplierAPI.getAll = mockAPI.suppliers;
+
+  // Override IT APIs
+  itAPI.getStats = mockAPI.itStats;
+  supportTicketAPI.getAll = mockAPI.tickets;
+  itAssetAPI.getAll = mockAPI.assets;
+
+  // Override Security APIs
+  securityAPI.getStats = mockAPI.securityStats;
+  securityGuardAPI.getAll = mockAPI.guards;
+  securityIncidentAPI.getAll = mockAPI.incidents;
+
+  // Override Chat API
+  chatAPI.getConversations = mockAPI.conversations;
+
+  // Override Reports API
+  reportAPI.getAll = mockAPI.reports;
+
+  console.log('🎭 DEMO MODE ENABLED - Using mock data for all API calls');
+}
 
 export default api;
