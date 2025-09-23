@@ -400,7 +400,14 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
 
                   
                   {/* Notifications */}
-                  <button className="relative p-2.5 text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-xl transition-all duration-300 group border border-orange-200/50 hover:border-orange-300">
+                  <button 
+                    onClick={() => {
+                      // Show notifications modal or panel
+                      alert('Notifications feature coming soon! You have 3 new notifications.');
+                    }}
+                    className="relative p-2.5 text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded-xl transition-all duration-300 group border border-orange-200/50 hover:border-orange-300"
+                    title="Notifications (3 new)"
+                  >
                     <svg className="w-5 h-5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM4.19 4H20c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4.19C3.45 20 2.8 19.55 2.61 18.85L1.39 13.15C1.2 12.45 1.85 12 2.61 12H4v-2c0-1.1.9-2 2-2h2c1.1 0 2 .9 2 2v2h2c1.1 0 2 .9 2 2v2h2c1.1 0 2 .9 2 2v2h2c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2H4.19z" />
                     </svg>
@@ -408,7 +415,14 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
                   </button>
                   
                   {/* Settings */}
-                  <button className="p-2.5 text-gray-600 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all duration-300 group border border-gray-200/50 hover:border-gray-300">
+                  <button 
+                    onClick={() => {
+                      // Navigate to settings page or show settings modal
+                      window.location.href = '/hr/settings';
+                    }}
+                    className="p-2.5 text-gray-600 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all duration-300 group border border-gray-200/50 hover:border-gray-300"
+                    title="Settings"
+                  >
                     <svg className="w-5 h-5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
