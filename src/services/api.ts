@@ -622,6 +622,96 @@ export const auditAPI = {
   getStats: (params: any = {}) => api.get('/audit/stats', { params }),
 };
 
+// Lead API
+export const leadAPI = {
+  getAll: (params: any = {}) => api.get('/leads/test', { params }),
+  getById: (id: string) => api.get(`/leads/${id}`),
+  create: (data: any) => api.post('/leads', data),
+  update: (id: string, data: any) => api.put(`/leads/${id}`, data),
+  delete: (id: string) => api.delete(`/leads/${id}`),
+  getStats: () => api.get('/leads/test/stats'),
+};
+
+// Opportunity API
+export const opportunityAPI = {
+  getAll: (params: any = {}) => api.get('/opportunities/test', { params }),
+  getById: (id: string) => api.get(`/opportunities/${id}`),
+  create: (data: any) => api.post('/opportunities', data),
+  update: (id: string, data: any) => api.put(`/opportunities/${id}`, data),
+  delete: (id: string) => api.delete(`/opportunities/${id}`),
+  getStats: () => api.get('/opportunities/test/stats'),
+};
+
+// Quote API
+export const quoteAPI = {
+  getAll: (params: any = {}) => api.get('/quotes/test', { params }),
+  getById: (id: string) => api.get(`/quotes/${id}`),
+  create: (data: any) => api.post('/quotes', data),
+  update: (id: string, data: any) => api.put(`/quotes/${id}`, data),
+  delete: (id: string) => api.delete(`/quotes/${id}`),
+  getStats: () => api.get('/quotes/test/stats'),
+};
+
+// Supplier API
+export const supplierAPI = {
+  getAll: (params: any = {}) => api.get('/suppliers/test', { params }),
+  getById: (id: string) => api.get(`/suppliers/${id}`),
+  create: (data: any) => api.post('/suppliers', data),
+  update: (id: string, data: any) => api.put(`/suppliers/${id}`, data),
+  delete: (id: string) => api.delete(`/suppliers/${id}`),
+  getStats: () => api.get('/suppliers/test/stats'),
+};
+
+// Support Ticket API
+export const supportTicketAPI = {
+  getAll: (params: any = {}) => api.get('/support-tickets/test', { params }),
+  getById: (id: string) => api.get(`/support-tickets/${id}`),
+  create: (data: any) => api.post('/support-tickets', data),
+  update: (id: string, data: any) => api.put(`/support-tickets/${id}`, data),
+  delete: (id: string) => api.delete(`/support-tickets/${id}`),
+  getStats: () => api.get('/support-tickets/test/stats'),
+};
+
+// IT Asset API
+export const itAssetAPI = {
+  getAll: (params: any = {}) => api.get('/it-assets/test', { params }),
+  getById: (id: string) => api.get(`/it-assets/${id}`),
+  create: (data: any) => api.post('/it-assets', data),
+  update: (id: string, data: any) => api.put(`/it-assets/${id}`, data),
+  delete: (id: string) => api.delete(`/it-assets/${id}`),
+  getStats: () => api.get('/it-assets/test/stats'),
+};
+
+// Security Guard API
+export const securityGuardAPI = {
+  getAll: (params: any = {}) => api.get('/security-guards/test', { params }),
+  getById: (id: string) => api.get(`/security-guards/${id}`),
+  create: (data: any) => api.post('/security-guards', data),
+  update: (id: string, data: any) => api.put(`/security-guards/${id}`, data),
+  delete: (id: string) => api.delete(`/security-guards/${id}`),
+  getStats: () => api.get('/security-guards/test/stats'),
+};
+
+// Security Incident API
+export const securityIncidentAPI = {
+  getAll: (params: any = {}) => api.get('/security-incidents/test', { params }),
+  getById: (id: string) => api.get(`/security-incidents/${id}`),
+  create: (data: any) => api.post('/security-incidents', data),
+  update: (id: string, data: any) => api.put(`/security-incidents/${id}`, data),
+  delete: (id: string) => api.delete(`/security-incidents/${id}`),
+  getStats: () => api.get('/security-incidents/test/stats'),
+};
+
+// Report API
+export const reportAPI = {
+  getAll: (params: any = {}) => api.get('/reports/test', { params }),
+  getById: (id: string) => api.get(`/reports/${id}`),
+  create: (data: any) => api.post('/reports', data),
+  update: (id: string, data: any) => api.put(`/reports/${id}`, data),
+  delete: (id: string) => api.delete(`/reports/${id}`),
+  getStats: () => api.get('/reports/test/stats'),
+};
+
 // ============================================================================
 // MOCK DATA FOR DEMO MODE
 // ============================================================================
@@ -929,7 +1019,8 @@ if (DEMO_MODE) {
   performanceAPI.getAll = mockAPI.performance;
   leaveAPI.getAll = mockAPI.leave;
   attendanceAPI.getAll = mockAPI.attendance;
-  benefitAPI.getAll = mockAPI.benefits;
+  benefitsAPI.getAll = mockAPI.benefits;
+  benefitsAPI.getStats = mockAPI.benefits;
   complianceAPI.getAll = mockAPI.compliance;
 
   // Override Finance APIs
