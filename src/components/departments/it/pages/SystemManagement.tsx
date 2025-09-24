@@ -1,149 +1,139 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AnimatedCard from '../../../shared/AnimatedCard';
-import { AnimatedButton, AnimatedProgressBar } from '../../../shared/AnimatedCard';
-import { getColorScheme } from '../../../../utils/colorSchemes';
+import { AnimatedButton } from '../../../shared/AnimatedCard';
+import { 
+  Server, 
+  Database, 
+  Monitor, 
+  Cpu, 
+  HardDrive, 
+  MemoryStick, 
+  Activity, 
+  Play, 
+  Pause, 
+  RotateCcw, 
+  Settings, 
+  Eye, 
+  AlertTriangle, 
+  CheckCircle, 
+  Clock,
+  TrendingUp,
+  TrendingDown,
+  BarChart3,
+  Zap,
+  Shield,
+  Download,
+  Upload
+} from 'lucide-react';
+
+interface SystemResource {
+  id: string;
+  name: string;
+  type: 'server' | 'database' | 'application';
+  status: 'running' | 'stopped' | 'maintenance' | 'error';
+  cpuUsage: number;
+  memoryUsage: number;
+  diskUsage: number;
+  uptime: string;
+  lastRestart: string;
+}
+
+interface Application {
+  id: string;
+  name: string;
+  version: string;
+  status: 'running' | 'stopped' | 'error';
+  port: number;
+  memoryUsage: number;
+  lastDeployed: string;
+}
 
 const SystemManagement: React.FC = () => {
-  const colorScheme = getColorScheme('it');
-
-  const serverStats = [
-    { title: 'Total Servers', value: '12', subtitle: 'Active', color: 'green', icon: '🖥️', trend: { value: '+1', isPositive: true }, delay: 0 },
-    { title: 'CPU Usage', value: '68%', subtitle: 'Average', color: 'blue', icon: '⚡', trend: { value: '-5%', isPositive: true }, delay: 100 },
-    { title: 'Memory Usage', value: '72%', subtitle: 'Average', color: 'orange', icon: '💾', trend: { value: '+2%', isPositive: false }, delay: 200 },
-    { title: 'Storage Usage', value: '45%', subtitle: 'Available', color: 'purple', icon: '💿', trend: { value: '+8%', isPositive: false }, delay: 300 }
-  ];
-
-  const servers = [
+  const [activeTab, setActiveTab] = useState<'servers' | 'databases' | 'applications'>('servers');
+  
+  const [systemResources, setSystemResources] = useState<SystemResource[]>([
     {
-      id: 1,
-      name: 'Kigali-DB-01',
-      type: 'Database Server',
-      status: 'Online',
-      cpu: 65,
-      memory: 78,
-      storage: 45,
-      uptime: '99.9%',
-      lastMaintenance: '2 weeks ago',
-      location: 'Kigali Data Center'
+      id: '1',
+      name: 'Web Server 01',
+      type: 'server',
+      status: 'running',
+      cpuUsage: 45,
+      memoryUsage: 68,
+      diskUsage: 32,
+      uptime: '15 days, 8 hours',
+      lastRestart: '2024-01-01 10:00:00'
     },
     {
-      id: 2,
-      name: 'Kigali-WEB-01',
-      type: 'Web Server',
-      status: 'Online',
-      cpu: 72,
-      memory: 68,
-      storage: 52,
-      uptime: '99.7%',
-      lastMaintenance: '1 week ago',
-      location: 'Kigali Data Center'
+      id: '2',
+      name: 'Database Server 01',
+      type: 'database',
+      status: 'running',
+      cpuUsage: 23,
+      memoryUsage: 45,
+      diskUsage: 78,
+      uptime: '30 days, 12 hours',
+      lastRestart: '2023-12-15 14:30:00'
     },
     {
-      id: 3,
-      name: 'Huye-FILE-01',
-      type: 'File Server',
-      status: 'Online',
-      cpu: 45,
-      memory: 55,
-      storage: 78,
-      uptime: '99.5%',
-      lastMaintenance: '3 weeks ago',
-      location: 'Huye Branch'
-    },
-    {
-      id: 4,
-      name: 'Musanze-APP-01',
-      type: 'Application Server',
-      status: 'Maintenance',
-      cpu: 0,
-      memory: 0,
-      storage: 62,
-      uptime: '98.2%',
-      lastMaintenance: 'Today',
-      location: 'Musanze Branch'
+      id: '3',
+      name: 'Application Server 01',
+      type: 'server',
+      status: 'maintenance',
+      cpuUsage: 0,
+      memoryUsage: 12,
+      diskUsage: 45,
+      uptime: '0 days, 0 hours',
+      lastRestart: '2024-01-15 09:00:00'
     }
-  ];
+  ]);
 
-  const softwareInventory = [
+  const [applications, setApplications] = useState<Application[]>([
     {
-      name: 'Windows Server 2019',
-      version: '10.0.17763',
-      installations: 8,
-      lastUpdate: '2 weeks ago',
-      status: 'Up to Date',
-      license: 'Enterprise'
+      id: '1',
+      name: 'ERP System',
+      version: 'v2.1.4',
+      status: 'running',
+      port: 3000,
+      memoryUsage: 512,
+      lastDeployed: '2024-01-10 16:45:00'
     },
     {
-      name: 'Ubuntu Server 20.04',
-      version: '20.04.3 LTS',
-      installations: 4,
-      lastUpdate: '1 week ago',
-      status: 'Up to Date',
-      license: 'Open Source'
+      id: '2',
+      name: 'Database Service',
+      version: 'v1.8.2',
+      status: 'running',
+      port: 5432,
+      memoryUsage: 1024,
+      lastDeployed: '2024-01-05 10:20:00'
     },
     {
-      name: 'Microsoft SQL Server',
-      version: '2019.15.0.4153',
-      installations: 3,
-      lastUpdate: '3 days ago',
-      status: 'Update Available',
-      license: 'Enterprise'
-    },
-    {
-      name: 'Apache Web Server',
-      version: '2.4.48',
-      installations: 6,
-      lastUpdate: '1 month ago',
-      status: 'Update Available',
-      license: 'Open Source'
+      id: '3',
+      name: 'API Gateway',
+      version: 'v3.0.1',
+      status: 'error',
+      port: 8080,
+      memoryUsage: 256,
+      lastDeployed: '2024-01-12 14:30:00'
     }
-  ];
+  ]);
 
-  const systemConfigs = [
-    {
-      name: 'Network Configuration',
-      type: 'Network',
-      lastModified: '2 days ago',
-      modifiedBy: 'Jean Pierre Uwimana',
-      status: 'Active',
-      description: 'Main network settings and routing'
-    },
-    {
-      name: 'Security Policy',
-      type: 'Security',
-      lastModified: '1 week ago',
-      modifiedBy: 'Emmanuel Ndayisaba',
-      status: 'Active',
-      description: 'Firewall and access control policies'
-    },
-    {
-      name: 'Backup Schedule',
-      type: 'Backup',
-      lastModified: '3 days ago',
-      modifiedBy: 'Patrick Nshimiyimana',
-      status: 'Active',
-      description: 'Automated backup configuration'
-    },
-    {
-      name: 'Monitoring Setup',
-      type: 'Monitoring',
-      lastModified: '5 days ago',
-      modifiedBy: 'Alexis Nkurunziza',
-      status: 'Active',
-      description: 'System monitoring and alerting'
-    }
-  ];
-
-  const getStatusBadge = (status: string) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Online': return 'bg-green-100 text-green-800';
-      case 'Offline': return 'bg-red-100 text-red-800';
-      case 'Maintenance': return 'bg-yellow-100 text-yellow-800';
-      case 'Up to Date': return 'bg-green-100 text-green-800';
-      case 'Update Available': return 'bg-orange-100 text-orange-800';
-      case 'Active': return 'bg-green-100 text-green-800';
-      case 'Inactive': return 'bg-gray-100 text-gray-800';
+      case 'running': return 'bg-green-100 text-green-800';
+      case 'stopped': return 'bg-gray-100 text-gray-800';
+      case 'maintenance': return 'bg-blue-100 text-blue-800';
+      case 'error': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'running': return <CheckCircle className="w-4 h-4" />;
+      case 'stopped': return <Pause className="w-4 h-4" />;
+      case 'maintenance': return <Clock className="w-4 h-4" />;
+      case 'error': return <AlertTriangle className="w-4 h-4" />;
+      default: return <AlertTriangle className="w-4 h-4" />;
     }
   };
 
@@ -153,256 +143,339 @@ const SystemManagement: React.FC = () => {
     return 'text-green-600';
   };
 
+  const handleStartService = (id: string) => {
+    console.log('Starting service:', id);
+  };
+
+  const handleStopService = (id: string) => {
+    console.log('Stopping service:', id);
+  };
+
+  const handleRestartService = (id: string) => {
+    console.log('Restarting service:', id);
+  };
+
   return (
-    <div className="space-y-4">
-      {/* System Management Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {serverStats.map((stat, index) => (
-          <div
-            key={index}
-            className="bg-white rounded-xl p-4 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300"
-            style={{ animationDelay: `${stat.delay}ms` }}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">System Management</h1>
+          <p className="text-gray-600">Monitor and manage servers, databases, and applications</p>
+        </div>
+        <div className="flex space-x-3">
+          <AnimatedButton
+            onClick={() => {}}
+            className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                <p className="text-xs text-gray-500">{stat.subtitle}</p>
-              </div>
-              <div className="text-2xl">{stat.icon}</div>
+            <Download className="w-4 h-4" />
+            <span>Deploy Update</span>
+          </AnimatedButton>
+          <AnimatedButton
+            onClick={() => {}}
+            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+          >
+            <BarChart3 className="w-4 h-4" />
+            <span>System Report</span>
+          </AnimatedButton>
+        </div>
+      </div>
+
+      {/* System Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <AnimatedCard
+          title="Total Servers"
+          subtitle="Active systems"
+          className="bg-white rounded-xl shadow-lg border border-gray-100"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-2xl font-bold text-gray-900">3</p>
+              <p className="text-sm text-gray-500">2 running, 1 maintenance</p>
             </div>
-            {stat.trend && (
-              <div className={`flex items-center mt-2 text-xs ${
-                stat.trend.isPositive ? 'text-green-600' : 'text-red-600'
-              }`}>
-                <span>{stat.trend.isPositive ? '↗' : '↘'}</span>
-                <span className="ml-1">{stat.trend.value}</span>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Server Management */}
-      <AnimatedCard
-        title="Server Management"
-        subtitle="Active servers and their performance metrics"
-        color="blue"
-        icon="🖥️"
-        delay={400}
-      >
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Server</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CPU</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Memory</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Storage</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Uptime</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {servers.map((server) => (
-                <tr key={server.id} className="hover:bg-gray-50 transition-colors duration-200">
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">{server.name}</div>
-                      <div className="text-xs text-gray-500">{server.location}</div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{server.type}</div>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadge(server.status)}`}>
-                      {server.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                        <div 
-                          className={`h-2 rounded-full ${getUsageColor(server.cpu)}`}
-                          style={{ width: `${server.cpu}%` }}
-                        ></div>
-                      </div>
-                      <span className={`text-sm ${getUsageColor(server.cpu)}`}>{server.cpu}%</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                        <div 
-                          className={`h-2 rounded-full ${getUsageColor(server.memory)}`}
-                          style={{ width: `${server.memory}%` }}
-                        ></div>
-                      </div>
-                      <span className={`text-sm ${getUsageColor(server.memory)}`}>{server.memory}%</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                        <div 
-                          className={`h-2 rounded-full ${getUsageColor(server.storage)}`}
-                          style={{ width: `${server.storage}%` }}
-                        ></div>
-                      </div>
-                      <span className={`text-sm ${getUsageColor(server.storage)}`}>{server.storage}%</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{server.uptime}</div>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button className="text-blue-600 hover:text-blue-900 transition-colors duration-200">Monitor</button>
-                      <button className="text-green-600 hover:text-green-900 transition-colors duration-200">Manage</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </AnimatedCard>
-
-      {/* Software Inventory and System Configurations */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <AnimatedCard
-          title="Software Inventory"
-          subtitle="Installed software and versions"
-          color="green"
-          icon="📦"
-          delay={600}
-        >
-          <div className="space-y-3">
-            {softwareInventory.map((software) => (
-              <div key={software.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm font-medium text-gray-900">{software.name}</span>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadge(software.status)}`}>
-                      {software.status}
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Version {software.version} • {software.installations} installations • {software.license}
-                  </div>
-                  <div className="text-xs text-gray-400 mt-1">
-                    Last update: {software.lastUpdate}
-                  </div>
-                </div>
-                <div className="flex space-x-2">
-                  <button className="text-blue-600 hover:text-blue-900 transition-colors duration-200 text-xs">Update</button>
-                  <button className="text-green-600 hover:text-green-900 transition-colors duration-200 text-xs">Details</button>
-                </div>
-              </div>
-            ))}
+            <Server className="w-8 h-8 text-blue-600" />
           </div>
         </AnimatedCard>
 
         <AnimatedCard
-          title="System Configurations"
-          subtitle="Active system configurations and policies"
-          color="purple"
-          icon="⚙️"
-          delay={800}
+          title="Database Status"
+          subtitle="Storage and performance"
+          className="bg-white rounded-xl shadow-lg border border-gray-100"
         >
-          <div className="space-y-3">
-            {systemConfigs.map((config) => (
-              <div key={config.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm font-medium text-gray-900">{config.name}</span>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadge(config.status)}`}>
-                      {config.status}
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {config.type} • Modified by {config.modifiedBy}
-                  </div>
-                  <div className="text-xs text-gray-400 mt-1">
-                    {config.description} • {config.lastModified}
-                  </div>
-                </div>
-                <div className="flex space-x-2">
-                  <button className="text-blue-600 hover:text-blue-900 transition-colors duration-200 text-xs">Edit</button>
-                  <button className="text-green-600 hover:text-green-900 transition-colors duration-200 text-xs">View</button>
-                </div>
-              </div>
-            ))}
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-2xl font-bold text-gray-900">78%</p>
+              <p className="text-sm text-gray-500">Storage used</p>
+            </div>
+            <Database className="w-8 h-8 text-green-600" />
+          </div>
+        </AnimatedCard>
+
+        <AnimatedCard
+          title="Applications"
+          subtitle="Deployed services"
+          className="bg-white rounded-xl shadow-lg border border-gray-100"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-2xl font-bold text-gray-900">3</p>
+              <p className="text-sm text-gray-500">2 running, 1 error</p>
+            </div>
+            <Monitor className="w-8 h-8 text-purple-600" />
+          </div>
+        </AnimatedCard>
+
+        <AnimatedCard
+          title="System Health"
+          subtitle="Overall status"
+          className="bg-white rounded-xl shadow-lg border border-gray-100"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-2xl font-bold text-gray-900">85%</p>
+              <p className="text-sm text-gray-500">Health score</p>
+            </div>
+            <Activity className="w-8 h-8 text-orange-600" />
           </div>
         </AnimatedCard>
       </div>
 
-      {/* Quick Actions */}
-      <AnimatedCard
-        title="Quick Actions"
-        subtitle="Common system management tasks"
-        color="orange"
-        icon="⚡"
-        delay={1000}
-      >
-        <div className="grid grid-cols-1 gap-3">
-          <AnimatedButton
-            color="blue"
-            size="md"
-            onClick={() => console.log('Add server')}
-          >
-            🖥️ Add New Server
-          </AnimatedButton>
-          <AnimatedButton
-            color="green"
-            size="md"
-            onClick={() => console.log('System backup')}
-          >
-            💾 System Backup
-          </AnimatedButton>
-          <AnimatedButton
-            color="purple"
-            size="md"
-            onClick={() => console.log('Software update')}
-          >
-            🔄 Software Updates
-          </AnimatedButton>
-          <AnimatedButton
-            color="orange"
-            size="md"
-            onClick={() => console.log('Performance check')}
-          >
-            📊 Performance Check
-          </AnimatedButton>
+      {/* Tabs */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100">
+        <div className="border-b border-gray-200">
+          <nav className="flex space-x-8 px-6">
+            <button
+              onClick={() => setActiveTab('servers')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'servers'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                <Server className="w-4 h-4" />
+                <span>Servers</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('databases')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'databases'
+                  ? 'border-green-500 text-green-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                <Database className="w-4 h-4" />
+                <span>Databases</span>
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('applications')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'applications'
+                  ? 'border-purple-500 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center space-x-2">
+                <Monitor className="w-4 h-4" />
+                <span>Applications</span>
+              </div>
+            </button>
+          </nav>
         </div>
-      </AnimatedCard>
 
-      {/* System Health Overview */}
-      <AnimatedCard
-        title="System Health Overview"
-        subtitle="Overall system performance and health metrics"
-        color="indigo"
-        icon="📊"
-        delay={1200}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">99.7%</div>
-            <div className="text-sm text-green-600">Overall Uptime</div>
-          </div>
-          <div className="text-center p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">68%</div>
-            <div className="text-sm text-blue-600">Avg CPU Usage</div>
-          </div>
-          <div className="text-center p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg">
-            <div className="text-2xl font-bold text-purple-600">72%</div>
-            <div className="text-sm text-purple-600">Avg Memory Usage</div>
-          </div>
+        <div className="p-6">
+          {activeTab === 'servers' && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">Server Resources</h3>
+              <div className="space-y-4">
+                {systemResources.filter(resource => resource.type === 'server').map((server) => (
+                  <div key={server.id} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <Server className="w-5 h-5 text-gray-600" />
+                        <div>
+                          <h4 className="font-medium text-gray-900">{server.name}</h4>
+                          <p className="text-sm text-gray-500">Uptime: {server.uptime}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(server.status)}`}>
+                          {getStatusIcon(server.status)}
+                          <span className="ml-1 capitalize">{server.status}</span>
+                        </span>
+                        <div className="flex space-x-2">
+                          <AnimatedButton
+                            onClick={() => handleStartService(server.id)}
+                            className="p-1 text-green-600 hover:bg-green-50 rounded"
+                          >
+                            <Play className="w-4 h-4" />
+                          </AnimatedButton>
+                          <AnimatedButton
+                            onClick={() => handleStopService(server.id)}
+                            className="p-1 text-red-600 hover:bg-red-50 rounded"
+                          >
+                            <Pause className="w-4 h-4" />
+                          </AnimatedButton>
+                          <AnimatedButton
+                            onClick={() => handleRestartService(server.id)}
+                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                          >
+                            <RotateCcw className="w-4 h-4" />
+                          </AnimatedButton>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center space-x-2 mb-1">
+                          <Cpu className="w-4 h-4 text-gray-600" />
+                          <span className="text-sm font-medium text-gray-700">CPU</span>
+                        </div>
+                        <p className={`text-lg font-bold ${getUsageColor(server.cpuUsage)}`}>
+                          {server.cpuUsage}%
+                        </p>
+                      </div>
+                      <div className="text-center">
+                        <div className="flex items-center justify-center space-x-2 mb-1">
+                          <MemoryStick className="w-4 h-4 text-gray-600" />
+                          <span className="text-sm font-medium text-gray-700">Memory</span>
+                        </div>
+                        <p className={`text-lg font-bold ${getUsageColor(server.memoryUsage)}`}>
+                          {server.memoryUsage}%
+                        </p>
+                      </div>
+                      <div className="text-center">
+                        <div className="flex items-center justify-center space-x-2 mb-1">
+                          <HardDrive className="w-4 h-4 text-gray-600" />
+                          <span className="text-sm font-medium text-gray-700">Disk</span>
+                        </div>
+                        <p className={`text-lg font-bold ${getUsageColor(server.diskUsage)}`}>
+                          {server.diskUsage}%
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'databases' && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">Database Systems</h3>
+              <div className="space-y-4">
+                {systemResources.filter(resource => resource.type === 'database').map((database) => (
+                  <div key={database.id} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <Database className="w-5 h-5 text-gray-600" />
+                        <div>
+                          <h4 className="font-medium text-gray-900">{database.name}</h4>
+                          <p className="text-sm text-gray-500">Uptime: {database.uptime}</p>
+                        </div>
+                      </div>
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(database.status)}`}>
+                        {getStatusIcon(database.status)}
+                        <span className="ml-1 capitalize">{database.status}</span>
+                      </span>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center space-x-2 mb-1">
+                          <Cpu className="w-4 h-4 text-gray-600" />
+                          <span className="text-sm font-medium text-gray-700">CPU</span>
+                        </div>
+                        <p className={`text-lg font-bold ${getUsageColor(database.cpuUsage)}`}>
+                          {database.cpuUsage}%
+                        </p>
+                      </div>
+                      <div className="text-center">
+                        <div className="flex items-center justify-center space-x-2 mb-1">
+                          <MemoryStick className="w-4 h-4 text-gray-600" />
+                          <span className="text-sm font-medium text-gray-700">Memory</span>
+                        </div>
+                        <p className={`text-lg font-bold ${getUsageColor(database.memoryUsage)}`}>
+                          {database.memoryUsage}%
+                        </p>
+                      </div>
+                      <div className="text-center">
+                        <div className="flex items-center justify-center space-x-2 mb-1">
+                          <HardDrive className="w-4 h-4 text-gray-600" />
+                          <span className="text-sm font-medium text-gray-700">Storage</span>
+                        </div>
+                        <p className={`text-lg font-bold ${getUsageColor(database.diskUsage)}`}>
+                          {database.diskUsage}%
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'applications' && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">Deployed Applications</h3>
+              <div className="space-y-4">
+                {applications.map((app) => (
+                  <div key={app.id} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <Monitor className="w-5 h-5 text-gray-600" />
+                        <div>
+                          <h4 className="font-medium text-gray-900">{app.name}</h4>
+                          <p className="text-sm text-gray-500">Version: {app.version}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(app.status)}`}>
+                          {getStatusIcon(app.status)}
+                          <span className="ml-1 capitalize">{app.status}</span>
+                        </span>
+                        <div className="flex space-x-2">
+                          <AnimatedButton
+                            onClick={() => handleStartService(app.id)}
+                            className="p-1 text-green-600 hover:bg-green-50 rounded"
+                          >
+                            <Play className="w-4 h-4" />
+                          </AnimatedButton>
+                          <AnimatedButton
+                            onClick={() => handleStopService(app.id)}
+                            className="p-1 text-red-600 hover:bg-red-50 rounded"
+                          >
+                            <Pause className="w-4 h-4" />
+                          </AnimatedButton>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-600">Port:</span>
+                        <span className="ml-2 font-medium">{app.port}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Memory:</span>
+                        <span className="ml-2 font-medium">{app.memoryUsage} MB</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Last Deployed:</span>
+                        <span className="ml-2 font-medium">{app.lastDeployed}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      </AnimatedCard>
+      </div>
     </div>
   );
 };

@@ -37,14 +37,11 @@ import {
 
 // Finance Department Pages
 import FinanceOverview from './pages/FinanceOverview';
-import AccountsPayable from './pages/AccountsPayable';
-import AccountsReceivable from './pages/AccountsReceivable';
+import AccountsManagement from './pages/AccountsManagement';
+import BudgetPlanning from './pages/BudgetPlanning';
+import CashExpenses from './pages/CashExpenses';
 import TaxManagement from './pages/TaxManagement';
-import Budgeting from './pages/Budgeting';
 import FinancialReports from './pages/FinancialReports';
-import CashManagement from './pages/CashManagement';
-import Expenses from './pages/Expenses';
-import FinancialPlanning from './pages/FinancialPlanning';
 
 interface Transaction {
   id: string;
@@ -300,14 +297,11 @@ const FinanceDashboard: React.FC = () => {
   const sidebarItems = [
     { name: 'Dashboard', path: '/finance', icon: Home },
     { name: 'Overview', path: '/finance/overview', icon: Eye },
-    { name: 'Payable', path: '/finance/payable', icon: HandCoins },
-    { name: 'Receivable', path: '/finance/receivable', icon: Wallet },
+    { name: 'Accounts Management', path: '/finance/accounts', icon: HandCoins },
+    { name: 'Budget & Planning', path: '/finance/budget', icon: PieChart },
+    { name: 'Cash & Expenses', path: '/finance/cash', icon: Banknote },
     { name: 'Tax Management', path: '/finance/tax', icon: Calculator },
-    { name: 'Budgeting', path: '/finance/budgeting', icon: PieChart },
-    { name: 'Reports', path: '/finance/reports', icon: FileText },
-    { name: 'Cash Management', path: '/finance/cash', icon: Banknote },
-    { name: 'Expenses', path: '/finance/expenses', icon: ReceiptIcon },
-    { name: 'Financial Planning', path: '/finance/planning', icon: Target }
+    { name: 'Reports', path: '/finance/reports', icon: FileText }
   ];
 
   // Main Dashboard Content
@@ -487,22 +481,16 @@ const FinanceDashboard: React.FC = () => {
         return <DashboardContent />;
       case '/finance/overview':
         return <FinanceOverview />;
-      case '/finance/payable':
-        return <AccountsPayable />;
-      case '/finance/receivable':
-        return <AccountsReceivable />;
+      case '/finance/accounts':
+        return <AccountsManagement />;
+      case '/finance/budget':
+        return <BudgetPlanning />;
+      case '/finance/cash':
+        return <CashExpenses />;
       case '/finance/tax':
         return <TaxManagement />;
-      case '/finance/budgeting':
-        return <Budgeting />;
       case '/finance/reports':
         return <FinancialReports />;
-      case '/finance/cash':
-        return <CashManagement />;
-      case '/finance/expenses':
-        return <Expenses />;
-      case '/finance/planning':
-        return <FinancialPlanning />;
       default:
         return <DashboardContent />;
     }

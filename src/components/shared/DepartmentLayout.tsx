@@ -8,6 +8,7 @@ import PersonalLeave from './PersonalLeave';
 import SimpleChat from '../chat/SimpleChat';
 import NotificationCenter from './NotificationCenter';
 import { useNotifications } from '../../hooks/useNotifications';
+import dicelLogo from '../../assets/images/dicel-logo.png';
 
 interface DepartmentLayoutProps {
   children: React.ReactNode;
@@ -204,8 +205,12 @@ const DepartmentLayout: React.FC<DepartmentLayoutProps> = ({
             {/* Enhanced Sidebar Header - Professional Dark Blue */}
             <div className="flex-shrink-0 p-4 border-b border-blue-400/30 bg-[#002050]">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-400 to-blue-500 flex items-center justify-center shadow-lg transition-all duration-300 hover:shadow-xl animate-bounce-in">
-                  <span className="text-white font-bold text-lg">D</span>
+                <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center shadow-lg transition-all duration-300 hover:shadow-xl animate-bounce-in border border-blue-400/30">
+                  <img 
+                    src={dicelLogo} 
+                    alt="DICEL Logo" 
+                    className="w-8 h-8 object-contain"
+                  />
                 </div>
                 <div className="flex-1">
                   <h1 className="text-lg font-bold text-white">Dicel ERP</h1>

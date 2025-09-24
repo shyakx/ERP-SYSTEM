@@ -1,373 +1,334 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AnimatedCard from '../../../shared/AnimatedCard';
-import { AnimatedButton, AnimatedProgressBar } from '../../../shared/AnimatedCard';
-import { getColorScheme } from '../../../../utils/colorSchemes';
+import { AnimatedButton } from '../../../shared/AnimatedCard';
+import { 
+  Users, 
+  MessageSquare, 
+  Clock, 
+  CheckCircle, 
+  AlertTriangle, 
+  Plus, 
+  Search, 
+  Filter,
+  BarChart3,
+  Settings,
+  Eye,
+  Edit,
+  Trash2,
+  Phone,
+  Mail,
+  Calendar,
+  User,
+  Tag,
+  Star
+} from 'lucide-react';
+
+interface SupportTicket {
+  id: string;
+  title: string;
+  description: string;
+  user: string;
+  department: string;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  category: 'hardware' | 'software' | 'network' | 'account' | 'other';
+  createdAt: string;
+  updatedAt: string;
+  assignedTo: string;
+}
 
 const UserSupport: React.FC = () => {
-  const colorScheme = getColorScheme('it');
-
-  const supportStats = [
-    { title: 'Open Tickets', value: '23', subtitle: 'Active', color: 'orange', icon: '🎫', trend: { value: '-5', isPositive: true }, delay: 0 },
-    { title: 'Resolved Today', value: '18', subtitle: 'This week', color: 'green', icon: '✅', trend: { value: '+3', isPositive: true }, delay: 100 },
-    { title: 'Avg Response', value: '2.1hrs', subtitle: 'Time', color: 'blue', icon: '⏱️', trend: { value: '-0.3hrs', isPositive: true }, delay: 200 },
-    { title: 'Satisfaction', value: '94%', subtitle: 'Rating', color: 'purple', icon: '😊', trend: { value: '+2%', isPositive: true }, delay: 300 }
-  ];
-
-  const supportTickets = [
+  const [activeTab, setActiveTab] = useState<'tickets' | 'users' | 'analytics'>('tickets');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  
+  const [supportTickets, setSupportTickets] = useState<SupportTicket[]>([
     {
-      id: 'TKT-2024-001',
-      title: 'Email Access Issue',
-      description: 'Cannot access email account from mobile device',
-      priority: 'High',
-      status: 'In Progress',
-      assignedTo: 'Jean Pierre Uwimana',
-      requester: 'Marie Uwamahoro',
+      id: 'T001',
+      title: 'Cannot access email system',
+      description: 'User reports being unable to log into the email system since yesterday morning.',
+      user: 'john.doe@dicel.co.rw',
       department: 'HR',
-      createdAt: '2 hours ago',
-      category: 'Email Support'
+      priority: 'high',
+      status: 'in_progress',
+      category: 'account',
+      createdAt: '2024-01-15 09:30:00',
+      updatedAt: '2024-01-15 10:15:00',
+      assignedTo: 'IT Support Team'
     },
     {
-      id: 'TKT-2024-002',
-      title: 'Printer Connection Problem',
-      description: 'Network printer not responding in Finance office',
-      priority: 'Medium',
-      status: 'Open',
-      assignedTo: 'Emmanuel Ndayisaba',
-      requester: 'Patrick Nshimiyimana',
+      id: 'T002',
+      title: 'Printer not working',
+      description: 'Office printer in Finance department is not responding to print jobs.',
+      user: 'jane.smith@dicel.co.rw',
       department: 'Finance',
-      createdAt: '4 hours ago',
-      category: 'Hardware Support'
+      priority: 'medium',
+      status: 'open',
+      category: 'hardware',
+      createdAt: '2024-01-15 10:45:00',
+      updatedAt: '2024-01-15 10:45:00',
+      assignedTo: 'Unassigned'
     },
     {
-      id: 'TKT-2024-003',
-      title: 'Software Installation Request',
-      description: 'Need Adobe Acrobat installed on workstation',
-      priority: 'Low',
-      status: 'Resolved',
-      assignedTo: 'Alexis Nkurunziza',
-      requester: 'Sarah Mukamana',
-      department: 'Marketing',
-      createdAt: '1 day ago',
-      category: 'Software Support'
+      id: 'T003',
+      title: 'Slow internet connection',
+      description: 'Internet speed is very slow in the Operations department.',
+      user: 'paul.mugenzi@dicel.co.rw',
+      department: 'Operations',
+      priority: 'medium',
+      status: 'resolved',
+      category: 'network',
+      createdAt: '2024-01-14 14:20:00',
+      updatedAt: '2024-01-15 08:30:00',
+      assignedTo: 'Network Team'
     },
     {
-      id: 'TKT-2024-004',
-      title: 'VPN Connection Issue',
-      description: 'Cannot connect to company VPN from home',
-      priority: 'High',
-      status: 'Open',
-      assignedTo: 'Patrick Nshimiyimana',
-      requester: 'John Uwimana',
-      department: 'Sales',
-      createdAt: '6 hours ago',
-      category: 'Network Support'
+      id: 'T004',
+      title: 'Software installation request',
+      description: 'Need to install new accounting software on Finance department computers.',
+      user: 'david.habyarimana@dicel.co.rw',
+      department: 'Finance',
+      priority: 'low',
+      status: 'open',
+      category: 'software',
+      createdAt: '2024-01-15 11:00:00',
+      updatedAt: '2024-01-15 11:00:00',
+      assignedTo: 'Unassigned'
     }
-  ];
-
-  const knowledgeBase = [
-    {
-      title: 'How to Reset Password',
-      category: 'Account Management',
-      views: 156,
-      lastUpdated: '1 week ago',
-      helpful: 23,
-      tags: ['password', 'account', 'login']
-    },
-    {
-      title: 'Setting Up Email on Mobile',
-      category: 'Email Support',
-      views: 89,
-      lastUpdated: '2 weeks ago',
-      helpful: 15,
-      tags: ['email', 'mobile', 'setup']
-    },
-    {
-      title: 'Network Printer Troubleshooting',
-      category: 'Hardware Support',
-      views: 234,
-      lastUpdated: '3 days ago',
-      helpful: 42,
-      tags: ['printer', 'network', 'hardware']
-    },
-    {
-      title: 'VPN Connection Guide',
-      category: 'Network Support',
-      views: 67,
-      lastUpdated: '1 week ago',
-      helpful: 12,
-      tags: ['vpn', 'remote', 'network']
-    }
-  ];
-
-  const supportCategories = [
-    {
-      name: 'Email Support',
-      tickets: 8,
-      avgResolution: '1.5hrs',
-      satisfaction: 96,
-      icon: '📧'
-    },
-    {
-      name: 'Hardware Support',
-      tickets: 12,
-      avgResolution: '3.2hrs',
-      satisfaction: 89,
-      icon: '🖥️'
-    },
-    {
-      name: 'Software Support',
-      tickets: 15,
-      avgResolution: '2.1hrs',
-      satisfaction: 92,
-      icon: '📦'
-    },
-    {
-      name: 'Network Support',
-      tickets: 6,
-      avgResolution: '4.5hrs',
-      satisfaction: 87,
-      icon: '🌐'
-    }
-  ];
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'Open': return 'bg-red-100 text-red-800';
-      case 'In Progress': return 'bg-yellow-100 text-yellow-800';
-      case 'Resolved': return 'bg-green-100 text-green-800';
-      case 'Closed': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+  ]);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'High': return 'bg-red-100 text-red-800';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800';
-      case 'Low': return 'bg-green-100 text-green-800';
+      case 'urgent': return 'bg-red-100 text-red-800';
+      case 'high': return 'bg-orange-100 text-orange-800';
+      case 'medium': return 'bg-yellow-100 text-yellow-800';
+      case 'low': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'open': return 'bg-red-100 text-red-800';
+      case 'in_progress': return 'bg-blue-100 text-blue-800';
+      case 'resolved': return 'bg-green-100 text-green-800';
+      case 'closed': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'hardware': return '🖥️';
+      case 'software': return '💻';
+      case 'network': return '🌐';
+      case 'account': return '👤';
+      default: return '❓';
+    }
+  };
+
+  const filteredTickets = supportTickets.filter(ticket => {
+    const matchesSearch = ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         ticket.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         ticket.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === 'all' || ticket.status === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
+
+  const ticketStats = {
+    total: supportTickets.length,
+    open: supportTickets.filter(t => t.status === 'open').length,
+    inProgress: supportTickets.filter(t => t.status === 'in_progress').length,
+    resolved: supportTickets.filter(t => t.status === 'resolved').length
+  };
+
   return (
-    <div className="space-y-4">
-      {/* Support Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {supportStats.map((stat, index) => (
-          <div
-            key={index}
-            className="bg-white rounded-xl p-4 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300"
-            style={{ animationDelay: `${stat.delay}ms` }}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">User Support</h1>
+          <p className="text-gray-600">Manage support tickets and provide user assistance</p>
+        </div>
+        <div className="flex space-x-3">
+          <AnimatedButton
+            onClick={() => {}}
+            className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
           >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                <p className="text-xs text-gray-500">{stat.subtitle}</p>
-              </div>
-              <div className="text-2xl">{stat.icon}</div>
-            </div>
-            {stat.trend && (
-              <div className={`flex items-center mt-2 text-xs ${
-                stat.trend.isPositive ? 'text-green-600' : 'text-red-600'
-              }`}>
-                <span>{stat.trend.isPositive ? '↗' : '↘'}</span>
-                <span className="ml-1">{stat.trend.value}</span>
-              </div>
-            )}
-          </div>
-        ))}
+            <Plus className="w-4 h-4" />
+            <span>New Ticket</span>
+          </AnimatedButton>
+          <AnimatedButton
+            onClick={() => {}}
+            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+          >
+            <BarChart3 className="w-4 h-4" />
+            <span>Support Report</span>
+          </AnimatedButton>
+        </div>
       </div>
 
-      {/* Support Tickets */}
-      <AnimatedCard
-        title="Support Tickets"
-        subtitle="Active and recent support requests"
-        color="orange"
-        icon="🎫"
-        delay={400}
-      >
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Issue</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned To</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {supportTickets.map((ticket) => (
-                <tr key={ticket.id} className="hover:bg-gray-50 transition-colors duration-200">
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{ticket.id}</div>
-                    <div className="text-xs text-gray-500">{ticket.category}</div>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+      {/* Support Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <AnimatedCard
+          title="Total Tickets"
+          subtitle="All support requests"
+          className="bg-white rounded-xl shadow-lg border border-gray-100"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{ticketStats.total}</p>
+              <p className="text-sm text-gray-500">This month</p>
+            </div>
+            <MessageSquare className="w-8 h-8 text-blue-600" />
+          </div>
+        </AnimatedCard>
+
+        <AnimatedCard
+          title="Open Tickets"
+          subtitle="Awaiting response"
+          className="bg-white rounded-xl shadow-lg border border-gray-100"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{ticketStats.open}</p>
+              <p className="text-sm text-gray-500">Need attention</p>
+            </div>
+            <AlertTriangle className="w-8 h-8 text-red-600" />
+          </div>
+        </AnimatedCard>
+
+        <AnimatedCard
+          title="In Progress"
+          subtitle="Being worked on"
+          className="bg-white rounded-xl shadow-lg border border-gray-100"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{ticketStats.inProgress}</p>
+              <p className="text-sm text-gray-500">Active tickets</p>
+            </div>
+            <Clock className="w-8 h-8 text-orange-600" />
+          </div>
+        </AnimatedCard>
+
+        <AnimatedCard
+          title="Resolved"
+          subtitle="Completed tickets"
+          className="bg-white rounded-xl shadow-lg border border-gray-100"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{ticketStats.resolved}</p>
+              <p className="text-sm text-gray-500">This month</p>
+            </div>
+            <CheckCircle className="w-8 h-8 text-green-600" />
+          </div>
+        </AnimatedCard>
+      </div>
+
+      {/* Search and Filter */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Search tickets..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">All Status</option>
+              <option value="open">Open</option>
+              <option value="in_progress">In Progress</option>
+              <option value="resolved">Resolved</option>
+              <option value="closed">Closed</option>
+            </select>
+            <AnimatedButton
+              onClick={() => {}}
+              className="flex items-center space-x-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg"
+            >
+              <Filter className="w-4 h-4" />
+              <span>More Filters</span>
+            </AnimatedButton>
+          </div>
+        </div>
+      </div>
+
+      {/* Tickets List */}
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Support Tickets</h3>
+          <div className="space-y-4">
+            {filteredTickets.map((ticket) => (
+              <div key={ticket.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start space-x-3">
+                    <span className="text-2xl">{getCategoryIcon(ticket.category)}</span>
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{ticket.title}</div>
-                      <div className="text-xs text-gray-500">{ticket.description}</div>
-                      <div className="text-xs text-gray-400">by {ticket.requester} ({ticket.department})</div>
+                      <h4 className="font-medium text-gray-900">{ticket.title}</h4>
+                      <p className="text-sm text-gray-600 mt-1">{ticket.description}</p>
+                      <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                        <span className="flex items-center space-x-1">
+                          <User className="w-3 h-3" />
+                          <span>{ticket.user}</span>
+                        </span>
+                        <span className="flex items-center space-x-1">
+                          <Tag className="w-3 h-3" />
+                          <span>{ticket.department}</span>
+                        </span>
+                        <span className="flex items-center space-x-1">
+                          <Calendar className="w-3 h-3" />
+                          <span>{ticket.createdAt}</span>
+                        </span>
+                      </div>
                     </div>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  </div>
+                  <div className="flex items-center space-x-2">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPriorityColor(ticket.priority)}`}>
                       {ticket.priority}
                     </span>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadge(ticket.status)}`}>
-                      {ticket.status}
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(ticket.status)}`}>
+                      {ticket.status.replace('_', ' ')}
                     </span>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{ticket.assignedTo}</div>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{ticket.createdAt}</div>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button className="text-blue-600 hover:text-blue-900 transition-colors duration-200">View</button>
-                      <button className="text-green-600 hover:text-green-900 transition-colors duration-200">Update</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-600">
+                    <span>Assigned to: </span>
+                    <span className="font-medium">{ticket.assignedTo}</span>
+                  </div>
+                  <div className="flex space-x-2">
+                    <AnimatedButton
+                      onClick={() => {}}
+                      className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </AnimatedButton>
+                    <AnimatedButton
+                      onClick={() => {}}
+                      className="p-1 text-green-600 hover:bg-green-50 rounded"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </AnimatedButton>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </AnimatedCard>
-
-      {/* Knowledge Base and Support Categories */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <AnimatedCard
-          title="Knowledge Base"
-          subtitle="Popular help articles and guides"
-          color="blue"
-          icon="📚"
-          delay={600}
-        >
-          <div className="space-y-3">
-            {knowledgeBase.map((article) => (
-              <div key={article.title} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm font-medium text-gray-900">{article.title}</span>
-                    <span className="text-xs text-gray-500">({article.views} views)</span>
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    {article.category} • {article.helpful} found helpful
-                  </div>
-                  <div className="text-xs text-gray-400 mt-1">
-                    Updated {article.lastUpdated} • Tags: {article.tags.join(', ')}
-                  </div>
-                </div>
-                <div className="flex space-x-2">
-                  <button className="text-blue-600 hover:text-blue-900 transition-colors duration-200 text-xs">View</button>
-                  <button className="text-green-600 hover:text-green-900 transition-colors duration-200 text-xs">Edit</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </AnimatedCard>
-
-        <AnimatedCard
-          title="Support Categories"
-          subtitle="Performance by support category"
-          color="green"
-          icon="📊"
-          delay={800}
-        >
-          <div className="space-y-3">
-            {supportCategories.map((category) => (
-              <div key={category.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="text-xl">{category.icon}</div>
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">{category.name}</div>
-                    <div className="text-xs text-gray-500">
-                      {category.tickets} tickets • {category.avgResolution} avg resolution
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm font-medium text-gray-900">{category.satisfaction}%</div>
-                  <div className="text-xs text-gray-500">Satisfaction</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </AnimatedCard>
       </div>
-
-      {/* Quick Actions */}
-      <AnimatedCard
-        title="Quick Actions"
-        subtitle="Common support tasks"
-        color="purple"
-        icon="⚡"
-        delay={1000}
-      >
-        <div className="grid grid-cols-1 gap-3">
-          <AnimatedButton
-            color="blue"
-            size="md"
-            onClick={() => console.log('Create ticket')}
-          >
-            🎫 Create Support Ticket
-          </AnimatedButton>
-          <AnimatedButton
-            color="green"
-            size="md"
-            onClick={() => console.log('Knowledge base')}
-          >
-            📚 Manage Knowledge Base
-          </AnimatedButton>
-          <AnimatedButton
-            color="purple"
-            size="md"
-            onClick={() => console.log('Support report')}
-          >
-            📊 Generate Support Report
-          </AnimatedButton>
-          <AnimatedButton
-            color="orange"
-            size="md"
-            onClick={() => console.log('User training')}
-          >
-            🎓 Schedule User Training
-          </AnimatedButton>
-        </div>
-      </AnimatedCard>
-
-      {/* Support Performance Metrics */}
-      <AnimatedCard
-        title="Support Performance"
-        subtitle="Key support metrics and trends"
-        color="indigo"
-        icon="📈"
-        delay={1200}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">94%</div>
-            <div className="text-sm text-green-600">Satisfaction Rate</div>
-          </div>
-          <div className="text-center p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">2.1hrs</div>
-            <div className="text-sm text-blue-600">Avg Response Time</div>
-          </div>
-          <div className="text-center p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg">
-            <div className="text-2xl font-bold text-purple-600">85%</div>
-            <div className="text-sm text-purple-600">First Call Resolution</div>
-          </div>
-        </div>
-      </AnimatedCard>
     </div>
   );
 };

@@ -2,46 +2,17 @@ import React, { useState } from 'react';
 import { 
   TrendingUp, 
   Search, 
-  Filter,
   Plus, 
   Edit, 
   Trash2, 
   Eye, 
-  Download,
   Calendar,
-  MapPin,
-  Phone,
-  Mail,
   Star,
-  DollarSign,
-  Building,
   UserCheck,
-  UserX,
-  GraduationCap,
-  CheckCircle,
   AlertTriangle,
-  Info,
-  Users,
-  FileText,
-  Send,
-  BookOpen,
-  Award,
-  Play,
-  Pause,
-  StopCircle,
   CalendarDays,
-  Clock3,
-  UserMinus,
-  CheckSquare,
-  Timer,
-  Activity,
-  Zap,
-  Coffee,
-  Target,
-  BarChart3,
-  TrendingDown,
   Trophy,
-  Medal
+  TrendingDown
 } from 'lucide-react';
 import { useApiList, useApiMutation } from '../../../../hooks/useApi';
 import { performanceAPI } from '../../../../services/api';
@@ -265,21 +236,34 @@ const Performance: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Performance Management</h1>
-          <p className="text-gray-600">Track employee performance reviews and assessments</p>
+    <div className="min-h-screen bg-slate-50">
+      <div className="space-y-8 p-6">
+        {/* Enhanced Header */}
+        <div className="relative overflow-hidden bg-white rounded-2xl shadow-lg border border-slate-200">
+          <div className="absolute inset-0 bg-slate-50"></div>
+          <div className="relative px-8 py-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className="p-3 bg-blue-100 rounded-xl">
+                    <TrendingUp className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-bold text-slate-900">Performance Management</h1>
+                    <p className="text-slate-600 text-lg">Track employee performance reviews and assessments</p>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={handleAddPerformance}
+                className="bg-blue-600 text-white px-6 py-3 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition-all duration-200 shadow-lg font-medium"
+              >
+                <Plus className="h-5 w-5" />
+                New Performance Review
+              </button>
+            </div>
+          </div>
         </div>
-        <button
-          onClick={handleAddPerformance}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="h-4 w-4" />
-          New Performance Review
-          </button>
-      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -291,9 +275,9 @@ const Performance: React.FC = () => {
               className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:scale-105"
               style={{ animationDelay: `${index * 100}ms` }}
             >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
                   <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
                   <p className="text-xs text-gray-500">{stat.subtitle}</p>
                 </div>
@@ -522,6 +506,7 @@ const Performance: React.FC = () => {
           />
         )}
       </Modal>
+      </div>
     </div>
   );
 };

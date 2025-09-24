@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authenticateUser, registerUser, getUsers, getUserById } from '../services/auth';
+import { authenticateUser, registerUser } from '../services/auth';
 
 export interface User {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
-  role: 'admin' | 'hr' | 'finance' | 'it' | 'security' | 'compliance' | 'inventory' | 'client' | 'sales' | 'cx' | 'risk' | 'recovery' | 'employee';
+  role: 'admin' | 'hr' | 'finance' | 'it' | 'operations' | 'legal' | 'sales' | 'employee';
   department?: string;
   phone?: string;
   isActive: boolean;
@@ -108,18 +108,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return '/finance';
       case 'it':
         return '/it';
-      case 'security':
-        return '/security';
-      case 'inventory':
-        return '/inventory';
+      case 'operations':
+        return '/operations';
+      case 'legal':
+        return '/legal';
       case 'sales':
         return '/sales';
-      case 'cx':
-        return '/cx';
-      case 'risk':
-        return '/risk';
-      case 'recovery':
-        return '/recovery';
       case 'employee':
       default:
         return '/hr'; // Default to HR dashboard for employees

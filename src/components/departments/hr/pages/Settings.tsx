@@ -1,37 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Settings as SettingsIcon, 
-  User, 
   Shield, 
   Bell, 
   Calendar, 
   Clock,
   DollarSign,
-  FileText,
-  Database,
-  Lock,
-  Eye,
   Edit,
   Save,
-  Plus,
-  Trash2,
   Download,
   Upload,
   RefreshCw,
   CheckCircle,
   AlertTriangle,
   Info,
-  Star,
-  Target,
-  MapPin,
-  Building,
-  UserCheck,
-  UserX,
   GraduationCap,
-  Briefcase,
   Gift,
-  Mail,
-  Phone,
   Search,
   Folder
 } from 'lucide-react';
@@ -186,30 +170,43 @@ const Settings: React.FC = () => {
   }) || [];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">HR Settings</h1>
-          <p className="text-gray-600 mt-1">Configure HR system settings and preferences</p>
+    <div className="min-h-screen bg-slate-50">
+      <div className="space-y-8 p-6">
+        {/* Enhanced Header */}
+        <div className="relative overflow-hidden bg-white rounded-2xl shadow-lg border border-slate-200">
+          <div className="absolute inset-0 bg-slate-50"></div>
+          <div className="relative px-8 py-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className="p-3 bg-blue-100 rounded-xl">
+                    <SettingsIcon className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-bold text-slate-900">HR Settings</h1>
+                    <p className="text-slate-600 text-lg">Configure HR system settings and preferences</p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <AnimatedButton
+                  onClick={() => {}}
+                  className="bg-slate-600 hover:bg-slate-700 text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-all duration-200 shadow-lg font-medium"
+                >
+                  <RefreshCw className="w-5 h-5" />
+                  <span>Reset to Default</span>
+                </AnimatedButton>
+                <AnimatedButton
+                  onClick={() => {}}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-all duration-200 shadow-lg font-medium"
+                >
+                  <Save className="w-5 h-5" />
+                  <span>Save Changes</span>
+                </AnimatedButton>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <AnimatedButton
-            onClick={() => {}}
-            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-200 hover:scale-105"
-          >
-            <RefreshCw className="w-4 h-4" />
-            <span>Reset to Default</span>
-          </AnimatedButton>
-          <AnimatedButton
-            onClick={() => {}}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-200 hover:scale-105"
-          >
-            <Save className="w-4 h-4" />
-            <span>Save Changes</span>
-          </AnimatedButton>
-        </div>
-      </div>
 
       {/* Settings Overview */}
       <AnimatedCard
@@ -395,6 +392,7 @@ const Settings: React.FC = () => {
           </AnimatedButton>
         </div>
       </AnimatedCard>
+      </div>
     </div>
   );
 };

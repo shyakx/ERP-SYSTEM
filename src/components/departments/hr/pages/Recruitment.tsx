@@ -2,30 +2,15 @@ import React, { useState } from 'react';
 import { 
   Briefcase, 
   Search, 
-  Filter, 
   Plus, 
   Edit, 
   Trash2, 
   Eye, 
-  Download,
   TrendingUp,
-  Calendar,
-  MapPin,
-  Phone,
-  Mail,
-  Star,
-  DollarSign,
-  Building,
   UserCheck,
-  UserX,
-  GraduationCap,
-  Clock,
   CheckCircle,
   AlertTriangle,
-  Info,
-  Users,
-  FileText,
-  Send
+  Users
 } from 'lucide-react';
 import { useApiList, useApiMutation } from '../../../../hooks/useApi';
 import { jobPostingAPI, candidateAPI } from '../../../../services/api';
@@ -286,52 +271,69 @@ const Recruitment: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Recruitment Management</h1>
-          <p className="text-gray-600">Manage job postings and candidate applications</p>
-        </div>
-        {activeTab === 'job-postings' && (
-          <button
-            onClick={handleAddJobPosting}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-            Add Job Posting
-          </button>
-        )}
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {recruitmentStats.map((stat, index) => {
-          const IconComponent = stat.icon;
-          return (
-            <div
-              key={index}
-              className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-            <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-slate-50">
+      <div className="space-y-8 p-6">
+        {/* Enhanced Header */}
+        <div className="relative overflow-hidden bg-white rounded-2xl shadow-lg border border-slate-200">
+          <div className="absolute inset-0 bg-slate-50"></div>
+          <div className="relative px-8 py-6">
+            <div className="flex justify-between items-center">
               <div>
-                <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                  <p className="text-xs text-gray-500">{stat.subtitle}</p>
-                </div>
-                <div className="text-2xl">
-                  <IconComponent className={`w-8 h-8 ${stat.color}`} />
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className="p-3 bg-blue-100 rounded-xl">
+                    <Briefcase className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-bold text-slate-900">Recruitment Management</h1>
+                    <p className="text-slate-600 text-lg">Manage job postings and candidate applications</p>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center mt-3 text-xs text-green-600">
-                <TrendingUp className="w-3 h-3 mr-1" />
-                <span>{stat.change}</span>
-              </div>
+              {activeTab === 'job-postings' && (
+                <button
+                  onClick={handleAddJobPosting}
+                  className="bg-blue-600 text-white px-6 py-3 rounded-xl flex items-center gap-2 hover:bg-blue-700 transition-all duration-200 shadow-lg font-medium"
+                >
+                  <Plus className="h-5 w-5" />
+                  Add Job Posting
+                </button>
+              )}
             </div>
-          );
-        })}
-      </div>
+          </div>
+        </div>
+
+        {/* Enhanced Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {recruitmentStats.map((stat, index) => {
+            const IconComponent = stat.icon;
+            return (
+              <div
+                key={index}
+                className="group relative overflow-hidden bg-white rounded-2xl shadow-lg border border-slate-200 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-slate-100 rounded-xl">
+                      <IconComponent className={`w-8 h-8 ${stat.color}`} />
+                    </div>
+                    <div className="text-right">
+                      <p className="text-slate-600 text-sm font-medium">{stat.title}</p>
+                      <p className="text-slate-400 text-xs">{stat.subtitle}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-3xl font-bold text-slate-900 mb-1">{stat.value}</p>
+                    <div className="flex items-center text-xs text-green-600">
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      <span>{stat.change}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
       {/* Tabs */}
       <div className="bg-white rounded-lg shadow-sm border">
@@ -644,6 +646,7 @@ const Recruitment: React.FC = () => {
           />
         )}
       </Modal>
+      </div>
     </div>
   );
 };

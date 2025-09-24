@@ -10,8 +10,6 @@ import SalesOverview from './pages/SalesOverview';
 import LeadManagement from './pages/LeadManagement';
 import SalesPipeline from './pages/SalesPipeline';
 import Campaigns from './pages/Campaigns';
-import SalesReports from './pages/SalesReports';
-import Leads from './pages/Leads';
 import Opportunities from './pages/Opportunities';
 import Quotes from './pages/Quotes';
 import Analytics from './pages/Analytics';
@@ -57,13 +55,12 @@ const SalesmarketingDashboard: React.FC = () => {
   const sidebarItems = [
     { name: 'Dashboard', path: '/sales', icon: '🏠' },
     { name: 'Overview', path: '/sales/overview', icon: '📊' },
-    { name: 'Leads', path: '/sales/leads', icon: '🎯' },
-    { name: 'Pipeline', path: '/sales/pipeline', icon: '📈' },
-    { name: 'Campaigns', path: '/sales/campaigns', icon: '📢' },
+    { name: 'Lead Management', path: '/sales/leads', icon: '🎯' },
+    { name: 'Sales Pipeline', path: '/sales/pipeline', icon: '📈' },
     { name: 'Opportunities', path: '/sales/opportunities', icon: '💼' },
-    { name: 'Quotes', path: '/sales/quotes', icon: '📋' },
-    { name: 'Analytics', path: '/sales/analytics', icon: '📊' },
-    { name: 'Reports', path: '/sales/reports', icon: '📈' },
+    { name: 'Quotes & Proposals', path: '/sales/quotes', icon: '📋' },
+    { name: 'Marketing Campaigns', path: '/sales/campaigns', icon: '📢' },
+    { name: 'Analytics & Reports', path: '/sales/analytics', icon: '📊' },
     { name: 'Settings', path: '/sales/settings', icon: '⚙️' }
   ];
 
@@ -232,16 +229,14 @@ const SalesmarketingDashboard: React.FC = () => {
         return <LeadManagement />;
       case '/sales/pipeline':
         return <SalesPipeline />;
-      case '/sales/campaigns':
-        return <Campaigns />;
       case '/sales/opportunities':
         return <Opportunities />;
       case '/sales/quotes':
         return <Quotes />;
+      case '/sales/campaigns':
+        return <Campaigns />;
       case '/sales/analytics':
         return <Analytics />;
-      case '/sales/reports':
-        return <SalesReports />;
       case '/sales/settings':
         return <SalesOverview />;
       default:

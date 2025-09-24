@@ -209,21 +209,34 @@ const Reports: React.FC = () => {
   }) || [];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">HR Reports</h1>
-          <p className="text-gray-600 mt-1">Generate and manage HR reports and analytics</p>
+    <div className="min-h-screen bg-slate-50">
+      <div className="space-y-8 p-6">
+        {/* Enhanced Header */}
+        <div className="relative overflow-hidden bg-white rounded-2xl shadow-lg border border-slate-200">
+          <div className="absolute inset-0 bg-slate-50"></div>
+          <div className="relative px-8 py-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className="p-3 bg-blue-100 rounded-xl">
+                    <BarChart3 className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-bold text-slate-900">HR Reports</h1>
+                    <p className="text-slate-600 text-lg">Generate and manage HR reports and analytics</p>
+                  </div>
+                </div>
+              </div>
+              <AnimatedButton
+                onClick={() => {}}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-all duration-200 shadow-lg font-medium"
+              >
+                <Plus className="w-5 h-5" />
+                <span>Generate Report</span>
+              </AnimatedButton>
+            </div>
+          </div>
         </div>
-        <AnimatedButton
-          onClick={() => {}}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-200 hover:scale-105"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Generate Report</span>
-        </AnimatedButton>
-      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -503,6 +516,7 @@ const Reports: React.FC = () => {
           </AnimatedButton>
         </div>
       </AnimatedCard>
+      </div>
     </div>
   );
 };

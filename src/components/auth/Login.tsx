@@ -7,22 +7,17 @@ import {
   EyeOff, 
   Mail, 
   Lock,
-  CheckCircle,
   AlertCircle,
   ArrowRight,
   Zap,
   Users,
   DollarSign,
-  Package,
   TrendingUp,
   ShieldCheck,
-  AlertTriangle,
-  Settings,
   Crown,
-  Cpu,
-  MessageSquare,
   Sparkles,
-  ChevronUp
+  ChevronUp,
+  Cpu
 } from 'lucide-react';
 
 // Import logo and background images
@@ -78,27 +73,27 @@ const Login: React.FC = () => {
       password: 'it123',
       icon: Cpu,
       color: 'bg-slate-600',
-      description: 'IT module access',
-      category: 'core'
-    },
-    {
-      id: 'security',
-      name: 'Security Manager',
-      email: 'security.manager@dicel.co.rw',
-      password: 'security123',
-      icon: ShieldCheck,
-      color: 'bg-red-600',
-      description: 'Security module access',
+      description: 'IT systems access',
       category: 'core'
     },
     {
       id: 'operations',
       name: 'Operations Manager',
       email: 'operations.manager@dicel.co.rw',
-      password: 'inventory123',
-      icon: Package,
-      color: 'bg-amber-600',
-      description: 'Operations module access',
+      password: 'operations123',
+      icon: ShieldCheck,
+      color: 'bg-red-600',
+      description: 'Security operations access',
+      category: 'core'
+    },
+    {
+      id: 'legal',
+      name: 'Legal Manager',
+      email: 'legal.manager@dicel.co.rw',
+      password: 'legal123',
+      icon: Shield,
+      color: 'bg-purple-600',
+      description: 'Legal & compliance access',
       category: 'core'
     },
     {
@@ -108,18 +103,8 @@ const Login: React.FC = () => {
       password: 'sales123',
       icon: TrendingUp,
       color: 'bg-indigo-600',
-      description: 'Sales module access',
+      description: 'Sales & marketing access',
       category: 'core'
-    },
-    {
-      id: 'risk',
-      name: 'Risk Manager',
-      email: 'risk.manager@dicel.co.rw',
-      password: 'risk123',
-      icon: AlertTriangle,
-      color: 'bg-amber-600',
-      description: 'Risk management access',
-      category: 'support'
     }
   ];
 
@@ -153,23 +138,6 @@ const Login: React.FC = () => {
     }, 100);
   };
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'management': return Crown;
-      case 'core': return Users;
-      case 'support': return Settings;
-      default: return Users;
-    }
-  };
-
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'management': return 'bg-slate-600';
-      case 'core': return 'bg-blue-600';
-      case 'support': return 'bg-emerald-600';
-      default: return 'bg-gray-600';
-    }
-  };
 
   const coreDepartments = demoLogins.filter(d => d.category === 'core');
   const supportDepartments = demoLogins.filter(d => d.category === 'support');
@@ -429,7 +397,7 @@ const Login: React.FC = () => {
               {/* Enhanced Demo Buttons */}
               <div className="mt-3 space-y-1">
                 {/* Management */}
-                {managementDepartments.map((demo, index) => {
+                {managementDepartments.map((demo) => {
                   const Icon = demo.icon;
                   return (
                     <button
@@ -452,7 +420,7 @@ const Login: React.FC = () => {
                 })}
 
                 {/* Core Departments */}
-                {coreDepartments.slice(0, 2).map((demo, index) => {
+                {coreDepartments.slice(0, 2).map((demo) => {
                   const Icon = demo.icon;
                   return (
                     <button
@@ -482,7 +450,7 @@ const Login: React.FC = () => {
                   >
                     <Sparkles className="w-3 h-3 mr-1 text-blue-600" />
                     Show All Departments
-                    <span className="ml-1 text-xs bg-blue-100 text-blue-700 px-1 py-0.5 rounded-full font-medium">+9 more</span>
+                    <span className="ml-1 text-xs bg-blue-100 text-blue-700 px-1 py-0.5 rounded-full font-medium">+4 more</span>
                   </button>
                 )}
 
@@ -490,7 +458,7 @@ const Login: React.FC = () => {
                 {showAllDemos && (
                   <div className="space-y-1">
                     {/* Core Departments (remaining) */}
-                    {coreDepartments.slice(2).map((demo, index) => {
+                    {coreDepartments.slice(2).map((demo) => {
                       const Icon = demo.icon;
                       return (
                         <button
@@ -513,7 +481,7 @@ const Login: React.FC = () => {
                     })}
 
                     {/* Support Departments */}
-                    {supportDepartments.map((demo, index) => {
+                    {supportDepartments.map((demo) => {
                       const Icon = demo.icon;
                       return (
                         <button

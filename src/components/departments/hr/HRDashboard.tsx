@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import DepartmentLayout from '../../shared/DepartmentLayout';
-import AnimatedStatsCard from '../../shared/AnimatedStatsCard';
+// import AnimatedStatsCard from '../../shared/AnimatedStatsCard';
 import AnimatedCard from '../../shared/AnimatedCard';
 import { AnimatedButton } from '../../shared/AnimatedCard';
 import { getColorScheme } from '../../../utils/colorSchemes';
@@ -11,13 +11,11 @@ import { hrAPI } from '../../../services/api';
 import EmployeeManagement from './pages/EmployeeManagement';
 import Recruitment from './pages/Recruitment';
 import Training from './pages/Training';
-import Payroll from './pages/Payroll';
+import SecurityPayroll from './pages/SecurityPayroll';
+import StaffPayroll from './pages/StaffPayroll';
 import Performance from './pages/Performance';
-import LeaveManagement from './pages/LeaveManagement';
-import Attendance from './pages/Attendance';
-import HROverview from './pages/HROverview';
-import Benefits from './pages/Benefits';
-import Compliance from './pages/Compliance';
+import LeaveAttendance from './pages/LeaveAttendance';
+import BenefitsCompliance from './pages/BenefitsCompliance'; // HR Benefits and Compliance
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 
@@ -181,13 +179,12 @@ const HRDashboard: React.FC = () => {
     { name: 'Dashboard', path: '/hr', icon: '🏠' },
     { name: 'Employee Management', path: '/hr/employees', icon: '👥' },
     { name: 'Recruitment', path: '/hr/recruitment', icon: '🎯' },
-    { name: 'Training', path: '/hr/training', icon: '📚' },
-    { name: 'Payroll', path: '/hr/payroll', icon: '💰' },
-    { name: 'Performance', path: '/hr/performance', icon: '📊' },
-    { name: 'Leave Management', path: '/hr/leave', icon: '📅' },
-    { name: 'Attendance', path: '/hr/attendance', icon: '⏰' },
-    { name: 'Benefits', path: '/hr/benefits', icon: '🎁' },
-    { name: 'Compliance', path: '/hr/compliance', icon: '✅' },
+    { name: 'Training & Development', path: '/hr/training', icon: '📚' },
+    { name: 'Security Payroll', path: '/hr/security-payroll', icon: '🛡️' },
+    { name: 'Staff Payroll', path: '/hr/staff-payroll', icon: '👔' },
+    { name: 'Performance & Reviews', path: '/hr/performance', icon: '📊' },
+    { name: 'Leave & Attendance', path: '/hr/leave', icon: '📅' },
+    { name: 'Benefits & Compliance', path: '/hr/benefits', icon: '🎁' },
     { name: 'Reports', path: '/hr/reports', icon: '📈' },
     { name: 'Settings', path: '/hr/settings', icon: '⚙️' }
   ];
@@ -287,18 +284,16 @@ const HRDashboard: React.FC = () => {
         return <Recruitment />;
       case '/hr/training':
         return <Training />;
-      case '/hr/payroll':
-        return <Payroll />;
+      case '/hr/security-payroll':
+        return <SecurityPayroll />;
+      case '/hr/staff-payroll':
+        return <StaffPayroll />;
       case '/hr/performance':
         return <Performance />;
       case '/hr/leave':
-        return <LeaveManagement />;
-      case '/hr/attendance':
-        return <Attendance />;
+        return <LeaveAttendance />;
       case '/hr/benefits':
-        return <Benefits />;
-      case '/hr/compliance':
-        return <Compliance />;
+        return <BenefitsCompliance />;
       case '/hr/reports':
         return <Reports />;
       case '/hr/settings':
