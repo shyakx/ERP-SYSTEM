@@ -12,13 +12,9 @@ import {
   Clock,
   CheckCircle,
   AlertTriangle,
-  Calendar,
-  User,
   Building,
-  DollarSign,
   TrendingUp,
-  Eye,
-  Plus
+  Eye
 } from 'lucide-react';
 
 // Legal Department Pages
@@ -185,25 +181,25 @@ const LegalDashboard: React.FC = () => {
     {
       title: 'New Contract',
       description: 'Create new legal contract',
-      icon: FileText,
+      icon: '📄',
       color: 'blue'
     },
     {
       title: 'Compliance Check',
       description: 'Review compliance status',
-      icon: Shield,
+      icon: '🛡️',
       color: 'green'
     },
     {
       title: 'Risk Assessment',
       description: 'Conduct risk evaluation',
-      icon: AlertTriangle,
+      icon: '⚠️',
       color: 'orange'
     },
     {
       title: 'Legal Report',
       description: 'Generate legal reports',
-      icon: TrendingUp,
+      icon: '📈',
       color: 'purple'
     }
   ];

@@ -568,7 +568,7 @@ const SecurityPayroll: React.FC = () => {
 
   // Calculate totals for filtered employees (for payroll processing)
   const filteredTotalPayroll = filteredEmployees.filter(emp => emp.status === 'active').reduce((sum, employee) => sum + employee.netBankList, 0);
-  const filteredTotalGrossSalary = filteredEmployees.filter(emp => emp.status === 'active').reduce((sum, employee) => sum + employee.grossSalary, 0);
+  // const filteredTotalGrossSalary = filteredEmployees.filter(emp => emp.status === 'active').reduce((sum, employee) => sum + employee.grossSalary, 0);
   const filteredEmployeeCount = filteredEmployees.filter(emp => emp.status === 'active').length;
 
   const handleAddEmployee = () => {
@@ -2585,7 +2585,7 @@ const SecurityPayroll: React.FC = () => {
                   </div>
                   
                   {/* Salary Preview */}
-                  {newEmployee.basicSalary > 0 && newEmployee.transportAllowance >= 0 && (
+                  {newEmployee.basicSalary && newEmployee.basicSalary > 0 && newEmployee.transportAllowance !== undefined && newEmployee.transportAllowance >= 0 && (
                     <div className="mt-4 p-4 bg-white rounded-lg border border-orange-200">
                       <h4 className="font-semibold text-gray-900 mb-2">Salary Preview:</h4>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
