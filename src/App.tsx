@@ -12,7 +12,7 @@ import { LayoutProvider } from "./contexts/LayoutContext";
 const AdminDashboard = lazy(() => import("./components/admin/AdminDashboard"));
 const HRDashboard = lazy(() => import("./components/departments/hr/HRDashboard"));
 const FinanceDashboard = lazy(() => import("./components/departments/finance/FinanceDashboard"));
-// const ITDashboard = lazy(() => import("./components/departments/it/ITDashboard"));
+const ITDashboard = lazy(() => import("./components/departments/it/ITDashboard"));
 const OperationsDashboard = lazy(() => import("./components/departments/operations/OperationsDashboard"));
 const LegalDashboard = lazy(() => import("./components/departments/legal/LegalDashboard"));
 const SalesMarketingDashboard = lazy(() => import("./components/departments/sales-marketing/SalesmarketingDashboard"));
@@ -129,15 +129,15 @@ const App: React.FC = () => {
             <Route path="/finance/tax" element={<RoleBasedRoute allowedRoles={['admin', 'finance']}><FinanceDashboard /></RoleBasedRoute>} />
             <Route path="/finance/reports" element={<RoleBasedRoute allowedRoles={['admin', 'finance']}><FinanceDashboard /></RoleBasedRoute>} />
 
-            {/* IT Routes - Temporarily disabled for build fix */}
-            {/* <Route path="/it" element={<RoleBasedRoute allowedRoles={['admin', 'it']}><ITDashboard /></RoleBasedRoute>} />
+            {/* IT Routes */}
+            <Route path="/it" element={<RoleBasedRoute allowedRoles={['admin', 'it']}><ITDashboard /></RoleBasedRoute>} />
             <Route path="/it/overview" element={<RoleBasedRoute allowedRoles={['admin', 'it']}><ITDashboard /></RoleBasedRoute>} />
             <Route path="/it/systems" element={<RoleBasedRoute allowedRoles={['admin', 'it']}><ITDashboard /></RoleBasedRoute>} />
             <Route path="/it/network" element={<RoleBasedRoute allowedRoles={['admin', 'it']}><ITDashboard /></RoleBasedRoute>} />
             <Route path="/it/security" element={<RoleBasedRoute allowedRoles={['admin', 'it']}><ITDashboard /></RoleBasedRoute>} />
             <Route path="/it/support" element={<RoleBasedRoute allowedRoles={['admin', 'it']}><ITDashboard /></RoleBasedRoute>} />
             <Route path="/it/reports" element={<RoleBasedRoute allowedRoles={['admin', 'it']}><ITDashboard /></RoleBasedRoute>} />
-            <Route path="/it/settings" element={<RoleBasedRoute allowedRoles={['admin', 'it']}><ITDashboard /></RoleBasedRoute>} /> */}
+            <Route path="/it/settings" element={<RoleBasedRoute allowedRoles={['admin', 'it']}><ITDashboard /></RoleBasedRoute>} />
 
             {/* Operations Routes */}
             <Route path="/operations" element={<RoleBasedRoute allowedRoles={['admin', 'operations']}><OperationsDashboard /></RoleBasedRoute>} />
