@@ -142,7 +142,7 @@ const LegalDashboard: React.FC = () => {
     }
   };
 
-  const legalStats = [
+  const legalStatsCards = [
     {
       title: 'Active Cases',
       value: legalStats.activeCases,
@@ -270,7 +270,7 @@ const LegalDashboard: React.FC = () => {
     <div className="space-y-4">
       {/* Legal Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {legalStats.map((stat, index) => (
+        {legalStatsCards.map((stat, index) => (
           <div
             key={index}
             className="bg-white rounded-xl p-4 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300"
