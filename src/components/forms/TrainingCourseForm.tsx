@@ -2,8 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { useApiMutation } from '../../hooks/useApi';
 import { trainingAPI } from '../../services/api';
 
+interface TrainingCourse {
+  id?: string;
+  title: string;
+  description: string;
+  department: string;
+  instructor: string;
+  duration: number;
+  startDate: string;
+  endDate: string;
+  maxParticipants: number;
+  status: string;
+  createdBy: string;
+  createdDate: string;
+}
+
 interface TrainingCourseFormProps {
-  course?: any;
+  course?: TrainingCourse;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -71,7 +86,7 @@ const TrainingCourseForm: React.FC<TrainingCourseFormProps> = ({ course, onSucce
   }, [course]);
 
   const createMutation = useApiMutation(trainingAPI.createCourse);
-  const updateMutation = useApiMutation((params: any) => trainingAPI.updateCourse(params.id, params.data));
+  const updateMutation = useApiMutation((params: { id: string; data: TrainingCourse }) => trainingAPI.updateCourse(params.id, params.data));
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};

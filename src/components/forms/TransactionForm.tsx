@@ -3,11 +3,26 @@ import { X, Save, Loader2 } from 'lucide-react';
 import { useApiList } from '../../hooks/useApi';
 import { accountAPI, vendorAPI, customerAPI } from '../../services/api.ts';
 
+interface Transaction {
+  id?: string;
+  type: string;
+  amount: number;
+  description: string;
+  accountId: string;
+  vendorId?: string;
+  customerId?: string;
+  date: string;
+  reference: string;
+  status: string;
+  createdBy: string;
+  createdDate: string;
+}
+
 interface TransactionFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => void;
-  transaction?: any;
+  onSubmit: (data: Transaction) => void;
+  transaction?: Transaction;
   mode: 'create' | 'edit';
 }
 
@@ -91,12 +106,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors((prev: any) => ({ ...prev, [name]: '' }));
+      setErrors((prev: Record<string, string>) => ({ ...prev, [name]: '' }));
     }
   };
 
   const validateForm = () => {
-    const newErrors: any = {};
+    const newErrors: Record<string, string> = {};
 
     if (!formData.description.trim()) {
       newErrors.description = 'Description is required';

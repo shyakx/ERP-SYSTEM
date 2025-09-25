@@ -2,8 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { useApiMutation } from '../../hooks/useApi';
 import { jobPostingAPI } from '../../services/api';
 
+interface JobPosting {
+  id?: string;
+  title: string;
+  department: string;
+  location: string;
+  type: string;
+  description: string;
+  requirements: string;
+  salaryRange: string;
+  applicationDeadline: string;
+  status: string;
+  postedBy: string;
+  postedDate: string;
+}
+
 interface JobPostingFormProps {
-  jobPosting?: any;
+  jobPosting?: JobPosting;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -65,7 +80,7 @@ const JobPostingForm: React.FC<JobPostingFormProps> = ({ jobPosting, onSuccess, 
   }, [jobPosting]);
 
   const createMutation = useApiMutation(jobPostingAPI.create);
-  const updateMutation = useApiMutation((params: any) => jobPostingAPI.update(params.id, params.data));
+  const updateMutation = useApiMutation((params: { id: string; data: JobPosting }) => jobPostingAPI.update(params.id, params.data));
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};

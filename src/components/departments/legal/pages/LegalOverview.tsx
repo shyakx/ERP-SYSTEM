@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import AnimatedCard from '../../../shared/AnimatedCard';
 import { AnimatedButton, AnimatedProgressBar } from '../../../shared/AnimatedCard';
 import { 
@@ -7,16 +7,10 @@ import {
   Gavel, 
   Shield,
   Clock,
-  CheckCircle,
   AlertTriangle,
-  Calendar,
-  User,
-  Building,
   DollarSign,
   TrendingUp,
-  Activity,
-  Eye,
-  Plus
+  Activity
 } from 'lucide-react';
 
 interface LegalOverviewData {
@@ -31,7 +25,7 @@ interface LegalOverviewData {
 }
 
 const LegalOverview: React.FC = () => {
-  const [data, setData] = useState<LegalOverviewData>({
+  const [data] = useState<LegalOverviewData>({
     totalCases: 25,
     activeCases: 8,
     pendingContracts: 12,
@@ -42,7 +36,7 @@ const LegalOverview: React.FC = () => {
     complianceScore: 85
   });
 
-  const [recentActivity, setRecentActivity] = useState([
+  const [recentActivity] = useState([
     {
       id: 1,
       type: 'contract',

@@ -4,14 +4,12 @@ import { AnimatedButton } from '../../../shared/AnimatedCard';
 import { 
   Map, 
   Clock, 
-  Users, 
   Plus,
   Edit,
   Eye,
   CheckCircle,
   AlertCircle,
   MapPin,
-  Calendar,
   User
 } from 'lucide-react';
 
@@ -32,7 +30,7 @@ interface PatrolSchedule {
 }
 
 const PatrolSchedules: React.FC = () => {
-  const [patrolSchedules, setPatrolSchedules] = useState<PatrolSchedule[]>([
+  const [patrolSchedules] = useState<PatrolSchedule[]>([
     {
       id: '1',
       name: 'Perimeter Patrol Alpha',
@@ -95,7 +93,7 @@ const PatrolSchedules: React.FC = () => {
     }
   ]);
 
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddModal] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<PatrolSchedule | null>(null);
 
   const getStatusColor = (status: string) => {

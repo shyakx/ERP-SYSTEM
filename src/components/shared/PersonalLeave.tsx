@@ -1,16 +1,10 @@
 import React, { useState } from 'react';
 import { 
   Calendar, 
-  Clock, 
-  User, 
   Plus, 
-  CheckCircle, 
-  XCircle, 
   AlertCircle,
   FileText,
-  CalendarDays,
-  TrendingUp,
-  TrendingDown
+  TrendingUp
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import AnimatedCard from './AnimatedCard';
@@ -40,7 +34,7 @@ interface LeaveRequest {
 }
 
 const PersonalLeave: React.FC = () => {
-  const { user } = useAuth();
+  useAuth();
   const [selectedLeaveType, setSelectedLeaveType] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');

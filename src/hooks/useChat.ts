@@ -68,7 +68,7 @@ interface UseChatReturn {
   messages: Message[];
   loading: boolean;
   error: string | null;
-  sendMessage: (content: string, type?: string, replyTo?: string, attachments?: any[]) => Promise<void>;
+  sendMessage: (content: string, type?: string, replyTo?: string, attachments?: Array<{ id: string; filename: string; url: string; size: number; type: string }>) => Promise<void>;
   loadMessages: (conversationId: string, before?: string) => Promise<void>;
   createConversation: (participantIds: string[], name?: string, type?: string) => Promise<Conversation>;
   selectConversation: (conversationId: string) => void;
@@ -93,10 +93,9 @@ export const useChat = (): UseChatReturn => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
-  const [typingUsers, setTypingUsers] = useState<string[]>([]);
-  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+  const [typingUsers] = useState<string[]>([]);
+  const [onlineUsers] = useState<string[]>([]);
   
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load conversations
@@ -114,7 +113,7 @@ export const useChat = (): UseChatReturn => {
       if (response.data.success) {
         setConversations(response.data.data.items);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       // If it's a 403 error, don't show error, just set empty conversations
       if (err.response?.status === 403) {
         setConversations([]);
@@ -144,7 +143,7 @@ export const useChat = (): UseChatReturn => {
           setMessages(response.data.data.items);
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.response?.data?.message || 'Failed to load messages');
       console.error('Error loading messages:', err);
     } finally {
@@ -157,7 +156,7 @@ export const useChat = (): UseChatReturn => {
     content: string, 
     type: string = 'text', 
     replyTo?: string, 
-    attachments?: any[]
+    attachments?: Array<{ id: string; filename: string; url: string; size: number; type: string }>
   ) => {
     if (!currentConversation || !content.trim()) return;
 
@@ -184,7 +183,7 @@ export const useChat = (): UseChatReturn => {
           )
         );
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.response?.data?.message || 'Failed to send message');
       console.error('Error sending message:', err);
     }
@@ -211,7 +210,7 @@ export const useChat = (): UseChatReturn => {
         return newConversation;
       }
       throw new Error('Failed to create conversation');
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.response?.data?.message || 'Failed to create conversation');
       console.error('Error creating conversation:', err);
       throw err;

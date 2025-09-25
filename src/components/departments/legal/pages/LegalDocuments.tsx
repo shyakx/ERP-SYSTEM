@@ -8,19 +8,13 @@ import {
   Eye,
   Download,
   Upload,
-  Search,
   Filter,
-  Calendar,
-  User,
   Tag,
   Clock,
   CheckCircle,
   AlertTriangle,
-  File,
-  Folder,
   Archive,
   Trash2,
-  Share,
   Lock,
   Unlock
 } from 'lucide-react';
@@ -48,7 +42,7 @@ interface LegalDocument {
 }
 
 const LegalDocuments: React.FC = () => {
-  const [documents, setDocuments] = useState<LegalDocument[]>([
+  const [documents] = useState<LegalDocument[]>([
     {
       id: '1',
       title: 'Employee Handbook 2024',
@@ -212,7 +206,7 @@ const LegalDocuments: React.FC = () => {
     }
   ]);
 
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddModal] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<LegalDocument | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');

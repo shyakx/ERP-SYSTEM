@@ -1,19 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import AnimatedCard from '../../../shared/AnimatedCard';
-import { AnimatedButton, AnimatedProgressBar } from '../../../shared/AnimatedCard';
+import { AnimatedButton } from '../../../shared/AnimatedCard';
 import { 
   Monitor, 
   Camera, 
   Radio, 
-  Headphones,
   AlertTriangle,
   CheckCircle,
   Activity,
-  MapPin,
-  Clock,
   Users,
   Shield,
-  Zap,
   Eye,
   Mic,
   MicOff,
@@ -60,7 +56,7 @@ const ControlRoom: React.FC = () => {
     lastUpdate: new Date().toLocaleTimeString()
   });
 
-  const [cameraFeeds, setCameraFeeds] = useState<CameraFeed[]>([
+  const [cameraFeeds] = useState<CameraFeed[]>([
     {
       id: '1',
       name: 'Main Entrance',
@@ -111,7 +107,7 @@ const ControlRoom: React.FC = () => {
     }
   ]);
 
-  const [radioChannels, setRadioChannels] = useState<RadioChannel[]>([
+  const [radioChannels] = useState<RadioChannel[]>([
     {
       id: '1',
       name: 'Main Operations',

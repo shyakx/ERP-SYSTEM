@@ -6,7 +6,7 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'admin' | 'hr' | 'finance' | 'it' | 'operations' | 'legal' | 'sales' | 'employee';
+  role: 'admin' | 'hr' | 'finance' | 'operations' | 'legal' | 'sales' | 'employee';
   department?: string;
   phone?: string;
   isActive: boolean;
@@ -19,7 +19,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (userData: any) => Promise<void>;
+  register: (userData: Record<string, unknown>) => Promise<void>;
   logout: () => void;
   getDashboardRoute: (role: string) => string;
 }
@@ -106,8 +106,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return '/hr';
       case 'finance':
         return '/finance';
-      case 'it':
-        return '/it';
       case 'operations':
         return '/operations';
       case 'legal':

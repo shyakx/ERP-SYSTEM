@@ -65,7 +65,6 @@ const PayrollDocument: React.FC<PayrollDocumentProps> = ({ employees, onClose })
           // If it's already a data URL, use it directly
           if (existingLogo.src.startsWith('data:')) {
             logoBase64 = existingLogo.src;
-            console.log('Using existing data URL logo');
           } else {
             // Fetch the logo and convert to base64
             const response = await fetch(existingLogo.src);
@@ -77,18 +76,16 @@ const PayrollDocument: React.FC<PayrollDocumentProps> = ({ employees, onClose })
                 reader.onerror = reject;
                 reader.readAsDataURL(blob);
               });
-              console.log('Successfully converted logo from page to base64');
             }
           }
         } catch (error) {
-          console.log('Could not convert logo from page:', error);
+          // Could not convert logo from page
         }
       }
       
       // If that didn't work, try the public folder
       if (!logoBase64) {
         try {
-          console.log('Attempting to fetch logo from public folder...');
           const response = await fetch('/dicel-logo.png', {
             method: 'GET',
             headers: {
@@ -97,9 +94,7 @@ const PayrollDocument: React.FC<PayrollDocumentProps> = ({ employees, onClose })
           });
           
           if (response.ok) {
-            console.log('Response OK, content type:', response.headers.get('content-type'));
             const blob = await response.blob();
-            console.log('Blob created, size:', blob.size, 'type:', blob.type);
             
             if (blob.type.startsWith('image/')) {
               const reader = new FileReader();

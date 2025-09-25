@@ -20,7 +20,7 @@ interface NotificationCenterProps {
 }
 
 const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, onClose }) => {
-  const { user } = useAuth();
+  useAuth();
   const {
     notifications,
     unreadCount,

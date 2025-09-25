@@ -4,10 +4,24 @@ import { commonRules } from '../../utils/validation';
 import { hrAPI } from '../../services/api';
 import { useNotifications } from '../shared/NotificationSystem';
 
+interface Employee {
+  id?: string;
+  employeeNumber: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  department: string;
+  position: string;
+  hireDate: string;
+  salary: number;
+  status: string;
+}
+
 interface EmployeeFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
-  initialData?: any;
+  initialData?: Employee;
 }
 
 const EmployeeForm: React.FC<EmployeeFormProps> = ({ onSuccess, onCancel, initialData }) => {
@@ -144,7 +158,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({ onSuccess, onCancel, initia
       } else {
         throw new Error(response.data.message || 'Failed to create employee');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to create employee';
       error('Creation Failed', errorMessage);
       throw err;

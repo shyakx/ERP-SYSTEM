@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import AnimatedCard from '../../../shared/AnimatedCard';
 import { AnimatedButton, AnimatedProgressBar } from '../../../shared/AnimatedCard';
 import { 
@@ -10,10 +10,8 @@ import {
   CheckCircle,
   Radio,
   Camera,
-  Headphones,
   Monitor,
   Zap,
-  TrendingUp,
   Activity
 } from 'lucide-react';
 
@@ -29,7 +27,7 @@ interface OperationsOverviewData {
 }
 
 const OperationsOverview: React.FC = () => {
-  const [data, setData] = useState<OperationsOverviewData>({
+  const [data] = useState<OperationsOverviewData>({
     totalGuards: 45,
     activeGuards: 42,
     assignedPosts: 38,
@@ -40,7 +38,7 @@ const OperationsOverview: React.FC = () => {
     coveragePercentage: 85
   });
 
-  const [recentActivity, setRecentActivity] = useState([
+  const [recentActivity] = useState([
     {
       id: 1,
       type: 'assignment',

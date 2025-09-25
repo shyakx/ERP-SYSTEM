@@ -3,11 +3,23 @@ import { X, Save, Loader2 } from 'lucide-react';
 import { useApiList } from '../../hooks/useApi';
 import { projectAPI } from '../../services/api';
 
+interface Budget {
+  id?: string;
+  name: string;
+  projectId: string;
+  category: string;
+  amount: number;
+  startDate: string;
+  endDate: string;
+  description?: string;
+  isActive: boolean;
+}
+
 interface BudgetFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => void;
-  budget?: any;
+  onSubmit: (data: Budget) => void;
+  budget?: Budget;
   mode: 'create' | 'edit';
 }
 
@@ -70,16 +82,16 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev: any) => ({ ...prev, [name]: value }));
+    setFormData((prev: Budget) => ({ ...prev, [name]: value }));
     
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors((prev: any) => ({ ...prev, [name]: '' }));
+      setErrors((prev: Record<string, string>) => ({ ...prev, [name]: '' }));
     }
   };
 
   const validateForm = () => {
-    const newErrors: any = {};
+    const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
       newErrors.name = 'Budget name is required';

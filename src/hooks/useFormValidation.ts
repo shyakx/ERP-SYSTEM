@@ -2,7 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import { validateForm, validateField, ValidationRule, FieldValidation, ValidationResult } from '../utils/validation';
 
 export interface FormField {
-  value: any;
+  value: string | number | boolean;
   rules: ValidationRule;
   label?: string;
   touched?: boolean;
@@ -10,20 +10,20 @@ export interface FormField {
 }
 
 export interface UseFormValidationOptions {
-  initialValues: Record<string, any>;
+  initialValues: Record<string, string | number | boolean>;
   validationRules: Record<string, ValidationRule>;
-  onSubmit: (values: Record<string, any>) => void | Promise<void>;
+  onSubmit: (values: Record<string, string | number | boolean>) => void | Promise<void>;
   validateOnChange?: boolean;
   validateOnBlur?: boolean;
 }
 
 export interface UseFormValidationReturn {
-  values: Record<string, any>;
+  values: Record<string, string | number | boolean>;
   errors: Record<string, string>;
   touched: Record<string, boolean>;
   isValid: boolean;
   isSubmitting: boolean;
-  setValue: (field: string, value: any) => void;
+  setValue: (field: string, value: string | number | boolean) => void;
   setError: (field: string, error: string) => void;
   clearError: (field: string) => void;
   clearAllErrors: () => void;
@@ -33,7 +33,7 @@ export interface UseFormValidationReturn {
   handleChange: (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   handleBlur: (field: string) => () => void;
   reset: () => void;
-  setValues: (values: Record<string, any>) => void;
+  setValues: (values: Record<string, string | number | boolean>) => void;
   setTouched: (field: string, touched: boolean) => void;
 }
 
@@ -44,7 +44,7 @@ export const useFormValidation = ({
   validateOnChange = true,
   validateOnBlur = true
 }: UseFormValidationOptions): UseFormValidationReturn => {
-  const [values, setValues] = useState<Record<string, any>>(initialValues);
+  const [values, setValues] = useState<Record<string, string | number | boolean>>(initialValues);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -90,7 +90,7 @@ export const useFormValidation = ({
   }, [values, validationRules]);
 
   // Set field value
-  const setValue = useCallback((field: string, value: any) => {
+  const setValue = useCallback((field: string, value: string | number | boolean) => {
     setValues(prev => ({
       ...prev,
       [field]: value
@@ -197,7 +197,7 @@ export const useFormValidation = ({
   }, [initialValues]);
 
   // Set multiple values
-  const setMultipleValues = useCallback((newValues: Record<string, any>) => {
+  const setMultipleValues = useCallback((newValues: Record<string, string | number | boolean>) => {
     setValues(prev => ({
       ...prev,
       ...newValues

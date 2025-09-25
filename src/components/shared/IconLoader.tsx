@@ -13,7 +13,7 @@ const IconLoader: React.FC<IconLoaderProps> = ({
   size = 24, 
   fallback = <div className="animate-pulse bg-gray-200 rounded" style={{ width: size, height: size }} />
 }) => {
-  const [IconComponent, setIconComponent] = useState<React.ComponentType<any> | null>(null);
+  const [IconComponent, setIconComponent] = useState<React.ComponentType<{ className?: string; size?: number }> | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,7 +23,7 @@ const IconLoader: React.FC<IconLoaderProps> = ({
         await new Promise(resolve => setTimeout(resolve, 10));
         
         const lucideModule = await import('lucide-react');
-        const Icon = (lucideModule as any)[iconName];
+        const Icon = (lucideModule as Record<string, React.ComponentType<{ className?: string; size?: number }>>)[iconName];
         if (Icon && typeof Icon === 'function') {
           setIconComponent(() => Icon);
         }

@@ -10,22 +10,8 @@ interface AnimatedTableProps {
 const AnimatedTable: React.FC<AnimatedTableProps> = ({
   headers,
   children,
-  title,
-  colorScheme = 'blue'
+  title
 }) => {
-  const getColorClasses = (color: string) => {
-    const colors = {
-      blue: 'bg-blue-500 text-white',
-      green: 'bg-green-500 text-white',
-      purple: 'bg-purple-500 text-white',
-      red: 'bg-red-500 text-white',
-      yellow: 'bg-yellow-500 text-white',
-      indigo: 'bg-indigo-500 text-white',
-      pink: 'bg-pink-500 text-white',
-      orange: 'bg-orange-500 text-white'
-    };
-    return colors[color as keyof typeof colors] || colors.blue;
-  };
 
   return (
     <div className="bg-white rounded-2xl shadow-xl overflow-hidden transform transition-all duration-300 hover:shadow-2xl">

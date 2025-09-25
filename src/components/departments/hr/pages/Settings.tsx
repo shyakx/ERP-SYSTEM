@@ -19,10 +19,8 @@ import {
   Search,
   Folder
 } from 'lucide-react';
-import { useApiList, useApiMutation } from '../../../../hooks/useApi';
-import { settingsAPI } from '../../../../services/api';
 import AnimatedCard from '../../../shared/AnimatedCard';
-import { AnimatedButton, AnimatedProgressBar } from '../../../shared/AnimatedCard';
+import { AnimatedButton } from '../../../shared/AnimatedCard';
 
 interface Setting {
   id: string;
@@ -40,26 +38,7 @@ interface Setting {
 const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState('general');
   const [searchTerm, setSearchTerm] = useState('');
-  const [settings, setSettings] = useState<Setting[]>([]);
-
-  // Fetch settings data with API
-  const { 
-    items: settingsData, 
-    loading, 
-    error, 
-    refetch, 
-    filters, 
-    updateFilters,
-    total,
-    currentPage,
-    totalPages
-  } = useApiList(settingsAPI.getAll, {
-    page: 1,
-    limit: 50,
-    search: "",
-    category: "all",
-    type: "all"
-  });
+  const [settings] = useState<Setting[]>([]);
 
   // Fetch settings stats
   const [statsData, setStatsData] = useState({

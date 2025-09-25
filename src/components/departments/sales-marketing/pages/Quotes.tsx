@@ -7,7 +7,6 @@ import {
   DollarSign, 
   Clock,
   CheckCircle,
-  XCircle,
   Edit,
   Eye,
   Download,
@@ -15,13 +14,10 @@ import {
   Search,
   Filter,
   Plus,
-  Calendar,
-  User,
   Building
 } from "lucide-react";
 
 const Quotes: React.FC = () => {
-  const colorScheme = getColorScheme("sales-marketing");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
 

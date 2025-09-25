@@ -3,22 +3,17 @@ import AnimatedCard from "../../../shared/AnimatedCard";
 import { AnimatedButton } from "../../../shared/AnimatedCard";
 import { getColorScheme } from "../../../../utils/colorSchemes";
 import { 
-  BarChart3, 
   TrendingUp, 
   Users,
   DollarSign,
   Target,
   Calendar,
   Download,
-  Filter,
-  Search,
   Eye,
-  PieChart,
   Activity
 } from "lucide-react";
 
 const Analytics: React.FC = () => {
-  const colorScheme = getColorScheme("sales-marketing");
   const [selectedPeriod, setSelectedPeriod] = useState("month");
   const [selectedMetric, setSelectedMetric] = useState("revenue");
 

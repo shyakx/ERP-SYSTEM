@@ -9,13 +9,10 @@ import {
   CheckCircle,
   AlertTriangle,
   Clock,
-  Calendar,
-  User,
   Building,
   DollarSign,
   Download,
   Send,
-  Search,
   Filter
 } from 'lucide-react';
 
@@ -36,7 +33,7 @@ interface Contract {
 }
 
 const ContractManagement: React.FC = () => {
-  const [contracts, setContracts] = useState<Contract[]>([
+  const [contracts] = useState<Contract[]>([
     {
       id: '1',
       title: 'Security Services Agreement - ABC Corporation',
@@ -111,7 +108,7 @@ const ContractManagement: React.FC = () => {
     }
   ]);
 
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddModal] = useState(false);
   const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');

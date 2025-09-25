@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Search, Filter, X, Calendar, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface AdvancedSearchProps {
-  onSearch: (filters: any) => void;
+  onSearch: (filters: Record<string, string | number>) => void;
   onClear: () => void;
   searchFields: {
     name: string;
@@ -20,11 +20,11 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
   placeholder = "Search..."
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [filters, setFilters] = useState<any>({});
+  const [filters, setFilters] = useState<Record<string, string | number>>({});
   const [quickSearch, setQuickSearch] = useState('');
 
-  const handleFilterChange = (field: string, value: any) => {
-    setFilters((prev: any) => ({
+  const handleFilterChange = (field: string, value: string | number) => {
+    setFilters((prev: Record<string, string | number>) => ({
       ...prev,
       [field]: value
     }));
@@ -58,7 +58,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
     onClear();
   };
 
-  const renderField = (field: any) => {
+  const renderField = (field: { name: string; label: string; type: string; options?: Array<{ value: string; label: string }>; placeholder?: string }) => {
     switch (field.type) {
       case 'text':
         return (
@@ -79,7 +79,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = ({
             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">All {field.label}</option>
-            {field.options?.map((option: any) => (
+            {field.options?.map((option: { value: string; label: string }) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>

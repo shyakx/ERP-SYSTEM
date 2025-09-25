@@ -4,7 +4,7 @@ import { AlertCircle } from 'lucide-react';
 export interface FormTextareaProps {
   label?: string;
   name: string;
-  value: any;
+  value: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLTextAreaElement>) => void;
   placeholder?: string;

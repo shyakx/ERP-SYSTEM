@@ -9,7 +9,6 @@ import {
   BarChart3,
   TrendingUp,
   Users,
-  Shield,
   Clock,
   AlertTriangle,
   CheckCircle,
@@ -30,7 +29,7 @@ interface Report {
 }
 
 const OperationsReports: React.FC = () => {
-  const [reports, setReports] = useState<Report[]>([
+  const [reports] = useState<Report[]>([
     {
       id: '1',
       title: 'Daily Security Report',
@@ -89,7 +88,7 @@ const OperationsReports: React.FC = () => {
   ]);
 
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
-  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [showGenerateModal] = useState(false);
 
   const getTypeColor = (type: string) => {
     switch (type) {

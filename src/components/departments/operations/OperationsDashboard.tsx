@@ -8,7 +8,6 @@ import {
   Shield, 
   Users, 
   MapPin, 
-  Clock, 
   AlertTriangle, 
   CheckCircle, 
   Eye,
@@ -16,11 +15,7 @@ import {
   BarChart3,
   UserCheck,
   Map,
-  Radio,
-  Camera,
-  Headphones,
-  Monitor,
-  Zap
+  Monitor
 } from 'lucide-react';
 
 // Operations Department Pages
@@ -34,15 +29,15 @@ import SecurityPerformance from './pages/SecurityPerformance';
 import OperationsReports from './pages/OperationsReports';
 import OperationsSettings from './pages/OperationsSettings';
 
-interface SecurityGuard {
-  id: string;
-  name: string;
-  position: string;
-  status: string;
-  location: string;
-  shift: string;
-  teamLeader: string;
-}
+// interface SecurityGuard {
+//   id: string;
+//   name: string;
+//   position: string;
+//   status: string;
+//   location: string;
+//   shift: string;
+//   teamLeader: string;
+// }
 
 interface SecurityAssignment {
   id: string;

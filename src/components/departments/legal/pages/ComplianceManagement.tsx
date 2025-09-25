@@ -9,15 +9,10 @@ import {
   CheckCircle,
   AlertTriangle,
   Clock,
-  Calendar,
-  FileText,
   Users,
-  Building,
   Download,
   Upload,
-  Search,
   Filter,
-  Award,
   AlertCircle,
   TrendingUp,
   TrendingDown
@@ -43,7 +38,7 @@ interface ComplianceItem {
 }
 
 const ComplianceManagement: React.FC = () => {
-  const [complianceItems, setComplianceItems] = useState<ComplianceItem[]>([
+  const [complianceItems] = useState<ComplianceItem[]>([
     {
       id: '1',
       title: 'Rwanda Labor Law Compliance',
@@ -191,7 +186,7 @@ const ComplianceManagement: React.FC = () => {
     }
   ]);
 
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ComplianceItem | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
@@ -268,7 +263,7 @@ const ComplianceManagement: React.FC = () => {
 
   const totalCompliant = complianceItems.filter(item => item.status === 'compliant').length;
   const totalNonCompliant = complianceItems.filter(item => item.status === 'non-compliant').length;
-  const totalPending = complianceItems.filter(item => item.status === 'pending').length;
+  // const totalPending = complianceItems.filter(item => item.status === 'pending').length;
   const totalRisk = complianceItems.reduce((sum, item) => sum + item.penalty, 0);
 
   const complianceRate = Math.round((totalCompliant / complianceItems.length) * 100);

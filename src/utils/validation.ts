@@ -5,7 +5,7 @@ export interface ValidationRule {
   minLength?: number;
   maxLength?: number;
   pattern?: RegExp;
-  custom?: (value: any) => string | null;
+  custom?: (value: unknown) => string | null;
   email?: boolean;
   phone?: boolean;
   number?: boolean;
@@ -20,7 +20,7 @@ export interface ValidationResult {
 }
 
 export interface FieldValidation {
-  value: any;
+  value: unknown;
   rules: ValidationRule;
   label?: string;
 }
@@ -28,11 +28,11 @@ export interface FieldValidation {
 // Common validation patterns
 export const patterns = {
   email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-  phone: /^[\+]?[1-9][\d]{0,15}$/,
+  phone: /^[+]?[1-9][\d]{0,15}$/,
   rwandaPhone: /^(\+250|250|0)?[7][0-9]{8}$/,
-  url: /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/,
+  url: /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$/,
   alphanumeric: /^[a-zA-Z0-9]+$/,
-  name: /^[a-zA-Z\s\-']+$/,
+  name: /^[a-zA-Z\s-']+$/,
   employeeId: /^[A-Z]{2,3}[0-9]{4,6}$/,
   sku: /^[A-Z0-9\-]{3,20}$/,
   currency: /^\d+(\.\d{1,2})?$/
@@ -40,7 +40,7 @@ export const patterns = {
 
 // Validation functions
 export const validators = {
-  required: (value: any): string | null => {
+  required: (value: unknown): string | null => {
     if (value === null || value === undefined || value === '') {
       return 'This field is required';
     }
@@ -89,14 +89,14 @@ export const validators = {
     return null;
   },
 
-  number: (value: any): string | null => {
+  number: (value: unknown): string | null => {
     if (value && isNaN(Number(value))) {
       return 'Must be a valid number';
     }
     return null;
   },
 
-  positive: (value: any): string | null => {
+  positive: (value: unknown): string | null => {
     if (value && Number(value) <= 0) {
       return 'Must be a positive number';
     }
@@ -190,8 +190,7 @@ export const validators = {
 
 // Main validation function
 export const validateField = (field: FieldValidation): string | null => {
-  const { value, rules, label } = field;
-  const fieldName = label || 'This field';
+  const { value, rules } = field;
 
   // Required validation
   if (rules.required) {

@@ -3,7 +3,6 @@ import AnimatedCard from '../../../shared/AnimatedCard';
 import { AnimatedButton } from '../../../shared/AnimatedCard';
 import { 
   Shield, 
-  Users, 
   MapPin, 
   Clock, 
   Plus,
@@ -28,7 +27,7 @@ interface SecurityAssignment {
 }
 
 const SecurityAssignments: React.FC = () => {
-  const [assignments, setAssignments] = useState<SecurityAssignment[]>([
+  const [assignments] = useState<SecurityAssignment[]>([
     {
       id: '1',
       guardName: 'Jean Baptiste',
@@ -91,7 +90,7 @@ const SecurityAssignments: React.FC = () => {
     }
   ]);
 
-  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [showAssignModal] = useState(false);
   const [selectedAssignment, setSelectedAssignment] = useState<SecurityAssignment | null>(null);
 
   const getStatusColor = (status: string) => {

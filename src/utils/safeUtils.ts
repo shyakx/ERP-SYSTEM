@@ -6,7 +6,7 @@
  * @param fallback - Fallback value if the input is undefined/null
  * @returns String representation of the value or fallback
  */
-export const safeToString = (value: any, fallback: string = '0'): string => {
+export const safeToString = (value: unknown, fallback: string = '0'): string => {
   if (value === undefined || value === null) {
     return fallback;
   }
@@ -19,7 +19,7 @@ export const safeToString = (value: any, fallback: string = '0'): string => {
  * @param fallback - Fallback value if the input is undefined/null/invalid
  * @returns Number representation of the value or fallback
  */
-export const safeToNumber = (value: any, fallback: number = 0): number => {
+export const safeToNumber = (value: unknown, fallback: number = 0): number => {
   if (value === undefined || value === null) {
     return fallback;
   }
@@ -34,7 +34,7 @@ export const safeToNumber = (value: any, fallback: number = 0): number => {
  * @param fallback - Fallback value if the input is undefined/null
  * @returns Formatted currency string
  */
-export const safeFormatCurrency = (value: any, currency: string = 'RWF', fallback: string = 'RWF 0'): string => {
+export const safeFormatCurrency = (value: unknown, currency: string = 'RWF'): string => {
   const num = safeToNumber(value, 0);
   return `${currency} ${num.toLocaleString()}`;
 };
@@ -46,7 +46,7 @@ export const safeFormatCurrency = (value: any, currency: string = 'RWF', fallbac
  * @param fallback - Fallback value if calculation fails
  * @returns Percentage as number
  */
-export const safePercentage = (value: any, total: any, fallback: number = 0): number => {
+export const safePercentage = (value: unknown, total: unknown, fallback: number = 0): number => {
   const numValue = safeToNumber(value, 0);
   const numTotal = safeToNumber(total, 0);
   
@@ -64,7 +64,7 @@ export const safePercentage = (value: any, total: any, fallback: number = 0): nu
  * @param fallback - Fallback value if property doesn't exist
  * @returns Property value or fallback
  */
-export const safeGet = (obj: any, key: string, fallback: any = null): any => {
+export const safeGet = (obj: unknown, key: string, fallback: unknown = null): unknown => {
   if (!obj || typeof obj !== 'object') {
     return fallback;
   }
@@ -104,7 +104,7 @@ export const safeReduce = <T, R>(
   }
   try {
     return array.reduce(reducer, initialValue);
-  } catch (error) {
+  } catch {
     return fallback;
   }
 }; 

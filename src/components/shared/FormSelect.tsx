@@ -10,7 +10,7 @@ export interface SelectOption {
 export interface FormSelectProps {
   label?: string;
   name: string;
-  value: any;
+  value: string | number;
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLSelectElement>) => void;
   options: SelectOption[];
@@ -50,7 +50,6 @@ const FormSelect = forwardRef<HTMLSelectElement, FormSelectProps>(({
   errorClassName = '',
   helpText,
   size = 'md',
-  searchable = false,
   clearable = false,
   onClear
 }, ref) => {

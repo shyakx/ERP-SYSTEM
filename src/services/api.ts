@@ -2,6 +2,28 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+// Common API Response Types
+interface ApiResponse<T = unknown> {
+  data: T;
+  message?: string;
+  success?: boolean;
+}
+
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+interface RegisterData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  role: string;
+  department: string;
+  phone?: string;
+}
+
 // DEMO MODE: Set to true to use mock data for pitching
 const DEMO_MODE = true;
 
@@ -63,17 +85,17 @@ api.interceptors.response.use(
 
 // Authentication API
 export const authAPI = {
-  login: (credentials: any) => api.post('/auth/login', credentials),
-  register: (userData: any) => api.post('/auth/register', userData),
-  logout: () => api.post('/auth/logout'),
-  getProfile: () => api.get('/auth/profile'),
+  login: (credentials: LoginCredentials) => api.post<ApiResponse<{ token: string; user: unknown }>>('/auth/login', credentials),
+  register: (userData: RegisterData) => api.post<ApiResponse<{ token: string; user: unknown }>>('/auth/register', userData),
+  logout: () => api.post<ApiResponse>('/auth/logout'),
+  getProfile: () => api.get<ApiResponse<unknown>>('/auth/profile'),
 };
 
 // Dashboard API
 export const dashboardAPI = {
-  getStats: () => api.get('/dashboard/stats'),
-  getRecentActivity: () => api.get('/dashboard/recent-activity'),
-  getDepartmentStats: () => api.get('/dashboard/department-stats'),
+  getStats: () => api.get<ApiResponse<unknown>>('/dashboard/stats'),
+  getRecentActivity: () => api.get<ApiResponse<unknown[]>>('/dashboard/recent-activity'),
+  getDepartmentStats: () => api.get<ApiResponse<unknown>>('/dashboard/department-stats'),
 };
 
 // Employee API

@@ -1,41 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 import AnimatedCard from '../../../shared/AnimatedCard';
 import { AnimatedButton, AnimatedProgressBar } from '../../../shared/AnimatedCard';
-import { getColorScheme } from '../../../../utils/colorSchemes';
 import { 
-  TrendingUp, 
-  AlertTriangle, 
-  CheckCircle, 
-  Clock,
   Plus,
-  Search,
-  Filter,
   Eye,
   Edit,
-  Trash2,
   Calendar,
-  User,
-  MapPin,
-  Download,
-  Upload,
-  Settings,
-  BarChart3,
-  Target,
-  Zap,
-  DollarSign,
-  FileText,
-  Users,
-  Phone,
-  Mail,
-  Star,
-  Award,
-  Filter as FilterIcon,
-  TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon
+  Phone
 } from 'lucide-react';
 
 const SalesPipeline: React.FC = () => {
-  const colorScheme = getColorScheme('sales-marketing');
 
   const pipelineStats = [
     { title: 'Total Pipeline', value: 'RWF 0', change: '+0%', icon: 'trending-up', color: 'from-blue-500 to-blue-600', delay: 0, subtitle: 'Active deals', trend: { value: '+0', isPositive: true } },
@@ -45,7 +19,16 @@ const SalesPipeline: React.FC = () => {
   ];
 
   // Empty opportunities array - no mock data
-  const opportunities: any[] = [];
+  const opportunities: Array<{
+    id: string;
+    name: string;
+    company: string;
+    stage: string;
+    value: number;
+    probability: number;
+    expectedCloseDate: string;
+    owner: string;
+  }> = [];
 
   const pipelineStages = [
     { stage: 'Prospecting', count: 0, value: 'RWF 0', color: 'gray' },

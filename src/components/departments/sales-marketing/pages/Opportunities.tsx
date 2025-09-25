@@ -17,13 +17,10 @@ import {
   Mail,
   MapPin,
   Clock,
-  CheckCircle,
-  AlertTriangle,
   Star
 } from "lucide-react";
 
 const Opportunities: React.FC = () => {
-  const colorScheme = getColorScheme("sales-marketing");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStage, setSelectedStage] = useState("all");
   const [selectedPriority, setSelectedPriority] = useState("all");
@@ -36,7 +33,18 @@ const Opportunities: React.FC = () => {
   ];
 
   // Empty opportunities array - no mock data
-  const opportunities: any[] = [];
+  const opportunities: Array<{
+    id: string;
+    name: string;
+    company: string;
+    stage: string;
+    value: number;
+    probability: number;
+    expectedCloseDate: string;
+    owner: string;
+    priority: string;
+    source: string;
+  }> = [];
 
   const pipelineStages = [
     { stage: "Discovery", count: 0, value: "RWF 0", color: "gray" },

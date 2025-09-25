@@ -8,9 +8,6 @@ import {
   Users,
   Shield,
   Clock,
-  CheckCircle,
-  AlertTriangle,
-  Target,
   Award,
   Activity
 } from 'lucide-react';
@@ -38,7 +35,7 @@ interface GuardPerformance {
 }
 
 const SecurityPerformance: React.FC = () => {
-  const [performanceMetrics, setPerformanceMetrics] = useState<PerformanceMetric[]>([
+  const [performanceMetrics] = useState<PerformanceMetric[]>([
     {
       id: '1',
       name: 'Response Time',
@@ -95,7 +92,7 @@ const SecurityPerformance: React.FC = () => {
     }
   ]);
 
-  const [guardPerformance, setGuardPerformance] = useState<GuardPerformance[]>([
+  const [guardPerformance] = useState<GuardPerformance[]>([
     {
       id: '1',
       name: 'Jean Baptiste',

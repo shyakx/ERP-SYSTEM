@@ -2,8 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { useApiMutation } from '../../hooks/useApi';
 import { leaveAPI } from '../../services/api';
 
+interface LeaveRequest {
+  id?: string;
+  employeeId: string;
+  leaveType: string;
+  startDate: string;
+  endDate: string;
+  daysRequested: number;
+  reason: string;
+  status: string;
+  submittedDate: string;
+  approvedBy?: string;
+  approvedDate?: string;
+  comments?: string;
+}
+
 interface LeaveRequestFormProps {
-  leaveRequest?: any;
+  leaveRequest?: LeaveRequest;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -56,7 +71,7 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({ leaveRequest, onSuc
   }, [leaveRequest]);
 
   const createMutation = useApiMutation(leaveAPI.createRequest);
-  const updateMutation = useApiMutation((params: any) => leaveAPI.updateRequest(params.id, params.data));
+  const updateMutation = useApiMutation((params: { id: string; data: LeaveRequest }) => leaveAPI.updateRequest(params.id, params.data));
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};

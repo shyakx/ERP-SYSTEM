@@ -159,7 +159,6 @@ const Register: React.FC = () => {
                   <option value="security-guard-management">Security Guard Management</option>
                   <option value="risk">Risk Department</option>
                   <option value="recovery">Recovery</option>
-                  <option value="it">IT Department</option>
                 </select>
               </div>
             </div>

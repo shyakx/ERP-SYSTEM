@@ -4,7 +4,7 @@ export interface ApiError {
   message: string;
   status?: number;
   code?: string;
-  details?: any;
+  details?: Record<string, unknown>;
   field?: string;
 }
 
@@ -30,7 +30,7 @@ export enum ErrorType {
 }
 
 // Parse API error response
-export const parseApiError = (error: any): ApiError => {
+export const parseApiError = (error: unknown): ApiError => {
   if (error.response) {
     // Server responded with error status
     const { status, data } = error.response;
@@ -92,7 +92,7 @@ export const getErrorType = (error: ApiError): ErrorType => {
 };
 
 // Get user-friendly error message
-export const getUserFriendlyMessage = (error: ApiError, context?: ErrorContext): string => {
+export const getUserFriendlyMessage = (error: ApiError): string => {
   const errorType = getErrorType(error);
   
   switch (errorType) {
@@ -123,7 +123,7 @@ export const getUserFriendlyMessage = (error: ApiError, context?: ErrorContext):
 };
 
 // Log error for debugging
-export const logError = (error: any, context?: ErrorContext) => {
+export const logError = (error: unknown, context?: ErrorContext) => {
   const apiError = parseApiError(error);
   const errorType = getErrorType(apiError);
   
@@ -154,9 +154,9 @@ export const logError = (error: any, context?: ErrorContext) => {
 };
 
 // Handle API errors with context
-export const handleApiError = (error: any, context?: ErrorContext) => {
+export const handleApiError = (error: unknown, context?: ErrorContext) => {
   const apiError = parseApiError(error);
-  const userMessage = getUserFriendlyMessage(apiError, context);
+  const userMessage = getUserFriendlyMessage(apiError);
   const errorLog = logError(error, context);
   
   return {
@@ -207,7 +207,7 @@ export const retryWithBackoff = async <T>(
   maxRetries: number = 3,
   baseDelay: number = 1000
 ): Promise<T> => {
-  let lastError: any;
+  let lastError: unknown;
   
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
@@ -230,13 +230,13 @@ export const retryWithBackoff = async <T>(
 
 // Error boundary helper
 export const createErrorHandler = (context: ErrorContext) => {
-  return (error: any) => {
+  return (error: unknown) => {
     return handleApiError(error, context);
   };
 };
 
 // Form validation error handler
-export const handleFormError = (error: any, setFieldError: (field: string, message: string) => void) => {
+export const handleFormError = (error: unknown, setFieldError: (field: string, message: string) => void) => {
   const apiError = parseApiError(error);
   
   if (apiError.field && apiError.message) {

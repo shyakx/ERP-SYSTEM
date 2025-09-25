@@ -35,7 +35,6 @@ const BulkOperations: React.FC<BulkOperationsProps> = ({
   const [importError, setImportError] = useState<string>('');
 
   const isAllSelected = selectedItems.length === totalItems && totalItems > 0;
-  const isPartiallySelected = selectedItems.length > 0 && selectedItems.length < totalItems;
 
   const handleSelectAll = () => {
     onSelectAll(!isAllSelected);

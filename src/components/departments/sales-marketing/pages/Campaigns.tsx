@@ -13,19 +13,12 @@ import {
   Edit,
   Plus,
   Calendar,
-  User,
   Activity,
   BarChart3,
-  PieChart,
-  Download,
-  Mail,
-  MessageSquare,
-  Share2,
-  Zap
+  Download
 } from "lucide-react";
 
 const Campaigns: React.FC = () => {
-  const colorScheme = getColorScheme("sales-marketing");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedType, setSelectedType] = useState("all");

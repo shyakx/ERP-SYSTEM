@@ -2,8 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useApiMutation } from '../../hooks/useApi';
 import { attendanceAPI } from '../../services/api';
 
+interface Attendance {
+  id?: string;
+  employeeId: string;
+  date: string;
+  checkInTime: string;
+  checkOutTime: string;
+  hoursWorked: number;
+  status: string;
+  notes?: string;
+}
+
 interface AttendanceFormProps {
-  attendance?: any;
+  attendance?: Attendance;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -40,7 +51,7 @@ const AttendanceForm: React.FC<AttendanceFormProps> = ({ attendance, onSuccess, 
   useEffect(() => {
     if (attendance) {
       // Convert time values to proper format if they're in "9h 0m" format
-      const formatTime = (timeValue: any) => {
+      const formatTime = (timeValue: string | Date) => {
         if (typeof timeValue === 'string') {
           // If it's already in HH:MM format, use it as is
           if (timeValue.match(/^\d{2}:\d{2}$/)) {
@@ -78,7 +89,7 @@ const AttendanceForm: React.FC<AttendanceFormProps> = ({ attendance, onSuccess, 
   }, [attendance]);
 
   const createMutation = useApiMutation(attendanceAPI.create);
-  const updateMutation = useApiMutation((params: any) => attendanceAPI.update(params.id, params.data));
+  const updateMutation = useApiMutation((params: { id: string; data: Attendance }) => attendanceAPI.update(params.id, params.data));
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};

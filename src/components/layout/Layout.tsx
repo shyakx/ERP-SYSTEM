@@ -180,15 +180,6 @@ const getSidebarItems = (userRole: string): SidebarItem[] => {
         { name: 'Recovery Calendar', icon: Calendar, path: '/recovery/calendar', color: 'text-gray-600' },
       ];
     
-    case 'it':
-      return [
-        { name: 'IT Dashboard', icon: Home, path: '/it', color: 'text-gray-600' },
-        { name: 'System Monitoring', icon: Monitor, path: '/it/monitoring', color: 'text-gray-600' },
-        { name: 'Technical Support', icon: Settings, path: '/it/support', color: 'text-gray-600' },
-        { name: 'System Reports', icon: FileText, path: '/it/reports', color: 'text-gray-600' },
-        { name: 'IT Analytics', icon: BarChart3, path: '/it/analytics', color: 'text-gray-600' },
-        { name: 'System Settings', icon: Settings, path: '/it/settings', color: 'text-gray-600' },
-      ];
     
     default:
       return [

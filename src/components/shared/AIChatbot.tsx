@@ -19,7 +19,6 @@ import {
   CheckCircle,
   Info,
   MapPin,
-  Bell,
   MoreHorizontal,
   ChevronRight
 } from "lucide-react";
@@ -39,8 +38,18 @@ interface ERPData {
   revenue: string;
   securityIncidents: number;
   systemHealth: number;
-  recentActivities: any[];
-  alerts: any[];
+  recentActivities: Array<{
+    id: string;
+    type: string;
+    description: string;
+    timestamp: string;
+  }>;
+  alerts: Array<{
+    id: string;
+    type: 'warning' | 'error' | 'info';
+    message: string;
+    timestamp: string;
+  }>;
 }
 
 const AIChatbot: React.FC = () => {
@@ -329,7 +338,7 @@ What would you like to do?`;
               ].map((pos) => (
                 <button
                   key={pos.key}
-                  onClick={() => setChatPosition(pos.key as any)}
+                  onClick={() => setChatPosition(pos.key as 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left')}
                   className={`px-2 py-1 text-xs rounded ${
                     chatPosition === pos.key
                       ? 'bg-purple-500 text-white'
@@ -393,7 +402,7 @@ What would you like to do?`;
                 ].map((tab) => (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
+                    onClick={() => setActiveTab(tab.id as 'chat' | 'help' | 'settings')}
                     className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-medium ${
                       activeTab === tab.id
                         ? 'bg-white/20 text-white'

@@ -11,7 +11,6 @@ import {
   CheckCircle,
   AlertCircle,
   MapPin,
-  Calendar,
   FileText,
   Shield
 } from 'lucide-react';
@@ -33,7 +32,7 @@ interface IncidentReport {
 }
 
 const IncidentReports: React.FC = () => {
-  const [incidentReports, setIncidentReports] = useState<IncidentReport[]>([
+  const [incidentReports] = useState<IncidentReport[]>([
     {
       id: '1',
       title: 'Unauthorized Access Attempt',
@@ -94,7 +93,7 @@ const IncidentReports: React.FC = () => {
     }
   ]);
 
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddModal] = useState(false);
   const [selectedIncident, setSelectedIncident] = useState<IncidentReport | null>(null);
 
   const getTypeColor = (type: string) => {

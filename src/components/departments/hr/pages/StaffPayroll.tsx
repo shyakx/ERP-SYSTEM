@@ -11,7 +11,6 @@ import {
   AlertCircle,
   Clock,
   Calendar,
-  Building,
   GraduationCap,
   Calculator,
   Download,
@@ -45,7 +44,7 @@ interface PayrollPeriod {
 }
 
 const StaffPayroll: React.FC = () => {
-  const [staffEmployees, setStaffEmployees] = useState<StaffEmployee[]>([
+  const [staffEmployees] = useState<StaffEmployee[]>([
     {
       id: '1',
       name: 'Paul Mugenzi',
@@ -138,7 +137,7 @@ const StaffPayroll: React.FC = () => {
     }
   ]);
 
-  const [payrollPeriods, setPayrollPeriods] = useState<PayrollPeriod[]>([
+  const [payrollPeriods] = useState<PayrollPeriod[]>([
     {
       id: '1',
       period: 'January 2024',
@@ -160,7 +159,7 @@ const StaffPayroll: React.FC = () => {
   ]);
 
   const [activeTab, setActiveTab] = useState<'employees' | 'periods'>('employees');
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<StaffEmployee | null>(null);
 
   const formatCurrency = (amount: number) => {

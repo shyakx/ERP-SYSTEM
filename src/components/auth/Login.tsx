@@ -16,8 +16,7 @@ import {
   ShieldCheck,
   Crown,
   Sparkles,
-  ChevronUp,
-  Cpu
+  ChevronUp
 } from 'lucide-react';
 
 // Import logo and background images
@@ -67,16 +66,6 @@ const Login: React.FC = () => {
       category: 'core'
     },
     {
-      id: 'it',
-      name: 'IT Manager',
-      email: 'it.manager@dicel.co.rw',
-      password: 'it123',
-      icon: Cpu,
-      color: 'bg-slate-600',
-      description: 'IT systems access',
-      category: 'core'
-    },
-    {
       id: 'operations',
       name: 'Operations Manager',
       email: 'operations.manager@dicel.co.rw',
@@ -114,12 +103,9 @@ const Login: React.FC = () => {
     setError('');
 
     try {
-      console.log('Attempting login with:', { email, password });
       await login(email, password);
-      console.log('Login successful!');
-    } catch (error: any) {
-      console.error('Login failed:', error);
-      setError(error.message || 'Login failed. Please try again.');
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }

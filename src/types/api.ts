@@ -81,20 +81,20 @@ export interface ApiResponse<T> {
 // Chat API interface
 export interface ChatAPI {
   // Conversations
-  getConversations: (params?: any) => Promise<AxiosResponse<ApiResponse<Conversation[]>>>;
+  getConversations: (params?: Record<string, unknown>) => Promise<AxiosResponse<ApiResponse<Conversation[]>>>;
   getConversationById: (id: string) => Promise<AxiosResponse<ApiResponse<Conversation>>>;
   createConversation: (data: Partial<Conversation>) => Promise<AxiosResponse<ApiResponse<Conversation>>>;
   updateConversation: (id: string, data: Partial<Conversation>) => Promise<AxiosResponse<ApiResponse<Conversation>>>;
   deleteConversation: (id: string) => Promise<AxiosResponse<ApiResponse<void>>>;
   
   // Messages
-  getMessages: (conversationId: string, params?: any) => Promise<AxiosResponse<ApiResponse<Message[]>>>;
-  sendMessage: (conversationId: string, data: any) => Promise<AxiosResponse<ApiResponse<Message>>>;
-  updateMessage: (conversationId: string, messageId: string, data: any) => Promise<AxiosResponse<ApiResponse<Message>>>;
+  getMessages: (conversationId: string, params?: Record<string, unknown>) => Promise<AxiosResponse<ApiResponse<Message[]>>>;
+  sendMessage: (conversationId: string, data: Partial<Message>) => Promise<AxiosResponse<ApiResponse<Message>>>;
+  updateMessage: (conversationId: string, messageId: string, data: Partial<Message>) => Promise<AxiosResponse<ApiResponse<Message>>>;
   deleteMessage: (conversationId: string, messageId: string) => Promise<AxiosResponse<ApiResponse<void>>>;
   
   // Channels
-  getChannels: (params?: any) => Promise<AxiosResponse<ApiResponse<Channel[]>>>;
+  getChannels: (params?: Record<string, unknown>) => Promise<AxiosResponse<ApiResponse<Channel[]>>>;
   getChannelById: (id: string) => Promise<AxiosResponse<ApiResponse<Channel>>>;
   createChannel: (data: Partial<Channel>) => Promise<AxiosResponse<ApiResponse<Channel>>>;
   updateChannel: (id: string, data: Partial<Channel>) => Promise<AxiosResponse<ApiResponse<Channel>>>;
@@ -103,7 +103,7 @@ export interface ChatAPI {
   leaveChannel: (id: string) => Promise<AxiosResponse<ApiResponse<void>>>;
   
   // Contacts
-  getContacts: (params?: any) => Promise<AxiosResponse<ApiResponse<Contact[]>>>;
+  getContacts: (params?: Record<string, unknown>) => Promise<AxiosResponse<ApiResponse<Contact[]>>>;
   getContactById: (id: string) => Promise<AxiosResponse<ApiResponse<Contact>>>;
   addContact: (data: Partial<Contact>) => Promise<AxiosResponse<ApiResponse<Contact>>>;
   removeContact: (id: string) => Promise<AxiosResponse<ApiResponse<void>>>;
@@ -123,15 +123,15 @@ export interface ChatAPI {
   sendTypingIndicator: (conversationId: string, isTyping: boolean) => Promise<AxiosResponse<ApiResponse<void>>>;
   
   // Search
-  searchMessages: (query: string, params?: any) => Promise<AxiosResponse<ApiResponse<Message[]>>>;
+  searchMessages: (query: string, params?: Record<string, unknown>) => Promise<AxiosResponse<ApiResponse<Message[]>>>;
   
   // Statistics
   getStats: () => Promise<AxiosResponse<ApiResponse<ChatStats>>>;
   
   // Legacy endpoints
-  getAll: (params?: any) => Promise<AxiosResponse<ApiResponse<any[]>>>;
-  getById: (id: string) => Promise<AxiosResponse<ApiResponse<any>>>;
-  create: (data: any) => Promise<AxiosResponse<ApiResponse<any>>>;
-  update: (id: string, data: any) => Promise<AxiosResponse<ApiResponse<any>>>;
+  getAll: (params?: Record<string, unknown>) => Promise<AxiosResponse<ApiResponse<unknown[]>>>;
+  getById: (id: string) => Promise<AxiosResponse<ApiResponse<unknown>>>;
+  create: (data: Record<string, unknown>) => Promise<AxiosResponse<ApiResponse<unknown>>>;
+  update: (id: string, data: Record<string, unknown>) => Promise<AxiosResponse<ApiResponse<unknown>>>;
   delete: (id: string) => Promise<AxiosResponse<ApiResponse<void>>>;
 } 

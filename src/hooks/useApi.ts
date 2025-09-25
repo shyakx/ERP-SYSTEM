@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
-export const useApi = (apiFunction: () => Promise<any>, dependencies: any[] = []) => {
-  const [data, setData] = useState<any>(null);
+export const useApi = <T = unknown>(apiFunction: () => Promise<{ data: T }>, dependencies: unknown[] = []) => {
+  const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -11,7 +11,7 @@ export const useApi = (apiFunction: () => Promise<any>, dependencies: any[] = []
       setError(null);
       const response = await apiFunction();
       setData(response.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.response?.data?.error || err.message || 'An error occurred');
     } finally {
       setLoading(false);
@@ -29,19 +29,19 @@ export const useApi = (apiFunction: () => Promise<any>, dependencies: any[] = []
   return { data, loading, error, refetch };
 };
 
-export const useApiMutation = (apiFunction: (params: any) => Promise<any>) => {
+export const useApiMutation = <TParams = unknown, TResponse = unknown>(apiFunction: (params: TParams) => Promise<{ data: TResponse }>) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<TResponse | null>(null);
 
-  const mutate = useCallback(async (params: any) => {
+  const mutate = useCallback(async (params: TParams) => {
     try {
       setLoading(true);
       setError(null);
       const response = await apiFunction(params);
       setData(response.data);
       return response.data;
-    } catch (err: any) {
+    } catch (err: unknown) {
       const errorMessage = err.response?.data?.error || err.message || 'An error occurred';
       setError(errorMessage);
       throw new Error(errorMessage);
@@ -53,19 +53,19 @@ export const useApiMutation = (apiFunction: (params: any) => Promise<any>) => {
   return { mutate, loading, error, data };
 };
 
-export const useApiList = (apiFunction: (params: any) => Promise<any>, params: any = {}) => {
-  const [data, setData] = useState<any>({ items: [], total: 0, currentPage: 1, totalPages: 0 });
+export const useApiList = <T = unknown>(apiFunction: (params: Record<string, unknown>) => Promise<{ data: T[] }>, params: Record<string, unknown> = {}) => {
+  const [data, setData] = useState<{ items: T[]; total: number; currentPage: number; totalPages: number }>({ items: [], total: 0, currentPage: 1, totalPages: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState(params);
 
-  const fetchData = useCallback(async (newFilters: any = filters) => {
+  const fetchData = useCallback(async (newFilters: Record<string, unknown> = filters) => {
     try {
       setLoading(true);
       setError(null);
       const response = await apiFunction(newFilters);
       setData(response.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(err.response?.data?.error || err.message || 'An error occurred');
     } finally {
       setLoading(false);
@@ -76,7 +76,7 @@ export const useApiList = (apiFunction: (params: any) => Promise<any>, params: a
     fetchData();
   }, [fetchData]);
 
-  const updateFilters = useCallback((newFilters: any) => {
+  const updateFilters = useCallback((newFilters: Record<string, unknown>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
   }, []);
 

@@ -3,40 +3,16 @@ import AnimatedCard from '../../../shared/AnimatedCard';
 import { AnimatedButton, AnimatedProgressBar } from '../../../shared/AnimatedCard';
 import { getColorScheme } from '../../../../utils/colorSchemes';
 import { 
-  TrendingUp, 
-  AlertTriangle, 
-  CheckCircle, 
-  Clock,
   Plus,
   Search,
   Filter,
   Eye,
   Edit,
-  Trash2,
   Calendar,
-  User,
-  MapPin,
-  Download,
-  Upload,
-  Settings,
-  BarChart3,
-  Target,
-  Zap,
-  DollarSign,
-  FileText,
-  Users,
-  Phone,
-  Mail,
-  Star,
-  Award,
-  Filter as FilterIcon,
-  TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon
+  Phone
 } from 'lucide-react';
 
 const SalesOverview: React.FC = () => {
-  const colorScheme = getColorScheme('sales-marketing');
-  const [selectedPeriod, setSelectedPeriod] = useState('month');
 
   const salesStats = [
     { title: 'Total Revenue', value: 'RWF 28.5M', subtitle: 'This month', color: 'blue', icon: '💰', trend: { value: '+2.1M', isPositive: true }, delay: 0 },

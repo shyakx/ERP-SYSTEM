@@ -2,8 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { useApiMutation } from '../../hooks/useApi';
 import { payrollAPI } from '../../services/api';
 
+interface Payroll {
+  id?: string;
+  employeeId: string;
+  payPeriod: string;
+  payDate: string;
+  basicSalary: number;
+  overtime: number;
+  bonuses: number;
+  allowances: number;
+  deductions: number;
+  grossSalary: number;
+  netSalary: number;
+  status: string;
+  processedBy: string;
+  processedDate: string;
+}
+
 interface PayrollFormProps {
-  payroll?: any;
+  payroll?: Payroll;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -75,7 +92,7 @@ const PayrollForm: React.FC<PayrollFormProps> = ({ payroll, onSuccess, onCancel 
   }, [payroll]);
 
   const createMutation = useApiMutation(payrollAPI.create);
-  const updateMutation = useApiMutation((params: any) => payrollAPI.update(params.id, params.data));
+  const updateMutation = useApiMutation((params: { id: string; data: Payroll }) => payrollAPI.update(params.id, params.data));
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};

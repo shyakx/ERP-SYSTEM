@@ -15,7 +15,7 @@ interface AuditEntry {
 
 interface AuditTrailProps {
   entries: AuditEntry[];
-  onFilter: (filters: any) => void;
+  onFilter: (filters: Record<string, string>) => void;
   onClear: () => void;
 }
 
@@ -73,7 +73,7 @@ const AuditTrail: React.FC<AuditTrailProps> = ({ entries, onFilter, onClear }) =
   };
 
   const handleFilter = () => {
-    const filters: any = {};
+    const filters: Record<string, string> = {};
     if (selectedAction !== 'all') filters.action = selectedAction;
     if (selectedEntity !== 'all') filters.entity = selectedEntity;
     if (dateRange.start) filters.startDate = dateRange.start;

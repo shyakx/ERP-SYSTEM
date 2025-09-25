@@ -22,7 +22,6 @@ import {
   Calculator,
   PieChart,
   PiggyBank,
-  Receipt as ReceiptIcon,
   Target,
   LayoutDashboard,
   Building2,
@@ -30,9 +29,7 @@ import {
   Scale,
   Wallet,
   Banknote,
-  Coins,
-  TrendingUp as TrendingUpIcon,
-  BarChart
+  Coins
 } from 'lucide-react';
 
 // Finance Department Pages
@@ -96,8 +93,8 @@ const getIconComponent = (iconName: string) => {
 const FinanceDashboard: React.FC = () => {
   const colorScheme = getColorScheme('finance');
   const location = useLocation();
-  const [financeStats, setFinanceStats] = useState<any[]>([]);
-  const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+  const [financeStats, setFinanceStats] = useState<Transaction[]>([]);
+  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
   const [apiStats, setApiStats] = useState<any>(null);
 
   // Fetch data from APIs

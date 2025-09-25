@@ -73,23 +73,6 @@ const demoUsers = [
     }
   },
   {
-    email: 'it.manager@dicel.co.rw',
-    password: 'it123',
-    user: {
-      id: '4',
-      email: 'it.manager@dicel.co.rw',
-      firstName: 'Eric',
-      lastName: 'Niyonsenga',
-      role: 'it' as const,
-      department: 'it',
-      phone: '+250 788 456 789',
-      isActive: true,
-      lastLogin: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-  },
-  {
     email: 'operations.manager@dicel.co.rw',
     password: 'operations123',
     user: {

@@ -78,7 +78,6 @@ const ValidatedForm: React.FC<ValidatedFormProps> = ({
     handleSubmit,
     handleChange,
     handleBlur,
-    setValue,
     reset
   } = useFormValidation({
     ...formOptions,

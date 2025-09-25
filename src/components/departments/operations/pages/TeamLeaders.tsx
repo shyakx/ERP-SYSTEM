@@ -4,7 +4,6 @@ import { AnimatedButton } from '../../../shared/AnimatedCard';
 import { 
   UserCheck, 
   Users, 
-  MapPin, 
   Clock, 
   Plus,
   Edit,
@@ -37,7 +36,7 @@ interface TeamLeader {
 }
 
 const TeamLeaders: React.FC = () => {
-  const [teamLeaders, setTeamLeaders] = useState<TeamLeader[]>([
+  const [teamLeaders] = useState<TeamLeader[]>([
     {
       id: '1',
       name: 'Paul Mugenzi',
@@ -97,7 +96,7 @@ const TeamLeaders: React.FC = () => {
     }
   ]);
 
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddModal] = useState(false);
   const [selectedLeader, setSelectedLeader] = useState<TeamLeader | null>(null);
 
   const getStatusColor = (status: string) => {

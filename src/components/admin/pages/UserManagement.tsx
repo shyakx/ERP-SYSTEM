@@ -89,19 +89,6 @@ const UserManagement: React.FC = () => {
       permissions: ['finance_management', 'budget_approval', 'reports']
     },
     {
-      id: '4',
-      firstName: 'Eric',
-      lastName: 'Niyonsenga',
-      email: 'it.manager@dicel.co.rw',
-      role: 'it',
-      department: 'Information Technology',
-      phone: '+250 788 456 789',
-      status: 'active',
-      lastLogin: '2024-02-14 17:30',
-      createdAt: '2024-02-01',
-      permissions: ['system_admin', 'user_management', 'security']
-    },
-    {
       id: '5',
       firstName: 'Patrick',
       lastName: 'Mugisha',
@@ -133,7 +120,6 @@ const UserManagement: React.FC = () => {
     { value: 'admin', label: 'Administrator', color: 'slate' },
     { value: 'hr', label: 'HR Manager', color: 'blue' },
     { value: 'finance', label: 'Finance Manager', color: 'emerald' },
-    { value: 'it', label: 'IT Manager', color: 'indigo' },
     { value: 'security', label: 'Security Manager', color: 'red' },
     { value: 'inventory', label: 'Operations Manager', color: 'amber' },
     { value: 'sales', label: 'Sales Manager', color: 'indigo' },
@@ -144,7 +130,6 @@ const UserManagement: React.FC = () => {
     'Administration',
     'Human Resources',
     'Finance',
-    'Information Technology',
     'Security',
     'Operations',
     'Sales & Marketing',

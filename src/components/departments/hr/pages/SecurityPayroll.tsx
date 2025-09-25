@@ -82,7 +82,6 @@ const SecurityPayroll: React.FC = () => {
       
       // If duplicates were found, save the cleaned data back
       if (uniqueEmployees.length !== employees.length) {
-        console.log(`Cleaned up ${employees.length - uniqueEmployees.length} duplicate employees on load`);
         localStorage.setItem('securityEmployees', JSON.stringify(uniqueEmployees));
       }
       
@@ -508,8 +507,8 @@ const SecurityPayroll: React.FC = () => {
 
     // Apply sorting
     filtered.sort((a, b) => {
-      let aValue: any = a[filters.sortBy as keyof SecurityEmployee];
-      let bValue: any = b[filters.sortBy as keyof SecurityEmployee];
+      const aValue = a[filters.sortBy as keyof SecurityEmployee];
+      const bValue = b[filters.sortBy as keyof SecurityEmployee];
 
       // Handle numeric sorting
       if (typeof aValue === 'number' && typeof bValue === 'number') {
@@ -1041,7 +1040,7 @@ const SecurityPayroll: React.FC = () => {
           values.splice(headers.length);
         }
 
-        const rowData: any = {};
+        const rowData: Record<string, string | number> = {};
         headers.forEach((header, index) => {
           rowData[header] = values[index] || '';
         });
@@ -1674,23 +1673,12 @@ const SecurityPayroll: React.FC = () => {
                         </button>
                         <button
                           onClick={() => {
-                            console.log('=== DEBUGGING BANK FILTER ===');
-                            console.log('Total employees:', securityEmployees.length);
-                            console.log('Current bank filter:', filters.bankName);
-                            console.log('All unique banks:', getUniqueBanks());
-                            console.log('Raw bank names in data:', securityEmployees.map(emp => emp.bankName).filter(Boolean));
-                            console.log('Normalized bank names:', securityEmployees.map(emp => normalizeBankName(emp.bankName)).filter(Boolean));
-                            
+                            // Debug bank filter functionality
                             if (filters.bankName) {
-                              const matchingEmployees = securityEmployees.filter(emp => 
+                              // Debug info available in development mode
+                              securityEmployees.filter(emp => 
                                 normalizeBankName(emp.bankName) === filters.bankName
                               );
-                              console.log(`Employees matching "${filters.bankName}":`, matchingEmployees.length);
-                              console.log('Matching employees:', matchingEmployees.slice(0, 5).map(emp => ({
-                                name: emp.name,
-                                rawBank: emp.bankName,
-                                normalizedBank: normalizeBankName(emp.bankName)
-                              })));
                             }
                           }}
                           className="text-sm text-green-600 hover:text-green-800 font-medium"

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import DepartmentLayout from '../../shared/DepartmentLayout';
-// import AnimatedStatsCard from '../../shared/AnimatedStatsCard';
 import AnimatedCard from '../../shared/AnimatedCard';
 import { AnimatedButton } from '../../shared/AnimatedCard';
 import { getColorScheme } from '../../../utils/colorSchemes';
@@ -84,7 +83,7 @@ const HRDashboard: React.FC = () => {
 
         // Set recent employees from the stats
         if (stats.recentHires) {
-          setRecentEmployees(stats.recentHires.map((emp: any) => ({
+          setRecentEmployees(stats.recentHires.map((emp: Employee) => ({
             id: emp.id || Math.random().toString(),
             employeeId: emp.employee_number || 'N/A',
             position: emp.position || 'N/A',

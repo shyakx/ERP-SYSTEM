@@ -13,26 +13,36 @@ export default defineConfig({
     }
   },
   build: {
-    // Optimize build for better performance
+    // Optimize build for Vercel deployment
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
+    minify: 'terser',
     rollupOptions: {
       output: {
         manualChunks: {
           // Separate vendor chunks to reduce initial bundle size
           vendor: ['react', 'react-dom'],
-          icons: ['lucide-react']
+          icons: ['lucide-react'],
+          router: ['react-router-dom']
         }
       }
     },
     // Reduce chunk size warnings
-    chunkSizeWarningLimit: 1000
+    chunkSizeWarningLimit: 1000,
+    // Optimize for Vercel
+    target: 'esnext',
+    cssCodeSplit: true
   },
   // Add resource optimization
   optimizeDeps: {
-    include: ['react', 'react-dom', 'lucide-react'],
+    include: ['react', 'react-dom', 'lucide-react', 'react-router-dom'],
     exclude: []
   },
   // Add performance hints
   define: {
     __DEV__: process.env.NODE_ENV === 'development'
-  }
+  },
+  // Base path for Vercel deployment
+  base: '/'
 })

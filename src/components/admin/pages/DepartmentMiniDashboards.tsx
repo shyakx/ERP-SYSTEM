@@ -81,24 +81,7 @@ const DepartmentMiniDashboards: React.FC = () => {
          { title: 'Net Profit', value: '6.5M RWF', change: '+18.3%', isPositive: true },
          { title: 'Pending Approvals', value: '7', change: '+2', isPositive: false }
        ]
-     },
-         {
-       id: 'it',
-       name: 'Information Technology',
-       icon: Cpu,
-       color: 'slate',
-       status: 'active',
-       employeeCount: 28,
-       manager: 'Eric Niyonsenga',
-       lastActivity: '10 minutes ago',
-       pendingActions: 4,
-       kpis: [
-         { title: 'System Uptime', value: '99.9%', change: '+0.1%', isPositive: true },
-         { title: 'Active Tickets', value: '15', change: '-3', isPositive: true },
-         { title: 'Security Alerts', value: '2', change: '+1', isPositive: false },
-         { title: 'Backup Status', value: '100%', change: '0%', isPositive: true }
-       ]
-     },
+    },
     {
       id: 'security',
       name: 'Security Management',

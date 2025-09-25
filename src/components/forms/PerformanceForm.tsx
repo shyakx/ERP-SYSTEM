@@ -2,8 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { useApiMutation } from '../../hooks/useApi';
 import { performanceAPI } from '../../services/api';
 
+interface Performance {
+  id?: string;
+  employeeId: string;
+  reviewPeriod: string;
+  reviewDate: string;
+  overallRating: number;
+  goals: string;
+  achievements: string;
+  areasForImprovement: string;
+  managerComments: string;
+  employeeComments: string;
+  status: string;
+  reviewedBy: string;
+  nextReviewDate: string;
+}
+
 interface PerformanceFormProps {
-  performance?: any;
+  performance?: Performance;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -81,7 +97,7 @@ const PerformanceForm: React.FC<PerformanceFormProps> = ({ performance, onSucces
   }, [performance]);
 
   const createMutation = useApiMutation(performanceAPI.create);
-  const updateMutation = useApiMutation((params: any) => performanceAPI.update(params.id, params.data));
+  const updateMutation = useApiMutation((params: { id: string; data: Performance }) => performanceAPI.update(params.id, params.data));
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};

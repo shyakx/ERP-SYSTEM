@@ -2,20 +2,12 @@ import React, { useState } from 'react';
 import AnimatedCard from '../../../shared/AnimatedCard';
 import { AnimatedButton } from '../../../shared/AnimatedCard';
 import { 
-  Settings, 
   Shield, 
   Users, 
-  Clock, 
-  MapPin, 
-  Radio, 
-  Camera, 
-  Bell,
   Save,
   RefreshCw,
   AlertTriangle,
-  CheckCircle,
-  Eye,
-  EyeOff
+  CheckCircle
 } from 'lucide-react';
 
 interface SecuritySettings {
@@ -65,7 +57,7 @@ const OperationsSettings: React.FC = () => {
     sessionTimeout: 30
   });
 
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSaveSettings = async () => {

@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, Loader2 } from 'lucide-react';
 
+interface Account {
+  id?: string;
+  name: string;
+  type: string;
+  balance: number;
+  currency: string;
+  description?: string;
+  isActive: boolean;
+}
+
 interface AccountFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => void;
-  account?: any;
+  onSubmit: (data: Account) => void;
+  account?: Account;
   mode: 'create' | 'edit';
 }
 
@@ -57,19 +67,19 @@ const AccountForm: React.FC<AccountFormProps> = ({
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
     
-    setFormData((prev: any) => ({ 
+    setFormData((prev: Account) => ({ 
       ...prev, 
       [name]: type === 'checkbox' ? checked : value 
     }));
     
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors((prev: any) => ({ ...prev, [name]: '' }));
+      setErrors((prev: Record<string, string>) => ({ ...prev, [name]: '' }));
     }
   };
 
   const validateForm = () => {
-    const newErrors: any = {};
+    const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
       newErrors.name = 'Account name is required';
