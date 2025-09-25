@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect, useState } from "react";
+import React, { Suspense, lazy, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Login from "./components/auth/Login";
@@ -55,7 +55,7 @@ const RoleBasedRoute: React.FC<{
   children: React.ReactNode; 
   allowedRoles: string[];
   fallbackRoute?: string;
-}> = ({ children, allowedRoles, fallbackRoute = '/login' }) => {
+}> = ({ children, allowedRoles }) => {
   const { user, getDashboardRoute } = useAuth();
 
   if (!user) {
@@ -72,7 +72,6 @@ const RoleBasedRoute: React.FC<{
 };
 
 const App: React.FC = () => {
-  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Add resource management
   useEffect(() => {
