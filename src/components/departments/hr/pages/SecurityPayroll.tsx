@@ -61,8 +61,47 @@ interface PayrollPeriod {
 }
 
 const SecurityPayroll: React.FC = () => {
-  // Sample data based on the Excel sheet provided
-  const [securityEmployees, setSecurityEmployees] = useState<SecurityEmployee[]>([
+  // Load employees from localStorage (simulates database)
+  const loadEmployeesFromStorage = (): SecurityEmployee[] => {
+    try {
+      const stored = localStorage.getItem('securityEmployees');
+      if (!stored) return [];
+      
+      const employees = JSON.parse(stored);
+      
+      // Clean up any duplicate IDs immediately on load
+      const uniqueEmployees: SecurityEmployee[] = [];
+      const seenIds = new Set<string>();
+      
+      employees.forEach((emp: SecurityEmployee) => {
+        if (!seenIds.has(emp.id)) {
+          seenIds.add(emp.id);
+          uniqueEmployees.push(emp);
+        }
+      });
+      
+      // If duplicates were found, save the cleaned data back
+      if (uniqueEmployees.length !== employees.length) {
+        console.log(`Cleaned up ${employees.length - uniqueEmployees.length} duplicate employees on load`);
+        localStorage.setItem('securityEmployees', JSON.stringify(uniqueEmployees));
+      }
+      
+      return uniqueEmployees;
+    } catch {
+      return [];
+    }
+  };
+
+  const saveEmployeesToStorage = (employees: SecurityEmployee[]) => {
+    try {
+      localStorage.setItem('securityEmployees', JSON.stringify(employees));
+    } catch (error) {
+      console.error('Failed to save employees to storage:', error);
+    }
+  };
+
+  // Sample data based on the Excel sheet provided (only if no data in storage)
+  const defaultEmployees: SecurityEmployee[] = [
     {
       id: '1',
       no: 1,
@@ -167,7 +206,12 @@ const SecurityPayroll: React.FC = () => {
       status: 'active',
       lastPaid: '2024-01-15'
     }
-  ]);
+  ];
+
+  const [securityEmployees, setSecurityEmployees] = useState<SecurityEmployee[]>(() => {
+    const stored = loadEmployeesFromStorage();
+    return stored.length > 0 ? stored : defaultEmployees;
+  });
 
   const [payrollPeriods] = useState<PayrollPeriod[]>([
     {
@@ -195,13 +239,43 @@ const SecurityPayroll: React.FC = () => {
   const [editingEmployee, setEditingEmployee] = useState<SecurityEmployee | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredEmployees, setFilteredEmployees] = useState<SecurityEmployee[]>([]);
+  
+  // Filter states
+  const [filters, setFilters] = useState({
+    bankName: '',
+    post: '',
+    status: '',
+    hasMissingData: '',
+    minSalary: '',
+    maxSalary: '',
+    sortBy: 'no',
+    sortOrder: 'asc' as 'asc' | 'desc'
+  });
+  
+  const [showFilters, setShowFilters] = useState(false);
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
   const [showPayrollDocument, setShowPayrollDocument] = useState(false);
   const [showBulkImport, setShowBulkImport] = useState(false);
+  const [showAddEmployeeModal, setShowAddEmployeeModal] = useState(false);
+  const [showMissingDataModal, setShowMissingDataModal] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importProgress, setImportProgress] = useState(0);
   const [importStatus, setImportStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
   const [importErrors, setImportErrors] = useState<string[]>([]);
   const [csvPreview, setCsvPreview] = useState<{ headers: string[], rows: string[][], mappedFields: { [key: string]: number } } | null>(null);
+  
+  // New employee form state
+  const [newEmployee, setNewEmployee] = useState<Partial<SecurityEmployee>>({
+    name: '',
+    post: 'Security Guard',
+    account: '',
+    bankName: '',
+    telephone: '',
+    idNumber: '',
+    basicSalary: 0,
+    transportAllowance: 0,
+    advance: 0
+  });
 
   // Payroll calculation functions
   const calculatePAYE = (grossSalary: number): number => {
@@ -276,20 +350,183 @@ const SecurityPayroll: React.FC = () => {
     };
   };
 
-  // Filter employees based on search term
+  // Missing data detection functions
+  const getMissingDataFields = (employee: SecurityEmployee): string[] => {
+    const missing: string[] = [];
+    
+    if (!employee.name || employee.name.trim() === '') missing.push('Name');
+    if (!employee.account || employee.account.trim() === '') missing.push('Account Number');
+    if (!employee.bankName || employee.bankName.trim() === '') missing.push('Bank Name');
+    if (!employee.telephone || employee.telephone.trim() === '') missing.push('Telephone');
+    if (!employee.idNumber || employee.idNumber.trim() === '') missing.push('ID Number');
+    if (!employee.post || employee.post.trim() === '') missing.push('Position/Post');
+    if (employee.basicSalary <= 0) missing.push('Basic Salary');
+    if (employee.transportAllowance < 0) missing.push('Transport Allowance');
+    
+    return missing;
+  };
+
+  const getEmployeesWithMissingData = (): SecurityEmployee[] => {
+    return securityEmployees.filter(emp => getMissingDataFields(emp).length > 0);
+  };
+
+  const getEmployeesReadyForPayroll = (): SecurityEmployee[] => {
+    return securityEmployees.filter(emp => getMissingDataFields(emp).length === 0);
+  };
+
+  // Auto-save to storage whenever employees change
+  const updateEmployees = (newEmployees: SecurityEmployee[]) => {
+    setSecurityEmployees(newEmployees);
+    saveEmployeesToStorage(newEmployees);
+  };
+
+  // Helper functions for filters
+  const getUniqueBanks = (): string[] => {
+    const banks = securityEmployees
+      .map(emp => normalizeBankName(emp.bankName))
+      .filter(Boolean);
+    return [...new Set(banks)].sort();
+  };
+
+  // Normalize bank names for better filtering
+  const normalizeBankName = (bankName: string): string => {
+    if (!bankName || bankName.trim() === '') return '';
+    
+    const bankMap: { [key: string]: string } = {
+      'bk': 'Bank of Kigali',
+      'bank of kigali': 'Bank of Kigali',
+      'bank of kigali (bk)': 'Bank of Kigali',
+      'b.o.k': 'Bank of Kigali',
+      'bok': 'Bank of Kigali',
+      'equity': 'Equity Bank',
+      'equity bank': 'Equity Bank',
+      'equity bank rwanda': 'Equity Bank',
+      'i&m': 'I&M Bank',
+      'i&m bank': 'I&M Bank',
+      'im bank': 'I&M Bank',
+      'gt': 'GT Bank',
+      'gt bank': 'GT Bank',
+      'access': 'Access Bank',
+      'access bank': 'Access Bank',
+      'other': 'Other'
+    };
+    
+    const normalized = bankName.toLowerCase().trim();
+    return bankMap[normalized] || bankName;
+  };
+
+  const getUniquePosts = (): string[] => {
+    const posts = securityEmployees.map(emp => emp.post).filter(Boolean);
+    return [...new Set(posts)].sort();
+  };
+
+  const getUniqueStatuses = (): string[] => {
+    const statuses = securityEmployees.map(emp => emp.status).filter(Boolean);
+    return [...new Set(statuses)].sort();
+  };
+
+  const handleSort = (column: string) => {
+    setFilters(prev => ({
+      ...prev,
+      sortBy: column,
+      sortOrder: prev.sortBy === column && prev.sortOrder === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      bankName: '',
+      post: '',
+      status: '',
+      hasMissingData: '',
+      minSalary: '',
+      maxSalary: '',
+      sortBy: 'no',
+      sortOrder: 'asc'
+    });
+    setSearchTerm('');
+  };
+
+  const getActiveFiltersCount = (): number => {
+    let count = 0;
+    if (filters.bankName) count++;
+    if (filters.post) count++;
+    if (filters.status) count++;
+    if (filters.hasMissingData) count++;
+    if (filters.minSalary) count++;
+    if (filters.maxSalary) count++;
+    if (searchTerm.trim()) count++;
+    return count;
+  };
+
+  // Filter and sort employees based on search term and filters
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredEmployees(securityEmployees);
-    } else {
-      const filtered = securityEmployees.filter(employee =>
+    let filtered = [...securityEmployees];
+
+    // Apply search term filter
+    if (searchTerm.trim() !== '') {
+      filtered = filtered.filter(employee =>
         employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         employee.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         employee.post.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        employee.account.includes(searchTerm)
+        employee.account.includes(searchTerm) ||
+        employee.telephone.includes(searchTerm) ||
+        employee.idNumber.includes(searchTerm)
       );
-      setFilteredEmployees(filtered);
     }
-  }, [searchTerm, securityEmployees]);
+
+    // Apply column filters
+    if (filters.bankName) {
+      filtered = filtered.filter(employee => 
+        normalizeBankName(employee.bankName) === filters.bankName
+      );
+    }
+
+    if (filters.post) {
+      filtered = filtered.filter(employee => employee.post === filters.post);
+    }
+
+    if (filters.status) {
+      filtered = filtered.filter(employee => employee.status === filters.status);
+    }
+
+    if (filters.hasMissingData === 'yes') {
+      filtered = filtered.filter(employee => getMissingDataFields(employee).length > 0);
+    } else if (filters.hasMissingData === 'no') {
+      filtered = filtered.filter(employee => getMissingDataFields(employee).length === 0);
+    }
+
+    if (filters.minSalary) {
+      const minSalary = parseFloat(filters.minSalary);
+      filtered = filtered.filter(employee => employee.basicSalary >= minSalary);
+    }
+
+    if (filters.maxSalary) {
+      const maxSalary = parseFloat(filters.maxSalary);
+      filtered = filtered.filter(employee => employee.basicSalary <= maxSalary);
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aValue: any = a[filters.sortBy as keyof SecurityEmployee];
+      let bValue: any = b[filters.sortBy as keyof SecurityEmployee];
+
+      // Handle numeric sorting
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return filters.sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+
+      // Handle string sorting
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        const comparison = aValue.toLowerCase().localeCompare(bValue.toLowerCase());
+        return filters.sortOrder === 'asc' ? comparison : -comparison;
+      }
+
+      return 0;
+    });
+
+    setFilteredEmployees(filtered);
+  }, [searchTerm, securityEmployees, filters]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-RW', {
@@ -322,15 +559,88 @@ const SecurityPayroll: React.FC = () => {
     }
   };
 
+  // Calculate totals for all employees (for display)
   const totalPayroll = securityEmployees.reduce((sum, employee) => sum + employee.netBankList, 0);
   const totalGrossSalary = securityEmployees.reduce((sum, employee) => sum + employee.grossSalary, 0);
   const totalDeductions = securityEmployees.reduce((sum, employee) => 
     sum + employee.paye + employee.maternityLeaveEmployee + employee.rssbPensionEmployee6 + employee.rssbPensionEmployee2 + employee.mutuelle, 0);
   const totalRssbContributions = securityEmployees.reduce((sum, employee) => sum + employee.totalRssbContribution, 0);
 
+  // Calculate totals for filtered employees (for payroll processing)
+  const filteredTotalPayroll = filteredEmployees.filter(emp => emp.status === 'active').reduce((sum, employee) => sum + employee.netBankList, 0);
+  const filteredTotalGrossSalary = filteredEmployees.filter(emp => emp.status === 'active').reduce((sum, employee) => sum + employee.grossSalary, 0);
+  const filteredEmployeeCount = filteredEmployees.filter(emp => emp.status === 'active').length;
+
   const handleAddEmployee = () => {
-    // Implement add employee functionality
-    console.log('Add employee');
+    setShowAddEmployeeModal(true);
+  };
+
+  const handleSaveNewEmployee = () => {
+    if (!newEmployee.name || !newEmployee.basicSalary || !newEmployee.transportAllowance) {
+      alert('Please fill in all required fields (Name, Basic Salary, Transport Allowance)');
+      return;
+    }
+
+    const employee: SecurityEmployee = {
+      id: `emp-${Date.now()}`,
+      no: securityEmployees.length + 1,
+      name: newEmployee.name!,
+      post: newEmployee.post || 'Security Guard',
+      account: newEmployee.account || '',
+      bankName: newEmployee.bankName || '',
+      telephone: newEmployee.telephone || '',
+      idNumber: newEmployee.idNumber || '',
+      basicSalary: newEmployee.basicSalary!,
+      transportAllowance: newEmployee.transportAllowance!,
+      grossSalary: 0, // Will be calculated
+      paye: 0,
+      maternityLeaveEmployee: 0,
+      maternityLeaveEmployer: 0,
+      rssbPensionEmployee6: 0,
+      rssbPensionEmployer6: 0,
+      rssbPensionEmployee2: 0,
+      totalRssbContribution: 0,
+      netPayB4CBHI: 0,
+      mutuelle: 0,
+      advance: newEmployee.advance || 0,
+      netBankList: 0,
+      status: 'active',
+      lastPaid: ''
+    };
+
+    const calculatedEmployee = recalculatePayroll(employee);
+    updateEmployees([...securityEmployees, calculatedEmployee]);
+    
+    // Reset form
+    setNewEmployee({
+      name: '',
+      post: 'Security Guard',
+      account: '',
+      bankName: '',
+      telephone: '',
+      idNumber: '',
+      basicSalary: 0,
+      transportAllowance: 0,
+      advance: 0
+    });
+    
+    setShowAddEmployeeModal(false);
+    alert(`✅ Employee "${calculatedEmployee.name}" added successfully!`);
+  };
+
+  const handleCancelAddEmployee = () => {
+    setShowAddEmployeeModal(false);
+    setNewEmployee({
+      name: '',
+      post: 'Security Guard',
+      account: '',
+      bankName: '',
+      telephone: '',
+      idNumber: '',
+      basicSalary: 0,
+      transportAllowance: 0,
+      advance: 0
+    });
   };
 
   const handleViewEmployee = (employee: SecurityEmployee) => {
@@ -344,9 +654,10 @@ const SecurityPayroll: React.FC = () => {
   const handleSaveEmployee = () => {
     if (editingEmployee) {
       const updatedEmployee = recalculatePayroll(editingEmployee);
-      setSecurityEmployees(prev => 
-        prev.map(emp => emp.id === updatedEmployee.id ? updatedEmployee : emp)
+      const updatedEmployees = securityEmployees.map(emp => 
+        emp.id === updatedEmployee.id ? updatedEmployee : emp
       );
+      updateEmployees(updatedEmployees);
       setEditingEmployee(null);
     }
   };
@@ -363,15 +674,15 @@ const SecurityPayroll: React.FC = () => {
   };
 
   const handleProcessPayroll = () => {
-    // Process payroll for all active employees
-    const activeEmployees = securityEmployees.filter(emp => emp.status === 'active');
+    // Use filtered employees for payroll processing
+    const employeesForPayroll = filteredEmployees.filter(emp => emp.status === 'active');
     
-    if (activeEmployees.length === 0) {
-      alert('No active employees to process payroll for.');
+    if (employeesForPayroll.length === 0) {
+      alert('No active employees in the current filter to process payroll for.');
       return;
     }
 
-    // Show the payroll document
+    // Show the payroll document with filtered employees
     setShowPayrollDocument(true);
   };
 
@@ -458,19 +769,40 @@ const SecurityPayroll: React.FC = () => {
   };
 
   const generateSampleData = () => {
+    // Check if sample data already exists to prevent duplicates
+    const existingSampleIds = securityEmployees.filter(emp => emp.id.startsWith('sample-')).map(emp => emp.id);
+    if (existingSampleIds.length > 0) {
+      const shouldRegenerate = confirm(`Sample data already exists! Found ${existingSampleIds.length} sample employees.\n\nDo you want to remove existing sample data and generate new ones?`);
+      if (shouldRegenerate) {
+        // Remove existing sample data
+        const nonSampleEmployees = securityEmployees.filter(emp => !emp.id.startsWith('sample-'));
+        updateEmployees(nonSampleEmployees);
+        // Continue with generation below
+      } else {
+        return;
+      }
+    }
+
     const sampleEmployees: SecurityEmployee[] = [];
     const positions = ['Security Guard', 'Senior Security Guard', 'Security Supervisor', 'Security Manager'];
-    const banks = ['Bank of Kigali', 'Equity Bank', 'I&M Bank', 'GT Bank', 'Access Bank'];
+    const banks = ['BK', 'Equity Bank', 'I&M Bank', 'GT Bank', 'Access Bank'];
+    
+    // Start numbering from the current employee count + 1
+    const startingNumber = securityEmployees.length + 1;
     
     for (let i = 1; i <= 100; i++) {
       const basicSalary = Math.floor(Math.random() * 10000) + 15000; // 15,000 - 25,000
       const transportAllowance = Math.floor(Math.random() * 5000) + 10000; // 10,000 - 15,000
       const grossSalary = basicSalary + transportAllowance;
       
+      // Use timestamp + index to ensure unique IDs
+      const uniqueId = `sample-${Date.now()}-${i}`;
+      const employeeNumber = startingNumber + i - 1;
+      
       sampleEmployees.push({
-        id: `sample-${i}`,
-        no: i,
-        name: `Security Employee ${i}`,
+        id: uniqueId,
+        no: employeeNumber,
+        name: `Security Employee ${employeeNumber}`,
         post: positions[Math.floor(Math.random() * positions.length)],
         account: `${Math.floor(Math.random() * 9000000000) + 1000000000}`,
         bankName: banks[Math.floor(Math.random() * banks.length)],
@@ -480,14 +812,14 @@ const SecurityPayroll: React.FC = () => {
         transportAllowance,
         grossSalary,
         paye: calculatePAYE(grossSalary),
-        maternityLeaveEmployee: grossSalary * 0.003,
-        maternityLeaveEmployer: grossSalary * 0.003,
-        rssbPensionEmployee6: grossSalary * 0.06,
-        rssbPensionEmployer6: grossSalary * 0.06,
-        rssbPensionEmployee2: grossSalary * 0.02,
-        totalRssbContribution: grossSalary * 0.14,
-        netPayB4CBHI: grossSalary - (calculatePAYE(grossSalary) + grossSalary * 0.003 + grossSalary * 0.08),
-        mutuelle: (grossSalary - (calculatePAYE(grossSalary) + grossSalary * 0.003 + grossSalary * 0.08)) * 0.005,
+        maternityLeaveEmployee: Math.round(grossSalary * 0.003),
+        maternityLeaveEmployer: Math.round(grossSalary * 0.003),
+        rssbPensionEmployee6: Math.round(grossSalary * 0.06),
+        rssbPensionEmployer6: Math.round(grossSalary * 0.06),
+        rssbPensionEmployee2: Math.round(grossSalary * 0.02),
+        totalRssbContribution: Math.round(grossSalary * 0.14),
+        netPayB4CBHI: grossSalary - (calculatePAYE(grossSalary) + Math.round(grossSalary * 0.003) + Math.round(grossSalary * 0.08)),
+        mutuelle: Math.round((grossSalary - (calculatePAYE(grossSalary) + Math.round(grossSalary * 0.003) + Math.round(grossSalary * 0.08))) * 0.005),
         advance: Math.random() > 0.8 ? Math.floor(Math.random() * 5000) : 0,
         netBankList: 0, // Will be calculated
         status: 'active' as const,
@@ -501,7 +833,7 @@ const SecurityPayroll: React.FC = () => {
       netBankList: emp.netPayB4CBHI - emp.mutuelle - emp.advance
     }));
 
-    setSecurityEmployees(prev => [...prev, ...updatedEmployees]);
+    updateEmployees([...securityEmployees, ...updatedEmployees]);
     alert(`✅ Generated 100 sample security employees successfully!\n\n📊 Total employees: ${securityEmployees.length + 100}\n💰 Ready for payroll processing`);
   };
 
@@ -835,7 +1167,7 @@ const SecurityPayroll: React.FC = () => {
 
       // Show results
       if (newEmployees.length > 0) {
-        setSecurityEmployees(prev => [...prev, ...newEmployees]);
+        updateEmployees([...securityEmployees, ...newEmployees]);
         setImportStatus('success');
         
         let message = `✅ Bulk import completed successfully!\n\n📊 Imported: ${newEmployees.length} employees\n❌ Errors: ${errors.length}`;
@@ -997,6 +1329,11 @@ const SecurityPayroll: React.FC = () => {
         >
           <Send className="w-5 h-5" />
           <span>Process Payroll</span>
+          {filteredEmployeeCount > 0 && filteredEmployeeCount !== securityEmployees.filter(emp => emp.status === 'active').length && (
+            <span className="bg-white text-orange-600 text-xs font-bold px-2 py-1 rounded-full">
+              {filteredEmployeeCount}
+            </span>
+          )}
         </AnimatedButton>
         
         <AnimatedButton
@@ -1006,6 +1343,16 @@ const SecurityPayroll: React.FC = () => {
           <Upload className="w-5 h-5" />
           <span>Bulk Import</span>
         </AnimatedButton>
+
+        {getEmployeesWithMissingData().length > 0 && (
+          <AnimatedButton
+            onClick={() => setShowMissingDataModal(true)}
+            className="flex items-center space-x-2 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white px-6 py-3 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105"
+          >
+            <AlertCircle className="w-5 h-5" />
+            <span>Missing Data ({getEmployeesWithMissingData().length})</span>
+          </AnimatedButton>
+        )}
               </div>
             </div>
         </div>
@@ -1147,6 +1494,34 @@ const SecurityPayroll: React.FC = () => {
                         className="pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm w-80"
                       />
                     </div>
+                    
+                    <AnimatedButton
+                      onClick={() => setShowFilters(!showFilters)}
+                      className={`flex items-center space-x-2 px-4 py-3 rounded-xl shadow-lg transition-all duration-300 ${
+                        getActiveFiltersCount() > 0 
+                          ? 'bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white' 
+                          : 'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white'
+                      }`}
+                    >
+                      <Search className="w-5 h-5" />
+                      <span className="font-medium">Filters</span>
+                      {getActiveFiltersCount() > 0 && (
+                        <span className="bg-white text-orange-600 text-xs font-bold px-2 py-1 rounded-full">
+                          {getActiveFiltersCount()}
+                        </span>
+                      )}
+                    </AnimatedButton>
+
+                    {getActiveFiltersCount() > 0 && (
+                      <AnimatedButton
+                        onClick={clearFilters}
+                        className="flex items-center space-x-2 bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white px-4 py-3 rounded-xl shadow-lg transition-all duration-300"
+                      >
+                        <X className="w-5 h-5" />
+                        <span className="font-medium">Clear All</span>
+                      </AnimatedButton>
+                    )}
+                    
                 <AnimatedButton
                   onClick={handleAddEmployee}
                       className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-xl shadow-lg transition-all duration-300"
@@ -1157,19 +1532,337 @@ const SecurityPayroll: React.FC = () => {
                   </div>
               </div>
 
+              {/* Advanced Filters Panel */}
+              {showFilters && (
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200 shadow-lg">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <Search className="w-5 h-5 mr-2 text-blue-600" />
+                    Advanced Filters
+                  </h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {/* Bank Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Bank Name</label>
+                      <select
+                        value={filters.bankName}
+                        onChange={(e) => setFilters(prev => ({ ...prev, bankName: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">All Banks</option>
+                        {getUniqueBanks().map(bank => (
+                          <option key={bank} value={bank}>{bank}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Position Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Position</label>
+                      <select
+                        value={filters.post}
+                        onChange={(e) => setFilters(prev => ({ ...prev, post: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">All Positions</option>
+                        {getUniquePosts().map(post => (
+                          <option key={post} value={post}>{post}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Status Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                      <select
+                        value={filters.status}
+                        onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">All Statuses</option>
+                        {getUniqueStatuses().map(status => (
+                          <option key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Missing Data Filter */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Data Completeness</label>
+                      <select
+                        value={filters.hasMissingData}
+                        onChange={(e) => setFilters(prev => ({ ...prev, hasMissingData: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">All Records</option>
+                        <option value="no">Complete Records Only</option>
+                        <option value="yes">Missing Data Only</option>
+                      </select>
+                    </div>
+
+                    {/* Salary Range Filters */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Min Salary (RWF)</label>
+                      <input
+                        type="number"
+                        value={filters.minSalary}
+                        onChange={(e) => setFilters(prev => ({ ...prev, minSalary: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="0"
+                        min="0"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Max Salary (RWF)</label>
+                      <input
+                        type="number"
+                        value={filters.maxSalary}
+                        onChange={(e) => setFilters(prev => ({ ...prev, maxSalary: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="100000"
+                        min="0"
+                      />
+                    </div>
+
+                    {/* Sort Options */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+                      <select
+                        value={filters.sortBy}
+                        onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="no">Employee Number</option>
+                        <option value="name">Name</option>
+                        <option value="basicSalary">Basic Salary</option>
+                        <option value="netBankList">Net Pay</option>
+                        <option value="bankName">Bank</option>
+                        <option value="post">Position</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Sort Order</label>
+                      <select
+                        value={filters.sortOrder}
+                        onChange={(e) => setFilters(prev => ({ ...prev, sortOrder: e.target.value as 'asc' | 'desc' }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="asc">Ascending (A-Z, 0-9)</option>
+                        <option value="desc">Descending (Z-A, 9-0)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Filter Summary */}
+                  <div className="mt-4 p-3 bg-white rounded-lg border border-blue-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm font-medium text-gray-700">Showing:</span>
+                        <span className="text-sm font-bold text-blue-600">{filteredEmployees.length}</span>
+                        <span className="text-sm text-gray-600">of</span>
+                        <span className="text-sm font-bold text-gray-900">{securityEmployees.length}</span>
+                        <span className="text-sm text-gray-600">employees</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => setShowDebugInfo(!showDebugInfo)}
+                          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          {showDebugInfo ? 'Hide' : 'Show'} Debug Info
+                        </button>
+                        <button
+                          onClick={() => {
+                            console.log('=== DEBUGGING BANK FILTER ===');
+                            console.log('Total employees:', securityEmployees.length);
+                            console.log('Current bank filter:', filters.bankName);
+                            console.log('All unique banks:', getUniqueBanks());
+                            console.log('Raw bank names in data:', securityEmployees.map(emp => emp.bankName).filter(Boolean));
+                            console.log('Normalized bank names:', securityEmployees.map(emp => normalizeBankName(emp.bankName)).filter(Boolean));
+                            
+                            if (filters.bankName) {
+                              const matchingEmployees = securityEmployees.filter(emp => 
+                                normalizeBankName(emp.bankName) === filters.bankName
+                              );
+                              console.log(`Employees matching "${filters.bankName}":`, matchingEmployees.length);
+                              console.log('Matching employees:', matchingEmployees.slice(0, 5).map(emp => ({
+                                name: emp.name,
+                                rawBank: emp.bankName,
+                                normalizedBank: normalizeBankName(emp.bankName)
+                              })));
+                            }
+                          }}
+                          className="text-sm text-green-600 hover:text-green-800 font-medium"
+                        >
+                          Debug Console
+                        </button>
+                        <button
+                          onClick={() => {
+                            // Clean up duplicate IDs
+                            const uniqueEmployees: SecurityEmployee[] = [];
+                            const seenIds = new Set<string>();
+                            let duplicatesRemoved = 0;
+                            
+                            securityEmployees.forEach(emp => {
+                              if (!seenIds.has(emp.id)) {
+                                seenIds.add(emp.id);
+                                uniqueEmployees.push(emp);
+                              } else {
+                                duplicatesRemoved++;
+                              }
+                            });
+                            
+                            if (duplicatesRemoved > 0) {
+                              updateEmployees(uniqueEmployees);
+                              alert(`✅ Cleaned up data!\n\nRemoved ${duplicatesRemoved} duplicate employees.\nRemaining: ${uniqueEmployees.length} employees.`);
+                            } else {
+                              alert('✅ No duplicates found! Data is already clean.');
+                            }
+                          }}
+                          className="text-sm text-purple-600 hover:text-purple-800 font-medium"
+                        >
+                          Clean Duplicates
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm('⚠️ WARNING: This will completely clear ALL employee data!\n\nThis action cannot be undone.\n\nAre you sure you want to continue?')) {
+                              // Clear localStorage completely
+                              localStorage.removeItem('securityEmployees');
+                              // Reset to default employees only
+                              updateEmployees(defaultEmployees);
+                              alert('✅ All data cleared! Reset to default employees only.');
+                            }
+                          }}
+                          className="text-sm text-red-600 hover:text-red-800 font-medium"
+                        >
+                          Clear All Data
+                        </button>
+                        {getActiveFiltersCount() > 0 && (
+                          <button
+                            onClick={clearFilters}
+                            className="text-sm text-red-600 hover:text-red-800 font-medium"
+                          >
+                            Clear all filters
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Debug Information */}
+                    {showDebugInfo && (
+                      <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <h5 className="text-sm font-semibold text-gray-800 mb-2">Debug Information:</h5>
+                        <div className="text-xs text-gray-600 space-y-1">
+                          <div><strong>Active Bank Filter:</strong> {filters.bankName || 'None'}</div>
+                          <div><strong>Unique Banks in Data:</strong> {getUniqueBanks().join(', ')}</div>
+                          <div><strong>Raw Bank Names in Data:</strong> {securityEmployees.map(emp => emp.bankName).filter(Boolean).slice(0, 10).join(', ')}{securityEmployees.length > 10 ? '...' : ''}</div>
+                          {filters.bankName && (
+                            <div><strong>Matching Employees:</strong> {
+                              securityEmployees
+                                .filter(emp => normalizeBankName(emp.bankName) === filters.bankName)
+                                .map(emp => `${emp.name} (${emp.bankName})`)
+                                .slice(0, 5)
+                                .join(', ')
+                            }{securityEmployees.filter(emp => normalizeBankName(emp.bankName) === filters.bankName).length > 5 ? '...' : ''}</div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Payroll Processing Info */}
+              {getActiveFiltersCount() > 0 && (
+                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-4 mb-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-yellow-100 rounded-lg">
+                        <AlertCircle className="w-5 h-5 text-yellow-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-yellow-800">Payroll Processing Notice</h4>
+                        <p className="text-yellow-700 text-sm">
+                          Filters are active. Payroll will be processed for <strong>{filteredEmployeeCount}</strong> active employees only.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-yellow-800">
+                        Filtered Total: {formatCurrency(filteredTotalPayroll)}
+                      </p>
+                      <p className="text-xs text-yellow-600">
+                        vs All Employees: {formatCurrency(totalPayroll)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
                 {/* Enhanced Excel-like table with all columns */}
                 <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-lg">
                   <table className="w-full border-collapse">
                   <thead>
                       <tr className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
-                        <th className="border-r border-blue-500 px-3 py-4 text-left text-xs font-bold uppercase tracking-wider">NO</th>
-                        <th className="border-r border-blue-500 px-3 py-4 text-left text-xs font-bold uppercase tracking-wider">NAME</th>
-                        <th className="border-r border-blue-500 px-3 py-4 text-left text-xs font-bold uppercase tracking-wider">POST</th>
+                        <th 
+                          className="border-r border-blue-500 px-3 py-4 text-left text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-blue-700 transition-colors"
+                          onClick={() => handleSort('no')}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>NO</span>
+                            {filters.sortBy === 'no' && (
+                              <span className="text-xs">{filters.sortOrder === 'asc' ? '↑' : '↓'}</span>
+                            )}
+                          </div>
+                        </th>
+                        <th 
+                          className="border-r border-blue-500 px-3 py-4 text-left text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-blue-700 transition-colors"
+                          onClick={() => handleSort('name')}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>NAME</span>
+                            {filters.sortBy === 'name' && (
+                              <span className="text-xs">{filters.sortOrder === 'asc' ? '↑' : '↓'}</span>
+                            )}
+                          </div>
+                        </th>
+                        <th 
+                          className="border-r border-blue-500 px-3 py-4 text-left text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-blue-700 transition-colors"
+                          onClick={() => handleSort('post')}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>POST</span>
+                            {filters.sortBy === 'post' && (
+                              <span className="text-xs">{filters.sortOrder === 'asc' ? '↑' : '↓'}</span>
+                            )}
+                          </div>
+                        </th>
                         <th className="border-r border-blue-500 px-3 py-4 text-left text-xs font-bold uppercase tracking-wider">ACCOUNT</th>
-                        <th className="border-r border-blue-500 px-3 py-4 text-left text-xs font-bold uppercase tracking-wider">BANK NAME</th>
+                        <th 
+                          className="border-r border-blue-500 px-3 py-4 text-left text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-blue-700 transition-colors"
+                          onClick={() => handleSort('bankName')}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>BANK NAME</span>
+                            {filters.sortBy === 'bankName' && (
+                              <span className="text-xs">{filters.sortOrder === 'asc' ? '↑' : '↓'}</span>
+                            )}
+                          </div>
+                        </th>
                         <th className="border-r border-blue-500 px-3 py-4 text-left text-xs font-bold uppercase tracking-wider">TELEPHONE</th>
                         <th className="border-r border-blue-500 px-3 py-4 text-left text-xs font-bold uppercase tracking-wider">ID</th>
-                        <th className="border-r border-blue-500 px-3 py-4 text-left text-xs font-bold uppercase tracking-wider">Basic Salary</th>
+                        <th 
+                          className="border-r border-blue-500 px-3 py-4 text-left text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-blue-700 transition-colors"
+                          onClick={() => handleSort('basicSalary')}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Basic Salary</span>
+                            {filters.sortBy === 'basicSalary' && (
+                              <span className="text-xs">{filters.sortOrder === 'asc' ? '↑' : '↓'}</span>
+                            )}
+                          </div>
+                        </th>
                         <th className="border-r border-blue-500 px-3 py-4 text-left text-xs font-bold uppercase tracking-wider">Transport Allowance</th>
                         <th className="border-r border-blue-500 px-3 py-4 text-left text-xs font-bold uppercase tracking-wider">Gross Salary</th>
                         <th className="border-r border-blue-500 px-3 py-4 text-left text-xs font-bold uppercase tracking-wider">PAYE</th>
@@ -1182,15 +1875,38 @@ const SecurityPayroll: React.FC = () => {
                         <th className="border-r border-blue-500 px-3 py-4 text-left text-xs font-bold uppercase tracking-wider">Net pay B4 CBHI</th>
                         <th className="border-r border-blue-500 px-3 py-4 text-left text-xs font-bold uppercase tracking-wider">Mutuelle 0.5%</th>
                         <th className="border-r border-blue-500 px-3 py-4 text-left text-xs font-bold uppercase tracking-wider">Advance</th>
-                        <th className="border-r border-blue-500 px-3 py-4 text-left text-xs font-bold uppercase tracking-wider">Net Bank List</th>
+                        <th 
+                          className="border-r border-blue-500 px-3 py-4 text-left text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-blue-700 transition-colors"
+                          onClick={() => handleSort('netBankList')}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Net Bank List</span>
+                            {filters.sortBy === 'netBankList' && (
+                              <span className="text-xs">{filters.sortOrder === 'asc' ? '↑' : '↓'}</span>
+                            )}
+                          </div>
+                        </th>
                         <th className="px-3 py-4 text-left text-xs font-bold uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                      {filteredEmployees.map((employee, index) => (
-                        <tr key={employee.id} className={`hover:bg-blue-50 transition-colors duration-200 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                      {filteredEmployees.map((employee, index) => {
+                        const missingFields = getMissingDataFields(employee);
+                        const hasMissingData = missingFields.length > 0;
+                        
+                        return (
+                        <tr key={employee.id} className={`hover:bg-blue-50 transition-colors duration-200 ${hasMissingData ? 'bg-red-50 border-l-4 border-red-400' : index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
                           <td className="border-r border-gray-200 px-3 py-4 text-sm font-medium text-gray-900">{employee.no}</td>
-                          <td className="border-r border-gray-200 px-3 py-4 text-sm font-semibold text-gray-900">{employee.name}</td>
+                          <td className="border-r border-gray-200 px-3 py-4 text-sm font-semibold text-gray-900">
+                            <div className="flex items-center space-x-2">
+                              <span>{employee.name}</span>
+                              {hasMissingData && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                  {missingFields.length} missing
+                                </span>
+                              )}
+                            </div>
+                          </td>
                           <td className="border-r border-gray-200 px-3 py-4 text-sm text-gray-700">{employee.post}</td>
                           <td className="border-r border-gray-200 px-3 py-4 text-sm text-gray-700 font-mono">{employee.account}</td>
                           <td className="border-r border-gray-200 px-3 py-4 text-sm bg-red-50 text-red-700 font-semibold">{employee.bankName}</td>
@@ -1289,7 +2005,8 @@ const SecurityPayroll: React.FC = () => {
                           </div>
                         </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1471,7 +2188,7 @@ const SecurityPayroll: React.FC = () => {
       {/* Payroll Document Modal */}
       {showPayrollDocument && (
         <PayrollDocument
-          employees={securityEmployees}
+          employees={filteredEmployees.filter(emp => emp.status === 'active')}
           onClose={() => setShowPayrollDocument(false)}
         />
       )}
@@ -1695,6 +2412,428 @@ const SecurityPayroll: React.FC = () => {
                       ⚠️ Cannot import: Missing required fields (Name, Basic Salary, Transport Allowance)
                     </p>
                   )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Employee Modal */}
+      {showAddEmployeeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Add New Security Employee</h2>
+                <button
+                  onClick={handleCancelAddEmployee}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+    </div>
+
+              <div className="space-y-6">
+                {/* Personal Information */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <User className="w-5 h-5 mr-2 text-blue-600" />
+                    Personal Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Full Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={newEmployee.name}
+                        onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value})}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Enter full name"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Position/Post
+                      </label>
+                      <input
+                        type="text"
+                        value={newEmployee.post}
+                        onChange={(e) => setNewEmployee({...newEmployee, post: e.target.value})}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Security Guard"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Telephone
+                      </label>
+                      <input
+                        type="tel"
+                        value={newEmployee.telephone}
+                        onChange={(e) => setNewEmployee({...newEmployee, telephone: e.target.value})}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="+250788123456"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        ID Number
+                      </label>
+                      <input
+                        type="text"
+                        value={newEmployee.idNumber}
+                        onChange={(e) => setNewEmployee({...newEmployee, idNumber: e.target.value})}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="1234567890123456"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Banking Information */}
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <DollarSign className="w-5 h-5 mr-2 text-green-600" />
+                    Banking Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Account Number
+                      </label>
+                      <input
+                        type="text"
+                        value={newEmployee.account}
+                        onChange={(e) => setNewEmployee({...newEmployee, account: e.target.value})}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="100164086927"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Bank Name
+                      </label>
+                      <select
+                        value={newEmployee.bankName}
+                        onChange={(e) => setNewEmployee({...newEmployee, bankName: e.target.value})}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">Select Bank</option>
+                        <option value="BK">Bank of Kigali (BK)</option>
+                        <option value="EQUITY">Equity Bank</option>
+                        <option value="I&M">I&M Bank</option>
+                        <option value="GT">GT Bank</option>
+                        <option value="ACCESS">Access Bank</option>
+                        <option value="OTHER">Other</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Salary Information */}
+                <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <Calculator className="w-5 h-5 mr-2 text-orange-600" />
+                    Salary Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Basic Salary <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        value={newEmployee.basicSalary}
+                        onChange={(e) => setNewEmployee({...newEmployee, basicSalary: Number(e.target.value)})}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="20000"
+                        min="0"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Transport Allowance <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        value={newEmployee.transportAllowance}
+                        onChange={(e) => setNewEmployee({...newEmployee, transportAllowance: Number(e.target.value)})}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="12000"
+                        min="0"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Advance Amount
+                      </label>
+                      <input
+                        type="number"
+                        value={newEmployee.advance}
+                        onChange={(e) => setNewEmployee({...newEmployee, advance: Number(e.target.value)})}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="0"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Salary Preview */}
+                  {newEmployee.basicSalary > 0 && newEmployee.transportAllowance >= 0 && (
+                    <div className="mt-4 p-4 bg-white rounded-lg border border-orange-200">
+                      <h4 className="font-semibold text-gray-900 mb-2">Salary Preview:</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-600">Gross Salary:</span>
+                          <p className="font-semibold text-blue-600">{formatCurrency((newEmployee.basicSalary || 0) + (newEmployee.transportAllowance || 0))}</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">PAYE:</span>
+                          <p className="font-semibold">{formatCurrency(calculatePAYE((newEmployee.basicSalary || 0) + (newEmployee.transportAllowance || 0)))}</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">RSSB (8%):</span>
+                          <p className="font-semibold">{formatCurrency(((newEmployee.basicSalary || 0) + (newEmployee.transportAllowance || 0)) * 0.08)}</p>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Net Pay:</span>
+                          <p className="font-semibold text-green-600">{formatCurrency(((newEmployee.basicSalary || 0) + (newEmployee.transportAllowance || 0)) * 0.915)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                  <button
+                    onClick={handleCancelAddEmployee}
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveNewEmployee}
+                    disabled={!newEmployee.name || !newEmployee.basicSalary || !newEmployee.transportAllowance}
+                    className="px-6 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                  >
+                    Add Employee
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Missing Data Management Modal */}
+      {showMissingDataModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">Missing Data Management</h2>
+                  <p className="text-gray-600 mt-1">
+                    {getEmployeesWithMissingData().length} employees need data completion
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowMissingDataModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                    <div className="flex items-center">
+                      <AlertCircle className="w-8 h-8 text-red-500 mr-3" />
+                      <div>
+                        <p className="text-red-800 font-semibold">Incomplete Records</p>
+                        <p className="text-red-600 text-2xl font-bold">{getEmployeesWithMissingData().length}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                    <div className="flex items-center">
+                      <CheckCircle className="w-8 h-8 text-green-500 mr-3" />
+                      <div>
+                        <p className="text-green-800 font-semibold">Ready for Payroll</p>
+                        <p className="text-green-600 text-2xl font-bold">{getEmployeesReadyForPayroll().length}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <div className="flex items-center">
+                      <Users className="w-8 h-8 text-blue-500 mr-3" />
+                      <div>
+                        <p className="text-blue-800 font-semibold">Total Employees</p>
+                        <p className="text-blue-600 text-2xl font-bold">{securityEmployees.length}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Missing Data Table */}
+                <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-lg">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-gradient-to-r from-red-600 to-pink-700 text-white">
+                        <th className="border-r border-red-500 px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">No</th>
+                        <th className="border-r border-red-500 px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Name</th>
+                        <th className="border-r border-red-500 px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Missing Fields</th>
+                        <th className="border-r border-red-500 px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Priority</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {getEmployeesWithMissingData().map((employee, index) => {
+                        const missingFields = getMissingDataFields(employee);
+                        const priority = missingFields.includes('Name') || missingFields.includes('Basic Salary') ? 'HIGH' : 'MEDIUM';
+                        
+                        return (
+                          <tr key={employee.id} className={`hover:bg-red-50 transition-colors duration-200 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                            <td className="border-r border-gray-200 px-4 py-3 text-sm font-medium text-gray-900">{employee.no}</td>
+                            <td className="border-r border-gray-200 px-4 py-3 text-sm font-semibold text-gray-900">{employee.name || 'Unknown'}</td>
+                            <td className="border-r border-gray-200 px-4 py-3 text-sm">
+                              <div className="flex flex-wrap gap-1">
+                                {missingFields.map((field, idx) => (
+                                  <span key={idx} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                    {field}
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="border-r border-gray-200 px-4 py-3 text-sm">
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                priority === 'HIGH' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {priority}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-sm">
+                              <div className="flex items-center space-x-2">
+                                <AnimatedButton
+                                  onClick={() => {
+                                    setShowMissingDataModal(false);
+                                    handleEditEmployee(employee);
+                                  }}
+                                  className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </AnimatedButton>
+                                <AnimatedButton
+                                  onClick={() => {
+                                    if (confirm(`Remove ${employee.name || 'this employee'} from the system?`)) {
+                                      const updatedEmployees = securityEmployees.filter(emp => emp.id !== employee.id);
+                                      updateEmployees(updatedEmployees);
+                                    }
+                                  }}
+                                  className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200"
+                                >
+                                  <X className="w-4 h-4" />
+                                </AnimatedButton>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Bulk Actions */}
+                <div className="bg-gray-50 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Bulk Actions</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <button
+                      onClick={() => {
+                        if (confirm('Generate sample data for missing fields? This will add default values for incomplete records.')) {
+                          const updatedEmployees = securityEmployees.map(emp => {
+                            const missingFields = getMissingDataFields(emp);
+                            if (missingFields.length > 0) {
+                              return {
+                                ...emp,
+                                name: emp.name || `Security Guard ${emp.no}`,
+                                post: emp.post || 'Security Guard',
+                                account: emp.account || `${Math.floor(Math.random() * 9000000000) + 1000000000}`,
+                                bankName: emp.bankName || 'BK',
+                                telephone: emp.telephone || `+250788${String(Math.floor(Math.random() * 900000) + 100000)}`,
+                                idNumber: emp.idNumber || `${Math.floor(Math.random() * 9000000000000000) + 1000000000000000}`,
+                                basicSalary: emp.basicSalary || 20000,
+                                transportAllowance: emp.transportAllowance >= 0 ? emp.transportAllowance : 12000
+                              };
+                            }
+                            return emp;
+                          });
+                          updateEmployees(updatedEmployees);
+                          alert('✅ Sample data generated for all incomplete records!');
+                        }
+                      }}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg font-medium transition-colors"
+                    >
+                      Generate Sample Data
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        if (confirm('Remove all employees with missing data? This action cannot be undone.')) {
+                          const updatedEmployees = getEmployeesReadyForPayroll();
+                          updateEmployees(updatedEmployees);
+                          alert(`✅ Removed ${getEmployeesWithMissingData().length} incomplete records!`);
+                        }
+                      }}
+                      className="bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-lg font-medium transition-colors"
+                    >
+                      Remove Incomplete Records
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        const csvContent = [
+                          'Name,Missing Fields,Priority',
+                          ...getEmployeesWithMissingData().map(emp => {
+                            const missingFields = getMissingDataFields(emp);
+                            const priority = missingFields.includes('Name') || missingFields.includes('Basic Salary') ? 'HIGH' : 'MEDIUM';
+                            return `"${emp.name || 'Unknown'}","${missingFields.join(', ')}","${priority}"`;
+                          })
+                        ].join('\n');
+
+                        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                        const link = document.createElement('a');
+                        const url = URL.createObjectURL(blob);
+                        link.setAttribute('href', url);
+                        link.setAttribute('download', `missing_data_report_${new Date().toISOString().split('T')[0]}.csv`);
+                        link.style.visibility = 'hidden';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }}
+                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-3 rounded-lg font-medium transition-colors"
+                    >
+                      Export Missing Data Report
+                    </button>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                  <button
+                    onClick={() => setShowMissingDataModal(false)}
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Close
+                  </button>
                 </div>
               </div>
             </div>
